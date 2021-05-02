@@ -37,7 +37,7 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
             --name=pixlovarr \
             --restart=always \
             -v /docker/pixlovarr/config:/config \
-            marc0janssen/pixlovarr
+            marc0janssen/pixlovarr:latest
 
 ## Config
 

@@ -9,4 +9,4 @@ docker run -d \
 	--name=pixlovarr \
 	--restart=always \
 	-v /docker/pixlovarr/config:/config \
-	marc0janssen/pixlovarr
+	marc0janssen/pixlovarr:latest
