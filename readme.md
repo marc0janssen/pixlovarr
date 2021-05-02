@@ -62,7 +62,7 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 [Pixlovarr Github](https://github.com/marc0janssen/pixlovarr) \
 [Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr)
 
-## Acknowledge
+## Acknowledgement
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API with Sonarr and Radarr (slightly edited by me) was coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
