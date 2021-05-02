@@ -275,7 +275,10 @@ class Pixlovarr():
 # Member Commands
 
     def series(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.sonarr_enabled:
+
             serie = self.sonarr.get_serie()
 
             if type(serie) is SonarrSerieItem:
@@ -297,7 +300,9 @@ class Pixlovarr():
             )
 
     def downloadSeries(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.sonarr_enabled:
 
             logging.info(
                 f"{update.effective_user.first_name} - "
@@ -307,19 +312,11 @@ class Pixlovarr():
 
             self.findMedia(update, context, "serie", ' '.join(context.args))
 
-    def downloadMovies(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
-
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /dm."
-            )
-
-            self.findMedia(update, context, "movie", ' '.join(context.args))
-
     def movies(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.radarr_enabled:
+
             movie = self.radarr.get_movie()
 
             if type(movie) is RadarrMovieItem:
@@ -339,6 +336,19 @@ class Pixlovarr():
                 f"{update.effective_user.id} "
                 f"issued /movies."
             )
+
+    def downloadMovies(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.radarr_enabled:
+
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /dm."
+            )
+
+            self.findMedia(update, context, "movie", ' '.join(context.args))
 
 # Admin Commands
     def new(self, update, context):
