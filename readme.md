@@ -48,10 +48,12 @@ In the directory /config the python script expects a config file called 'pixlova
             ADMIN_USER_ID = ID_NUMBER
 
             [SONARR]
+            ENABLED = ON
             URL = http://192.168.1.1:8989
             TOKEN = SONARR_API_TOKEN
 
             [RADARR]
+            ENABLED = OFF
             [URL] = http://192.168.1.1:7878
             TOKEN = RADARR_API_TOKEN
 
