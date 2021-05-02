@@ -29,6 +29,8 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
 
 The build.sh script will build you your own Pixlovarr docker image. But Pixlovarr is also available on Docker Hub.
 
+        docker build -t marc0janssen/pixlovarr:latest -f ./Dockerfile .
+
 The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image for you.
 
         docker run -d \
