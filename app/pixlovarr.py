@@ -44,14 +44,20 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
+                self.sonarr_enabled = True if (
+                    self.config['SONARR']['ENABLED'] == "ON") else False
                 self.sonarr_url = self.config['SONARR']['URL']
                 self.sonarr_token = self.config['SONARR']['TOKEN']
+                self.radarr_enabled = True if (
+                    self.config['RADARR']['ENABLED'] == "ON") else False
                 self.radarr_url = self.config['RADARR']['URL']
                 self.radarr_token = self.config['RADARR']['TOKEN']
 
-                self.sonarr = Sonarr(self.sonarr_url, self.sonarr_token)
+                if self.sonarr_enabled:
+                    self.sonarr = Sonarr(self.sonarr_url, self.sonarr_token)
 
-                self.radarr = Radarr(self.radarr_url, self.radarr_token)
+                if self.radarr_enabled:
+                    self.radarr = Radarr(self.radarr_url, self.radarr_token)
 
                 self.pixlovarr_signups_file = (
                     "./config/pixlovarr_signups.json")
