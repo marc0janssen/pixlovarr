@@ -2,7 +2,6 @@ FROM alpine:latest
 
 RUN mkdir /app && mkdir /config
 
-ADD /app/pycliarr /app/pycliarr/
 ADD /app/pixlovarr.py /app/pixlovarr.py
 ADD /app/pixlovarr.ini.example /app/pixlovarr.ini.example
 
@@ -19,6 +18,7 @@ RUN apk add --update \
 	&& python3 get-pip.py \
 	&& pip3 install --no-cache \
 	python-telegram-bot \
+	pycliarr \
 	requests \
 	&& apk del \
 	python3-dev \

@@ -16,12 +16,12 @@ import json
 import configparser
 import shutil
 import sys
-from pycliarr.api.radarr import (
-    RadarrCli as Radarr,
+from pycliarr.api import (
+    RadarrCli,
     RadarrMovieItem
 )
-from pycliarr.api.sonarr import (
-    SonarrCli as Sonarr,
+from pycliarr.api import (
+    SonarrCli,
     SonarrSerieItem
 )
 from pycliarr.api.exceptions import CliServerError
@@ -54,10 +54,14 @@ class Pixlovarr():
                 self.radarr_token = self.config['RADARR']['TOKEN']
 
                 if self.sonarr_enabled:
-                    self.sonarr = Sonarr(self.sonarr_url, self.sonarr_token)
+                    self.sonarr_node = SonarrCli(
+                        self.sonarr_url, self.sonarr_token
+                    )
 
                 if self.radarr_enabled:
-                    self.radarr = Radarr(self.radarr_url, self.radarr_token)
+                    self.radarr_node = RadarrCli(
+                        self.radarr_url, self.radarr_token
+                    )
 
                 self.pixlovarr_signups_file = (
                     "./config/pixlovarr_signups.json")
@@ -279,7 +283,7 @@ class Pixlovarr():
                 self.isGranted(update) and \
                 self.sonarr_enabled:
 
-            serie = self.sonarr.get_serie()
+            serie = self.sonarr_node.get_serie()
 
             if type(serie) is SonarrSerieItem:
 
@@ -317,7 +321,7 @@ class Pixlovarr():
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
-            movie = self.radarr.get_movie()
+            movie = self.radarr_node.get_movie()
 
             if type(movie) is RadarrMovieItem:
 
@@ -486,29 +490,29 @@ class Pixlovarr():
                 text="Please be patient...")
 
             if data[1] == "serie":
-                media = self.sonarr.lookup_serie(tvdb_id=data[2])
+                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
                 try:
-                    seasons = []
-
+                    monitored_seasons = []
                     if data[4] == "False":
-                        for seasonNumber in range(media.seasonCount+1):
-                            monitored = True if seasonNumber == 1 else False
-                            seasons.append(
-                                {"seasonNumber": seasonNumber,
-                                    "monitored": monitored})
+                        monitored_seasons = [1]
 
-                    self.sonarr.add_serie(
-                        tvdb_id=data[2], quality=data[3], seasons=seasons)
+                    self.sonarr_node.add_serie(
+                        tvdb_id=data[2], quality=data[3],
+                        monitored_seasons=monitored_seasons
+                    )
+
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
                 except CliServerError:
                     pass
             else:
-                media = self.radarr.lookup_movie(imdb_id=data[2])
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
                 try:
-                    self.radarr.add_movie(imdb_id=data[2], quality=data[3])
+                    self.radarr_node.add_movie(
+                        imdb_id=data[2], quality=data[3]
+                    )
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
@@ -538,7 +542,7 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaid, 3:qualityid
 
             if data[1] == "serie":
-                media = self.sonarr.lookup_serie(tvdb_id=data[2])
+                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
                 callbackdata = f"download:{data[1]}:{data[2]}:{data[3]}"
                 keyboard = [
                     [InlineKeyboardButton(
@@ -546,12 +550,12 @@ class Pixlovarr():
                         f"'{media.title}({media.year})'",
                         callback_data=f"{callbackdata}:False")],
                     [InlineKeyboardButton(
-                        f"Download all seasons of "
+                        f"Download only new seasons of "
                         f"'{media.title}({media.year})'",
                         callback_data=f"{callbackdata}:True")]
                 ]
             else:
-                media = self.radarr.lookup_movie(imdb_id=data[2])
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
                 callbackdata = f"download:{data[1]}:{data[2]}:{data[3]}:False"
                 keyboard = [[InlineKeyboardButton(
                     f"Download '{media.title}({media.year})'",
@@ -589,10 +593,10 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaid
 
             if data[1] == "serie":
-                profiles = self.sonarr.get_quality_profiles()
+                profiles = self.sonarr_node.get_quality_profiles()
                 callbackdata = f"showdlsummary:{data[1]}:{data[2]}"
             else:
-                profiles = self.radarr.get_quality_profiles()
+                profiles = self.radarr_node.get_quality_profiles()
                 callbackdata = f"showdlsummary:{data[1]}:{data[2]}"
 
             keyboard = []
@@ -634,9 +638,9 @@ class Pixlovarr():
             )
 
             if mediaType == "serie":
-                media = self.sonarr.lookup_serie(term=searchQuery)
+                media = self.sonarr_node.lookup_serie(term=searchQuery)
             else:
-                media = self.radarr.lookup_movie(term=searchQuery)
+                media = self.radarr_node.lookup_movie(term=searchQuery)
 
             if media:
                 keyboard = []
