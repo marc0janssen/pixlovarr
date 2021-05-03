@@ -83,8 +83,10 @@ class Pixlovarr():
                 sys.exit()
 
         except IOError or FileNotFoundError:
-            logging.error(f"Can't open file {self.config_file}, "
-                          f"creating example INI file.")
+            logging.error(
+                f"Can't open file {self.config_file}, "
+                f"creating example INI file."
+            )
 
             shutil.copyfile('./app/pixlovarr.ini.example',
                             './config/pixlovarr.ini.example')
@@ -483,7 +485,7 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
-            # 3:qualityid, 4: Download all seasons for serie
+            # 3:qualityid, 4: Download whixh seasons?
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -493,9 +495,15 @@ class Pixlovarr():
                 media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
                 try:
-                    monitored_seasons = []
-                    if data[4] == "False":
+                    if data[4] == "First":
                         monitored_seasons = [1]
+
+                    elif data[4] == "All":
+                        monitored_seasons = [
+                            i for i in range(1, media.seasonCount+1)]
+
+                    elif data[4] == "New":
+                        monitored_seasons = []
 
                     self.sonarr_node.add_serie(
                         tvdb_id=data[2], quality=data[3],
@@ -546,13 +554,14 @@ class Pixlovarr():
                 callbackdata = f"download:{data[1]}:{data[2]}:{data[3]}"
                 keyboard = [
                     [InlineKeyboardButton(
-                        f"Download season 1 of "
-                        f"'{media.title}({media.year})'",
-                        callback_data=f"{callbackdata}:False")],
+                        "Download only season 1",
+                        callback_data=f"{callbackdata}:First")],
                     [InlineKeyboardButton(
-                        f"Download only new seasons of "
-                        f"'{media.title}({media.year})'",
-                        callback_data=f"{callbackdata}:True")]
+                        "Download all seasons",
+                        callback_data=f"{callbackdata}:All")],
+                    [InlineKeyboardButton(
+                        "Download only new seasons",
+                        callback_data=f"{callbackdata}:New")]
                 ]
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
