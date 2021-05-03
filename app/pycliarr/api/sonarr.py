@@ -133,7 +133,7 @@ class SonarrCli(BaseCliMediaApi):
         quality: int,
         tvdb_id: Optional[int] = None,
         serie_info: Optional[SonarrSerieItem] = None,
-        seasons: Optional[dict] = None,
+        seasons: Optional[dict] = [],
         monitored: bool = True,
         search: bool = True,
     ) -> json_data:
