@@ -522,7 +522,7 @@ class Pixlovarr():
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Your {typeOfMedia} '{title}({year})' "
+            text=f"The {typeOfMedia} '{title}({year})' "
             f"was added to the downloadserver, "
             f"{update.effective_chat.first_name}. "
             f"Thank you and till next time.")

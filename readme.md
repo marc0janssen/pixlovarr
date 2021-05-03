@@ -66,6 +66,6 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 
 ## Acknowledgement
 
-The project was coded and setup by myself. But I have to give credit where credit is due. The API with Sonarr and Radarr (slightly edited by me) was coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
+The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
 2021-05-02 10:35:20
