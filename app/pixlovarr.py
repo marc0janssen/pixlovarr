@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-02 10:11:33
+# update: 2021-05-04 19:17:23
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -101,7 +101,7 @@ class Pixlovarr():
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=(
-                        f"{update.effective_chat.first_name}, "
+                        f"{update.effective_user.first_name}, "
                         f"you are not authorized for this command."
                     )
                 )
@@ -187,7 +187,7 @@ class Pixlovarr():
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
                         text=(
-                            f"Thank you {update.effective_chat.first_name}, "
+                            f"Thank you {update.effective_user.first_name}, "
                             f"for signing up. The admin has been notified. "
                             f"Please be patient and you will be added to "
                             f"the memberlist soon."
@@ -213,7 +213,7 @@ class Pixlovarr():
                         chat_id=update.effective_chat.id,
                         text=(
                             f"Please be patient "
-                            f"{update.effective_chat.first_name}, "
+                            f"{update.effective_user.first_name}, "
                             f"we get you hooked up as soon as possible."
                         )
                     )
@@ -222,7 +222,7 @@ class Pixlovarr():
                     chat_id=update.effective_chat.id,
                     text=(
                         f"No need to sign up twice, "
-                        f"{update.effective_chat.first_name}"
+                        f"{update.effective_user.first_name}"
                     )
                 )
 
@@ -267,7 +267,7 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=(
-                    f"Hi {update.effective_chat.first_name}, "
+                    f"Hi {update.effective_user.first_name}, "
                     f"your userid is {update.effective_user.id}."
                 )
             )
@@ -468,11 +468,11 @@ class Pixlovarr():
         if not self.isRejected(update):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=f"Sorry {update.effective_chat.first_name}, "
+                text=f"Sorry {update.effective_user.first_name}, "
                 f"I didn't understand that command.")
 
             logging.info(
-                f"{update.effective_chat.first_name} - "
+                f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} Unknown command given."
             )
 
@@ -532,14 +532,14 @@ class Pixlovarr():
             chat_id=update.effective_chat.id,
             text=f"The {typeOfMedia} '{title}({year})' "
             f"was added to the downloadserver, "
-            f"{update.effective_chat.first_name}. "
+            f"{update.effective_user.first_name}. "
             f"Thank you and till next time.")
 
         logging.info(
-            f"{update.effective_chat.first_name} - "
+            f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} has added the "
             f"{typeOfMedia} '{title}({year})' "
-            f"to the queue.")
+            f"to the downloadserver.")
 
     def showDownloadSummary(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -630,7 +630,7 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"No profiles were found, Please set them up in Sonarr "
-                f"and Radarr {update.effective_chat.first_name}.")
+                f"and Radarr {update.effective_user.first_name}.")
 
     def findMedia(self, update, context, mediaType, searchQuery):
 
@@ -641,7 +641,7 @@ class Pixlovarr():
             )
 
             logging.info(
-                f"{update.effective_chat.first_name} - "
+                f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} is searching for "
                 f"a {mediaType} with keywords '{searchQuery}'"
             )
@@ -711,12 +711,12 @@ class Pixlovarr():
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f"The specified query has no results, "
-                    f"{update.effective_chat.first_name}.")
+                    f"{update.effective_user.first_name}.")
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Please specify a query, "
-                f"{update.effective_chat.first_name}.")
+                f"{update.effective_user.first_name}.")
 
     def grant(self, update, context):
         if self.isAdmin(update, context, True):
