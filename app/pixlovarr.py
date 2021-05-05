@@ -255,7 +255,7 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/series - Get all TV shows\n"
                     "/movies - Get all movies\n"
-                    "/queue - List all queue items"
+                    "/queue - List all queue items\n"
                     "/ds <keyword> - Download serie\n"
                     "/dm <keyword> - Download movie\n"
                 )
