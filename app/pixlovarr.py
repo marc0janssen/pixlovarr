@@ -366,6 +366,12 @@ class Pixlovarr():
                 text=endtext
             )
 
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /queue."
+            )
+
     def series(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
