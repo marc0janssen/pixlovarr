@@ -17,7 +17,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /userid - Request your userid
         /series - Get all TV shows
         /movies - Get all movies
-        /queue - List all queue items
+        /queue - List all queued items
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie
 
@@ -44,19 +44,19 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
 
 In the directory /config the python script expects a config file called 'pixlovarr.ini' with the following content:
 
-            [COMMON]
-            BOT_TOKEN = BOTTOKEN
-            ADMIN_USER_ID = ID_NUMBER
+        [COMMON]
+        BOT_TOKEN = BOTTOKEN
+        ADMIN_USER_ID = ID_NUMBER
 
-            [SONARR]
-            ENABLED = ON
-            URL = http://192.168.1.1:8989
-            TOKEN = SONARR_API_TOKEN
+        [SONARR]
+        ENABLED = ON
+        URL = http://192.168.1.1:8989
+        TOKEN = SONARR_API_TOKEN
 
-            [RADARR]
-            ENABLED = OFF
-            [URL] = http://192.168.1.1:7878
-            TOKEN = RADARR_API_TOKEN
+        [RADARR]
+        ENABLED = OFF
+        [URL] = http://192.168.1.1:7878
+        TOKEN = RADARR_API_TOKEN
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 

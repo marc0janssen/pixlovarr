@@ -28,6 +28,8 @@ RUN apk add --update \
 	linux-headers \
 	&& rm -f /var/cache/apk/* 
 
+RUN rm -rf /tmp
+
 RUN chmod +x /app/pixlovarr.py
 
 ENV TZ=Europe/Amsterdam

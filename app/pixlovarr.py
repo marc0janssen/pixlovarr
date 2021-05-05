@@ -255,7 +255,7 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/series - Get all TV shows\n"
                     "/movies - Get all movies\n"
-                    "/queue - List all queue items\n"
+                    "/queue - List all queued items\n"
                     "/ds <keyword> - Download serie\n"
                     "/dm <keyword> - Download movie\n"
                 )
@@ -987,7 +987,6 @@ class Pixlovarr():
 # Bot
 
     def startBot(self):
-
         self.setHandlers()
         self.updater.start_polling()
 
