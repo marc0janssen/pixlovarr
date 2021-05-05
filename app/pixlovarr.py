@@ -129,7 +129,7 @@ class Pixlovarr():
     def isGranted(self, update):
         return str(update.effective_user.id) in self.members
 
-    def datetime_from_utc_to_local(utc_datetime):
+    def datetime_from_utc_to_local(self, utc_datetime):
         now_timestamp = time()
         offset = datetime.fromtimestamp(
             now_timestamp) - datetime.utcfromtimestamp(now_timestamp)
@@ -319,18 +319,23 @@ class Pixlovarr():
                         pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
                     except KeyError:
-                        pt = "ETA: unknown"
+                        pt = "-"
 
                     text = (
                         f"{queueitem['series']['title']} "
                         f"S{queueitem['episode']['seasonNumber']}"
                         f"E{queueitem['episode']['episodeNumber']} - "
-                        f"'{queueitem['episode']['title']}'")
+                        f"'{queueitem['episode']['title']}'\n"
+                        f"Status: {queueitem['status']}\n"
+                        f"ETA: {pt}"
+                    )
 
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=f"{text}\n{pt}"
+                        text=text
                     )
+
+                    endtext = f"There are {numOfItems} items in the queue."
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
@@ -347,16 +352,18 @@ class Pixlovarr():
                         pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
                     except KeyError:
-                        pt = "ETA: unknown"
+                        pt = "-"
 
                     text = (
                         f"{queueitem['movie']['title']} "
-                        f"({queueitem['movie']['year']})"
-                    )
+                        f"({queueitem['movie']['year']})\n"
+                        f"Status: {queueitem['status']}\n"
+                        f"ETA: {pt}"
+                       )
 
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=f"{text}\n{pt}"
+                        text=text
                     )
 
                     endtext = f"There are {numOfItems} items in the queue."
@@ -598,26 +605,26 @@ class Pixlovarr():
                         monitored_seasons = []
 
                     self.sonarr_node.add_serie(
-                        tvdb_id=data[2], quality=data[3],
+                        tvdb_id=data[2], quality=int(data[3]),
                         monitored_seasons=monitored_seasons
                     )
 
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
-                except CliServerError:
-                    pass
+                except CliServerError as e:
+                    print(e)
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
                 try:
                     self.radarr_node.add_movie(
-                        imdb_id=data[2], quality=data[3]
+                        imdb_id=data[2], quality=int(data[3])
                     )
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
-                except CliServerError:
-                    pass
+                except CliServerError as e:
+                    print(e)
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         context.bot.send_message(
