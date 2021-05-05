@@ -17,6 +17,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /userid - Request your userid
         /series - Get all TV shows
         /movies - Get all movies
+        /queue - List all queue items
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie
 
@@ -68,4 +69,4 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-05-04 19:17:03
+2021-05-05 16:51:58

@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-04 19:17:23
+# update: 2021-05-05 16:45:58
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -16,6 +16,8 @@ import json
 import configparser
 import shutil
 import sys
+from time import time
+from datetime import datetime
 from pycliarr.api import (
     RadarrCli,
     RadarrMovieItem
@@ -62,6 +64,13 @@ class Pixlovarr():
                     self.radarr_node = RadarrCli(
                         self.radarr_url, self.radarr_token
                     )
+
+                if not self.sonarr_enabled and not self.radarr_enabled:
+                    logging.error(
+                        "Both Sonarr and Radarr are not enabled. Exiting."
+                    )
+
+                    sys.exit()
 
                 self.pixlovarr_signups_file = (
                     "./config/pixlovarr_signups.json")
@@ -119,6 +128,12 @@ class Pixlovarr():
 
     def isGranted(self, update):
         return str(update.effective_user.id) in self.members
+
+    def datetime_from_utc_to_local(utc_datetime):
+        now_timestamp = time()
+        offset = datetime.fromtimestamp(
+            now_timestamp) - datetime.utcfromtimestamp(now_timestamp)
+        return utc_datetime + offset
 
     def loaddata(self, file):
         try:
@@ -240,6 +255,7 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/series - Get all TV shows\n"
                     "/movies - Get all movies\n"
+                    "/queue - List all queue items"
                     "/ds <keyword> - Download serie\n"
                     "/dm <keyword> - Download movie\n"
                 )
@@ -279,6 +295,76 @@ class Pixlovarr():
             )
 
 # Member Commands
+
+    def showQueue(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update):
+
+            endtext = "There are no items in the queue."
+            numOfItems = 0
+
+            if self.sonarr_enabled:
+                queuesonarr = self.sonarr_node.get_queue()
+
+                for queueitem in queuesonarr:
+
+                    numOfItems += 1
+
+                    try:
+                        dt = (self.datetime_from_utc_to_local(
+                            datetime.strptime(queueitem[
+                                'estimatedCompletionTime'],
+                                "%Y-%m-%dT%H:%M:%S.%fZ")))
+
+                        pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
+
+                    except KeyError:
+                        pt = "ETA: unknown"
+
+                    text = (
+                        f"{queueitem['series']['title']} "
+                        f"S{queueitem['episode']['seasonNumber']}"
+                        f"E{queueitem['episode']['episodeNumber']} - "
+                        f"'{queueitem['episode']['title']}'")
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{text}\n{pt}"
+                    )
+
+            if self.radarr_enabled:
+                queueradarr = self.radarr_node.get_queue()
+
+                for queueitem in queueradarr:
+
+                    numOfItems += 1
+
+                    try:
+                        dt = self.datetime_from_utc_to_local(datetime.strptime(
+                            queueitem['estimatedCompletionTime'],
+                            "%Y-%m-%dT%H:%M:%SZ"))
+
+                        pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
+
+                    except KeyError:
+                        pt = "ETA: unknown"
+
+                    text = (
+                        f"{queueitem['movie']['title']} "
+                        f"({queueitem['movie']['year']})"
+                    )
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{text}\n{pt}"
+                    )
+
+                    endtext = f"There are {numOfItems} items in the queue."
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=endtext
+            )
 
     def series(self, update, context):
         if not self.isRejected(update) and \
@@ -845,6 +931,9 @@ class Pixlovarr():
 
         self.downloadmovies_handler = CommandHandler('dm', self.downloadMovies)
         self.dispatcher.add_handler(self.downloadmovies_handler)
+
+        self.showqueue_handler = CommandHandler('queue', self.showQueue)
+        self.dispatcher.add_handler(self.showqueue_handler)
 
 # Keyboard Handlders
 
