@@ -25,6 +25,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /new - Show all new signups
         /allowed - Show all allowed members
         /denied - Show all denied members
+        /history - Show command history
 
 ## Docker
 
