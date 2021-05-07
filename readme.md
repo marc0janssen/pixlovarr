@@ -14,9 +14,9 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /start - Start this bot
         /help - Show this text
         /signup - Request access
-        /userid - Request your userid
-        /series - Get all TV shows
-        /movies - Get all movies
+        /userid - Show your userid
+        /series - List all series
+        /movies - List all movies
         /queue - List all queued items
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie

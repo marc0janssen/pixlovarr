@@ -279,13 +279,13 @@ class Pixlovarr():
                 "/start - Start this bot\n"
                 "/help - Show this text\n"
                 "/signup - Request access\n"
-                "/userid - Request your userid\n"
+                "/userid - Show your userid\n"
             )
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/series - Get all TV shows\n"
-                    "/movies - Get all movies\n"
+                    "/series - List all series\n"
+                    "/movies - List all movies\n"
                     "/queue - List all queued items\n"
                     "/ds <keyword> - Download serie\n"
                     "/dm <keyword> - Download movie\n"
@@ -555,7 +555,10 @@ class Pixlovarr():
                     text=text
                 )
 
-                endtext = f"listed {len(self.cmdHistory)} items."
+                endtext = (
+                    f"Found {len(self.cmdHistory)} items "
+                    f"in command history."
+                )
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1102,7 +1105,7 @@ class Pixlovarr():
 
         self.cmdhistory_handler = CommandHandler(
             'history', self.showCmdHistory
-            )
+        )
         self.dispatcher.add_handler(self.cmdhistory_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
