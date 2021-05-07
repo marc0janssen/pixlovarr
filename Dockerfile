@@ -8,14 +8,12 @@ ADD /app/pixlovarr.ini.example /app/pixlovarr.ini.example
 RUN apk add --update \
 	python3 \
 	python3-dev \
+	py3-pip \
 	build-base \
 	openssl \
 	ca-certificates \
 	linux-headers \
 	tzdata \
-	&& cd /tmp \
-	&& wget https://bootstrap.pypa.io/get-pip.py \
-	&& python3 get-pip.py \
 	&& pip3 install --no-cache \
 	python-telegram-bot \
 	pycliarr \

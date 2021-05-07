@@ -38,6 +38,9 @@ class Pixlovarr():
 
         self.config_file = "./config/pixlovarr.ini"
 
+        self.cmdHistory = []
+        self.maxCmdHistory = 50
+
         try:
             with open(self.config_file, "r") as f:
                 f.close()
@@ -100,6 +103,22 @@ class Pixlovarr():
             shutil.copyfile('./app/pixlovarr.ini.example',
                             './config/pixlovarr.ini.example')
             sys.exit()
+
+    def addItemToHistory(self, cmd, uname, uid):
+        historyItem = {}
+
+        now = datetime.now()
+        dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        historyItem["timestamp"] = dt_string
+        historyItem["cmd"] = cmd
+        historyItem["uname"] = uname
+        historyItem["uid"] = uid
+
+        self.cmdHistory.append(historyItem)
+
+        if len(self.cmdHistory) > self.maxCmdHistory:
+            self.cmdHistory.pop(0)
 
     def isAdmin(self, update, context, verbose):
         if str(update.effective_chat.id) == self.admin_user_id:
@@ -184,6 +203,12 @@ class Pixlovarr():
                 f"issued /start."
             )
 
+            self.addItemToHistory(
+                "start",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def signup(self, update, context):
         if not self.isRejected(update):
             if not self.isGranted(update):
@@ -217,12 +242,6 @@ class Pixlovarr():
                         )
                     )
 
-                    logging.info(
-                        f"{update.effective_user.first_name} - "
-                        f"{update.effective_user.id} "
-                        f"issued /signup."
-                    )
-
                 else:
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
@@ -240,6 +259,18 @@ class Pixlovarr():
                         f"{update.effective_user.first_name}"
                     )
                 )
+
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /signup."
+            )
+
+            self.addItemToHistory(
+                "signup",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
 
     def help(self, update, context):
         if not self.isRejected(update):
@@ -266,6 +297,7 @@ class Pixlovarr():
                     "/new - Show all new signups\n"
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
+                    "/history - Show command history\n"
                 )
 
             context.bot.send_message(
@@ -275,6 +307,12 @@ class Pixlovarr():
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued /help."
+            )
+
+            self.addItemToHistory(
+                "help",
+                update.effective_user.first_name,
+                update.effective_user.id
             )
 
     def userid(self, update, context):
@@ -292,6 +330,12 @@ class Pixlovarr():
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued /userid."
+            )
+
+            self.addItemToHistory(
+                "userid",
+                update.effective_user.first_name,
+                update.effective_user.id
             )
 
 # Member Commands
@@ -359,7 +403,7 @@ class Pixlovarr():
                         f"({queueitem['movie']['year']})\n"
                         f"Status: {queueitem['status']}\n"
                         f"ETA: {pt}"
-                       )
+                    )
 
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
@@ -377,6 +421,12 @@ class Pixlovarr():
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued /queue."
+            )
+
+            self.addItemToHistory(
+                "queue",
+                update.effective_user.first_name,
+                update.effective_user.id
             )
 
     def series(self, update, context):
@@ -404,6 +454,12 @@ class Pixlovarr():
                 f"issued /series."
             )
 
+            self.addItemToHistory(
+                "series",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def downloadSeries(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -416,6 +472,12 @@ class Pixlovarr():
             )
 
             self.findMedia(update, context, "serie", ' '.join(context.args))
+
+            self.addItemToHistory(
+                "ds",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
 
     def movies(self, update, context):
         if not self.isRejected(update) and \
@@ -442,6 +504,12 @@ class Pixlovarr():
                 f"issued /movies."
             )
 
+            self.addItemToHistory(
+                "movies",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def downloadMovies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -455,7 +523,51 @@ class Pixlovarr():
 
             self.findMedia(update, context, "movie", ' '.join(context.args))
 
+            self.addItemToHistory(
+                "dm",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
 # Admin Commands
+    def showCmdHistory(self, update, context):
+        if self.isAdmin(update, context, True):
+
+            self.addItemToHistory(
+                "history",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
+            endtext = "No items in the command history."
+
+            for historyItem in self.cmdHistory:
+
+                text = (
+                    f"{historyItem['timestamp']} - "
+                    f"{historyItem['cmd']} - "
+                    f"{historyItem['uname']} - "
+                    f"{historyItem['uid']}"
+                )
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=text
+                )
+
+                endtext = f"listed {len(self.cmdHistory)} items."
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=endtext
+            )
+
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /history."
+            )
+
     def new(self, update, context):
         if self.isAdmin(update, context, True):
             if self.signups:
@@ -497,6 +609,12 @@ class Pixlovarr():
                 f"issued /new."
             )
 
+            self.addItemToHistory(
+                "new",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def allowed(self, update, context):
         if self.isAdmin(update, context, True):
             if self.members:
@@ -530,6 +648,12 @@ class Pixlovarr():
                 f"issued /allowed."
             )
 
+            self.addItemToHistory(
+                "allowed",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def denied(self, update, context):
         if self.isAdmin(update, context, True):
             if self.rejected:
@@ -561,6 +685,12 @@ class Pixlovarr():
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued /denied."
+            )
+
+            self.addItemToHistory(
+                "denied",
+                update.effective_user.first_name,
+                update.effective_user.id
             )
 
     def unknown(self, update, context):
@@ -723,8 +853,6 @@ class Pixlovarr():
                     reply_markup=reply_markup
                 )
 
-#            for p in profiles:
-#                print(f"{p['name']} - {p['id']}\n")
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -785,15 +913,6 @@ class Pixlovarr():
                         f"{m.title}({m.year})",
                         callback_data=callbackdata)]
                     )
-
-#                    if mediaType == "serie":
-#                        print(
-#                            f"{m.title} - {m.year} - {m.path} - "
-#                            f"{m.imdbId} - {m.tvdbId}\n")
-#                    else:
-#                        print(
-#                            f"{m.title} - {m.year} - {m.path} - "
-#                            f"{m.imdbId}\n")
 
                     if media.index(m) == maxResults:
                         break
@@ -980,6 +1099,11 @@ class Pixlovarr():
 
         self.denied_handler = CommandHandler('denied', self.denied)
         self.dispatcher.add_handler(self.denied_handler)
+
+        self.cmdhistory_handler = CommandHandler(
+            'history', self.showCmdHistory
+            )
+        self.dispatcher.add_handler(self.cmdhistory_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)
