@@ -2,10 +2,10 @@ FROM alpine:latest
 
 RUN mkdir /app && mkdir /config
 
-ADD /app/pixlovarr.py /app/pixlovarr.py
-ADD /app/pixlovarr.ini.example /app/pixlovarr.ini.example
+ADD /app/update_git.sh /app/update_git.sh 
 
 RUN apk add --update \
+	git \
 	python3 \
 	python3-dev \
 	py3-pip \
@@ -26,6 +26,9 @@ RUN apk add --update \
 	linux-headers \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
+
+RUN chmod +x /app/update_git.sh
+RUN /app/update_git.sh
 
 RUN chmod +x /app/pixlovarr.py
 
