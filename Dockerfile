@@ -26,9 +26,8 @@ RUN apk add --update \
 	openssl \
 	ca-certificates \
 	linux-headers \
-	&& rm -f /var/cache/apk/* 
-
-RUN rm -rf /tmp
+	&& rm -f /var/cache/apk/* \
+	&& rm -rf /tmp/*
 
 RUN chmod +x /app/pixlovarr.py
 
