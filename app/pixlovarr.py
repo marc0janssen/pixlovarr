@@ -362,8 +362,11 @@ class Pixlovarr():
 
                         pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
+                        tl = queueitem['timeleft']
+
                     except KeyError:
                         pt = "-"
+                        tl = "-"
 
                     text = (
                         f"{queueitem['series']['title']} "
@@ -371,6 +374,8 @@ class Pixlovarr():
                         f"E{queueitem['episode']['episodeNumber']} - "
                         f"'{queueitem['episode']['title']}'\n"
                         f"Status: {queueitem['status']}\n"
+                        f"Protocol: {queueitem['protocol']}\n"
+                        f"Timeleft: {tl}\n"
                         f"ETA: {pt}"
                     )
 
@@ -395,13 +400,18 @@ class Pixlovarr():
 
                         pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
+                        tl = queueitem['timeleft']
+
                     except KeyError:
                         pt = "-"
+                        tl = "-"
 
                     text = (
                         f"{queueitem['movie']['title']} "
                         f"({queueitem['movie']['year']})\n"
                         f"Status: {queueitem['status']}\n"
+                        f"Protocol: {queueitem['protocol']}\n"
+                        f"Timeleft: {tl}\n"
                         f"ETA: {pt}"
                     )
 
