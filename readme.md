@@ -26,6 +26,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /allowed - Show all allowed members
         /denied - Show all denied members
         /history - Show command history
+        /del <id> - Delete movie of series\n
 
 ## Docker
 
