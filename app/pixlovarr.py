@@ -16,6 +16,7 @@ import json
 import configparser
 import shutil
 import sys
+import re
 from time import time
 from datetime import datetime
 from pycliarr.api import (
@@ -35,6 +36,11 @@ class Pixlovarr():
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
+
+        self.urlNoImage = (
+            "https://2.bp.blogspot.com/-s5kMEQvEAog/T3CgSowJ7xI/"
+            "AAAAAAAADHc/Hqk13CMLQQI/s400/banner.jpg"
+        )
 
         self.config_file = "./config/pixlovarr.ini"
 
@@ -287,7 +293,7 @@ class Pixlovarr():
                     "/series - List all series\n"
                     "/movies - List all movies\n"
                     "/queue - List all queued items\n"
-                    "/ds <keyword> - Download serie\n"
+                    "/ds <keyword> - Download series\n"
                     "/dm <keyword> - Download movie\n"
                 )
 
@@ -298,6 +304,7 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/history - Show command history\n"
+                    "/del <id> - Delete movie of series\n"
                 )
 
             context.bot.send_message(
@@ -444,19 +451,31 @@ class Pixlovarr():
                 self.isGranted(update) and \
                 self.sonarr_enabled:
 
-            serie = self.sonarr_node.get_serie()
+            series = self.sonarr_node.get_serie()
 
-            if type(serie) is SonarrSerieItem:
+            endtext = "There are no series in the catalog."
+
+            if type(series) is SonarrSerieItem:
 
                 context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=serie.title)
+                    chat_id=update.effective_chat.id, text=series.title)
             else:
+                series.sort(key=self.sortOnTitle)
+
                 allSeries = ""
-                for s in serie:
-                    allSeries += f"{s.title} ({str(s.year)})\n"
+                for s in series:
+                    allSeries += f"{s.title} ({str(s.year)})"
+                    if self.isAdmin(update, context, False):
+                        allSeries += f" - S{s.id}"
+                    allSeries += "\n"
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allSeries)
+
+                endtext = f"There are {len(series)} series in the catalog."
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=endtext)
 
             logging.info(
                 f"{update.effective_user.first_name} - "
@@ -489,24 +508,38 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
+    def sortOnTitle(self, e):
+        return e.title
+
     def movies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
-            movie = self.radarr_node.get_movie()
+            movies = self.radarr_node.get_movie()
 
-            if type(movie) is RadarrMovieItem:
+            endtext = "There are no movies in the catalog."
 
+            if type(movies) is RadarrMovieItem:
                 context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=movie.title)
+                    chat_id=update.effective_chat.id, text=movies.title)
             else:
+                movies.sort(key=self.sortOnTitle)
+
                 allMovies = ""
-                for m in movie:
-                    allMovies += f"{m.title} ({str(m.year)})\n"
+                for m in movies:
+                    allMovies += f"{m.title} ({str(m.year)})"
+                    if self.isAdmin(update, context, False):
+                        allMovies += f" - M{m.id}"
+                    allMovies += "\n"
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allMovies)
+
+                endtext = f"There are {len(movies)} movies in the catalog."
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=endtext)
 
             logging.info(
                 f"{update.effective_user.first_name} - "
@@ -540,6 +573,98 @@ class Pixlovarr():
             )
 
 # Admin Commands
+    def showDeleteMedia(self, update, context):
+        if self.isAdmin(update, context, True):
+
+            if context.args:
+
+                if re.match("^[SsMm]\\d+$", context.args[0]):
+                    typeOfMedia = "serie" if(
+                        context.args[0][:1] in ["s", "S"]) else "movie"
+                    mediaID = context.args[0][1:]
+
+                    try:
+                        if typeOfMedia == "serie":
+                            media = self.sonarr_node.get_serie(int(mediaID))
+                        else:
+                            media = self.radarr_node.get_movie(int(mediaID))
+
+                        if media.images:
+                            image = f"{media.images[0]['remoteUrl']}"
+                        else:
+                            image = self.urlNoImage
+
+                        caption = f"{media.title}({media.year})"
+                        context.bot.send_photo(
+                            chat_id=update.effective_chat.id,
+                            photo=image, caption=caption
+                        )
+
+                        if typeOfMedia == "serie" and media.overview:
+                            context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=f"{media.overview}"[:4096]
+                            )
+
+                        callbackdata = f"deletemedia:{typeOfMedia}:{mediaID}"
+                        keyboard = [[InlineKeyboardButton(
+                            f"{media.title}({media.year})",
+                            callback_data=callbackdata)]]
+
+                        reply_markup = InlineKeyboardMarkup(keyboard)
+                        update.message.reply_text(
+                            "Do you want to delete this media:",
+                            reply_markup=reply_markup
+                        )
+
+                    except CliServerError as e:
+
+                        errorResponse = json.loads(e.response)
+                        if (errorResponse["message"] == "NotFound"):
+
+                            context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=(
+                                    "This ID was not found in the "
+                                    "catalog.\nPlease check /series"
+                                    " or /movies for IDs."
+                                )
+                            )
+
+                        else:
+                            context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=f"{errorResponse['message']}")
+
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=(
+                            "This ID was not recognized.\nPlease check "
+                            "/series or /movies for IDs."
+                        )
+                    )
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        "There was no ID given.\nPlease check "
+                        "/series or /movies for IDs."
+                    )
+                )
+
+            self.addItemToHistory(
+                "del",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /del."
+            )
+
     def showCmdHistory(self, update, context):
         if self.isAdmin(update, context, True):
 
@@ -719,6 +844,30 @@ class Pixlovarr():
             )
 
 # HandlerCallback Commands
+    def deleteMedia(self, update, context):
+        if self.isAdmin(update, context, True):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaID
+
+            try:
+                if data[1] == "serie":
+                    self.sonarr_node.delete_serie(serie_id=int(data[2]))
+                else:
+                    self.radarr_node.delete_movie(movie_id=int(data[2]))
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Media has been deleted.")
+
+            except CliServerError as e:
+                errorResponse = json.loads(e.response)
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=errorResponse["message"])
 
     def downloadMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -727,7 +876,7 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
-            # 3:qualityid, 4: Download whixh seasons?
+            # 3:qualityid, 4: Download which seasons?
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -756,7 +905,11 @@ class Pixlovarr():
                         update, context, data[1], media.title, media.year)
 
                 except CliServerError as e:
-                    print(e)
+                    errorResponse = json.loads(e.response)
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{errorResponse[1]['errorMessage']}")
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
                 try:
@@ -767,7 +920,11 @@ class Pixlovarr():
                         update, context, data[1], media.title, media.year)
 
                 except CliServerError as e:
-                    print(e)
+                    errorResponse = json.loads(e.response)
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{errorResponse[1]['errorMessage']}")
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         context.bot.send_message(
@@ -815,8 +972,7 @@ class Pixlovarr():
             if media.images:
                 image = f"{media.images[0]['url']}"
             else:
-                image = ("https://2.bp.blogspot.com/-s5kMEQvEAog/"
-                         "T3CgSowJ7xI/AAAAAAAADHc/Hqk13CMLQQI/s400/banner.jpg")
+                image = self.urlNoImage
 
             caption = f"{media.title}({media.year})"
             context.bot.send_photo(
@@ -1102,6 +1258,10 @@ class Pixlovarr():
             self.downloadMedia, pattern='^download:')
         self.dispatcher.add_handler(kbdownloadMedia_handler)
 
+        kbdeleteMedia_handler = CallbackQueryHandler(
+            self.deleteMedia, pattern='^deletemedia:')
+        self.dispatcher.add_handler(kbdeleteMedia_handler)
+
 # Admin Handlders
 
         self.new_handler = CommandHandler('new', self.new)
@@ -1117,6 +1277,9 @@ class Pixlovarr():
             'history', self.showCmdHistory
         )
         self.dispatcher.add_handler(self.cmdhistory_handler)
+
+        self.delete_handler = CommandHandler('del', self.showDeleteMedia)
+        self.dispatcher.add_handler(self.delete_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)
