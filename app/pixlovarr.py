@@ -605,7 +605,7 @@ class Pixlovarr():
                                 chat_id=update.effective_chat.id,
                                 text=f"{media.overview}"[:4096]
                             )
-                        
+
                         if typeOfMedia == "movie":
                             movie = self.imdb.get_movie(media.imdbId[2:])
                             infoText = movie['plot'][0].split("::")
