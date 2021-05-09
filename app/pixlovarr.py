@@ -604,7 +604,7 @@ class Pixlovarr():
                             )
 
                         callbackdata = f"deletemedia:{typeOfMedia}:{mediaID}"
-                        if self.isAdmin(update, context, True):
+                        if self.isAdmin(update, context, False):
                             callbackdata += ":True"
                         else:
                             callbackdata += ":False"
