@@ -5,6 +5,10 @@ RUN mkdir /app && mkdir /config
 ADD /app/update_git.sh /app/update_git.sh 
 
 RUN apk add --update \
+	libxml2 \
+	libxml2-dev \
+	libxslt \
+	libxslt-dev \
 	git \
 	python3 \
 	python3-dev \
@@ -25,6 +29,10 @@ RUN apk add --update \
 	openssl \
 	ca-certificates \
 	linux-headers \
+	libxml2 \
+	libxml2-dev \
+	libxslt \
+	libxslt-dev \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
 
