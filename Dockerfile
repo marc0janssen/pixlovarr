@@ -17,13 +17,15 @@ RUN apk add --update \
 	openssl \
 	ca-certificates \
 	linux-headers \
-	tzdata \
-	&& pip3 install --no-cache \
+	tzdata
+
+RUN pip3 install --no-cache \
 	python-telegram-bot \
 	pycliarr \
 	requests \
-	imdbpy \
-	&& apk del \
+	imdbpy
+	
+RUN apk del \
 	python3-dev \
 	build-base \
 	openssl \
@@ -32,8 +34,9 @@ RUN apk add --update \
 	libxml2 \
 	libxml2-dev \
 	libxslt \
-	libxslt-dev \
-	&& rm -f /var/cache/apk/* \
+	libxslt-dev
+
+RUN rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
 
 RUN chmod +x /app/update_git.sh
