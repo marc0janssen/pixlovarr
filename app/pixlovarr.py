@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-05 16:45:58
+# update: 2021-05-09 12:58:25
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -57,6 +57,8 @@ class Pixlovarr():
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
                 self.sonarr_enabled = True if (
                     self.config['SONARR']['ENABLED'] == "ON") else False
+                self.sonarr_season_folder = True if (
+                    self.config['SONARR']['SEASON_FOLDER'] == "ON") else False
                 self.sonarr_url = self.config['SONARR']['URL']
                 self.sonarr_token = self.config['SONARR']['TOKEN']
                 self.radarr_enabled = True if (
@@ -94,8 +96,8 @@ class Pixlovarr():
 
             except KeyError:
                 logging.error(
-                    "Can't get keys from INI file. "
-                    "Please check for mistakes."
+                    "Seems a key(s) is missing from INI file. "
+                    "Please check for mistakes. Exiting."
                 )
 
                 sys.exit()
@@ -281,7 +283,7 @@ class Pixlovarr():
     def help(self, update, context):
         if not self.isRejected(update):
             helpText = (
-                "-- Commands --\n"
+                "-- User commands --\n"
                 "/start - Start this bot\n"
                 "/help - Show this text\n"
                 "/signup - Request access\n"
@@ -290,9 +292,10 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/series - List all series\n"
-                    "/movies - List all movies\n"
+                    "/series - List all series with ID\n"
+                    "/movies - List all movies with ID\n"
                     "/queue - List all queued items\n"
+                    "/del <id> - Delete media from catalog\n"
                     "/ds <keyword> - Download series\n"
                     "/dm <keyword> - Download movie\n"
                 )
@@ -304,7 +307,7 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/history - Show command history\n"
-                    "/del <id> - Delete movie of series\n"
+                    "/del <id> - Delete media from disk\n"
                 )
 
             context.bot.send_message(
@@ -464,10 +467,7 @@ class Pixlovarr():
 
                 allSeries = ""
                 for s in series:
-                    allSeries += f"{s.title} ({str(s.year)})"
-                    if self.isAdmin(update, context, False):
-                        allSeries += f" - S{s.id}"
-                    allSeries += "\n"
+                    allSeries += f"{s.title} ({str(s.year)}) - S{s.id}\n"
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allSeries)
@@ -528,10 +528,7 @@ class Pixlovarr():
 
                 allMovies = ""
                 for m in movies:
-                    allMovies += f"{m.title} ({str(m.year)})"
-                    if self.isAdmin(update, context, False):
-                        allMovies += f" - M{m.id}"
-                    allMovies += "\n"
+                    allMovies += f"{m.title} ({str(m.year)}) - M{m.id}\n"
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allMovies)
@@ -572,9 +569,9 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-# Admin Commands
     def showDeleteMedia(self, update, context):
-        if self.isAdmin(update, context, True):
+        if not self.isRejected(update) and \
+                self.isGranted(update):
 
             if context.args:
 
@@ -607,6 +604,11 @@ class Pixlovarr():
                             )
 
                         callbackdata = f"deletemedia:{typeOfMedia}:{mediaID}"
+                        if self.isAdmin(update, context, True):
+                            callbackdata += ":True"
+                        else:
+                            callbackdata += ":False"
+
                         keyboard = [[InlineKeyboardButton(
                             f"{media.title}({media.year})",
                             callback_data=callbackdata)]]
@@ -664,6 +666,8 @@ class Pixlovarr():
                 f"{update.effective_user.id} "
                 f"issued /del."
             )
+
+# Admin Commands
 
     def showCmdHistory(self, update, context):
         if self.isAdmin(update, context, True):
@@ -845,22 +849,24 @@ class Pixlovarr():
 
 # HandlerCallback Commands
     def deleteMedia(self, update, context):
-        if self.isAdmin(update, context, True):
+        if not self.isRejected(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaID
+            # 0:marker, 1:type of media, 2:mediaID, 3:delete_files
 
             try:
                 if data[1] == "serie":
-                    self.sonarr_node.delete_serie(serie_id=int(data[2]))
+                    self.sonarr_node.delete_serie(
+                        serie_id=int(data[2]), delete_files=data[3])
                 else:
-                    self.radarr_node.delete_movie(movie_id=int(data[2]))
+                    self.radarr_node.delete_movie(
+                        movie_id=int(data[2]), delete_files=data[3])
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text="Media has been deleted.")
+                    text=f"The {data[1]} has been deleted.")
 
             except CliServerError as e:
                 errorResponse = json.loads(e.response)
@@ -898,7 +904,8 @@ class Pixlovarr():
 
                     self.sonarr_node.add_serie(
                         tvdb_id=data[2], quality=int(data[3]),
-                        monitored_seasons=monitored_seasons
+                        monitored_seasons=monitored_seasons,
+                        season_folder=self.sonarr_season_folder
                     )
 
                     self.notifyDownload(
@@ -930,7 +937,7 @@ class Pixlovarr():
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"The {typeOfMedia} '{title}({year})' "
-            f"was added to the downloadserver, "
+            f"was added to the server, "
             f"{update.effective_user.first_name}. "
             f"Thank you and till next time.")
 
@@ -938,7 +945,7 @@ class Pixlovarr():
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} has added the "
             f"{typeOfMedia} '{title}({year})' "
-            f"to the downloadserver.")
+            f"to the server.")
 
     def showDownloadSummary(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):

@@ -10,14 +10,15 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
 
 ## Bot Commands
 
-        -- Commands --
+        -- User commands --
         /start - Start this bot
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
-        /series - List all series
-        /movies - List all movies
+        /series - List all series with ID
+        /movies - List all movies with ID
         /queue - List all queued items
+        /del <id> - Delete media from catalog
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie
 
@@ -26,7 +27,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /allowed - Show all allowed members
         /denied - Show all denied members
         /history - Show command history
-        /del <id> - Delete movie of series\n
+        /del <id> - Delete media from disk
 
 ## Docker
 
@@ -54,6 +55,7 @@ In the directory /config the python script expects a config file called 'pixlova
         ENABLED = ON
         URL = http://192.168.1.1:8989
         TOKEN = SONARR_API_TOKEN
+        SEASON_FOLDER = ON
 
         [RADARR]
         ENABLED = OFF
