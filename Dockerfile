@@ -18,6 +18,7 @@ RUN apk add --update \
 	python-telegram-bot \
 	pycliarr \
 	requests \
+	imdbpy \
 	&& apk del \
 	python3-dev \
 	build-base \

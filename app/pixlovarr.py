@@ -17,6 +17,7 @@ import configparser
 import shutil
 import sys
 import re
+import imdb
 from time import time
 from datetime import datetime
 from pycliarr.api import (
@@ -46,6 +47,8 @@ class Pixlovarr():
 
         self.cmdHistory = []
         self.maxCmdHistory = 50
+
+        self.imdb = imdb.IMDb()
 
         try:
             with open(self.config_file, "r") as f:
@@ -602,6 +605,14 @@ class Pixlovarr():
                                 chat_id=update.effective_chat.id,
                                 text=f"{media.overview}"[:4096]
                             )
+                        
+                        if typeOfMedia == "movie":
+                            movie = self.imdb.get_movie(media.imdbId[2:])
+                            infoText = movie['plot'][0].split("::")
+                            context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=f"{infoText[0]}"[:4096]
+                            )
 
                         callbackdata = f"deletemedia:{typeOfMedia}:{mediaID}"
                         if self.isAdmin(update, context, False):
@@ -990,6 +1001,14 @@ class Pixlovarr():
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f"{media.overview}"[:4096]
+                )
+
+            if data[1] == "movie":
+                movie = self.imdb.get_movie(data[2][2:])
+                infoText = movie['plot'][0].split("::")
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"{infoText[0]}"[:4096]
                 )
 
             reply_markup = InlineKeyboardMarkup(keyboard)
