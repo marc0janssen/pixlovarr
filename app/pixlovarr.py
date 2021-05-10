@@ -353,6 +353,37 @@ class Pixlovarr():
 
 # Member Commands
 
+    def showtop(self, update, context):
+
+        self.series = self.imdb.get_top250_tv()
+
+        keyboard = []
+
+        for serie in self.series[:5]:
+            keyboard.append([InlineKeyboardButton(
+                f"{serie['title']} ({serie['year']})",
+                callback_data=f"top:serie:{serie['title']} ")]
+            )
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text(
+            'Top 5 series at the moment:',
+            reply_markup=reply_markup
+        )
+
+        logging.info(
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} "
+            f"issued /top."
+        )
+
+        self.addItemToHistory(
+            "top",
+            update.effective_user.first_name,
+            update.effective_user.id
+        )
+
     def showQueue(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
@@ -859,6 +890,15 @@ class Pixlovarr():
             )
 
 # HandlerCallback Commands
+    def findtop(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:title
+
+            self.getTopMedia(query, context, "serie", data[2])
+
     def deleteMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
 
@@ -964,28 +1004,36 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaid, 3:qualityid
+            # 0:marker, 1:type of media, 2:mediaid
 
             if data[1] == "serie":
+                profiles = self.sonarr_node.get_quality_profiles()
+                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
                 media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
-                callbackdata = f"download:{data[1]}:{data[2]}:{data[3]}"
-                keyboard = [
-                    [InlineKeyboardButton(
-                        "Download only season 1",
-                        callback_data=f"{callbackdata}:First")],
-                    [InlineKeyboardButton(
-                        "Download all seasons",
-                        callback_data=f"{callbackdata}:All")],
-                    [InlineKeyboardButton(
-                        "Download only new seasons",
-                        callback_data=f"{callbackdata}:New")]
-                ]
+
             else:
+                profiles = self.radarr_node.get_quality_profiles()
+                callbackdata = f"downloadmedia:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
-                callbackdata = f"download:{data[1]}:{data[2]}:{data[3]}:False"
-                keyboard = [[InlineKeyboardButton(
-                    f"Download '{media.title}({media.year})'",
-                    callback_data=callbackdata)]]
+
+            keyboard = []
+
+            if profiles:
+                for p in profiles:
+                    keyboard.append([InlineKeyboardButton(
+                        f"{p['name']}",
+                        callback_data=f"{callbackdata}:{p['id']}")]
+                    )
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"No profiles were found, Please set them up in Sonarr "
+                    f"and Radarr, {update.effective_user.first_name}.")
+
+                return
 
             if media.images:
                 image = f"{media.images[0]['url']}"
@@ -1014,45 +1062,92 @@ class Pixlovarr():
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             query.message.reply_text(
-                f"Is this the {data[1]} you are looking for?",
+                "Please select a download quality:",
                 reply_markup=reply_markup
             )
 
-    def selectQuality(self, update, context):
+    def selectDownload(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaid
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
 
             if data[1] == "serie":
-                profiles = self.sonarr_node.get_quality_profiles()
-                callbackdata = f"showdlsummary:{data[1]}:{data[2]}"
+                callbackdata = f"downloadmedia:{data[1]}:{data[2]}:{data[3]}"
+                keyboard = [
+                    [InlineKeyboardButton(
+                        "Download only season 1",
+                        callback_data=f"{callbackdata}:First")],
+                    [InlineKeyboardButton(
+                        "Download all seasons",
+                        callback_data=f"{callbackdata}:All")],
+                    [InlineKeyboardButton(
+                        "Download only new seasons",
+                        callback_data=f"{callbackdata}:New")]
+                ]
             else:
-                profiles = self.radarr_node.get_quality_profiles()
-                callbackdata = f"showdlsummary:{data[1]}:{data[2]}"
+                callbackdata = f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False"
+                keyboard = [[InlineKeyboardButton(
+                    "Download this movie",
+                    callback_data=callbackdata)]]
 
-            keyboard = []
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
-            if profiles:
-                for p in profiles:
-                    keyboard.append([InlineKeyboardButton(
-                        f"{p['name']}",
-                        callback_data=f"{callbackdata}:{p['id']}")]
-                    )
+            query.message.reply_text(
+                "Please select:",
+                reply_markup=reply_markup
+            )
+
+    def getTopMedia(self, update, context, mediaType, searchQuery):
+
+        if searchQuery:
+
+            if mediaType == "serie":
+                media = self.sonarr_node.lookup_serie(term=searchQuery)
+            else:
+                media = self.radarr_node.lookup_movie(term=searchQuery)
+
+            if media:
+
+                if type(media) == SonarrSerieItem or \
+                        type(media) == RadarrMovieItem:
+                    foundMedia = media
+                else:
+                    foundMedia = media[0]
+
+                if foundMedia.path:
+                    update.message.reply_text(
+                        f"We found that {foundMedia.title} ({foundMedia.year})"
+                        f" is already in the collection.")
+                    return    # media is already in collection
+
+                if mediaType == "serie":
+                    callbackdata = f"showdlsummary:{mediaType}:{foundMedia.tvdbId}"
+                else:
+                    callbackdata = f"showdlsummary:{mediaType}:{foundMedia.imdbId}"
+
+                keyboard = [[InlineKeyboardButton(
+                    f"{foundMedia.title}({foundMedia.year})",
+                    callback_data=callbackdata)]]
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                query.message.reply_text(
-                    "Please select a download quality:",
+                update.message.reply_text(
+                    "We found the following media for you:",
                     reply_markup=reply_markup
                 )
 
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"The specified query has no results, "
+                    f"{update.effective_user.first_name}.")
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=f"No profiles were found, Please set them up in Sonarr "
-                f"and Radarr {update.effective_user.first_name}.")
+                text=f"Please specify a query, "
+                f"{update.effective_user.first_name}.")
 
     def findMedia(self, update, context, mediaType, searchQuery):
 
@@ -1088,18 +1183,18 @@ class Pixlovarr():
                     if m.path:
                         context.bot.send_message(
                             chat_id=update.effective_chat.id,
-                            text=f"We found that {m.title}({m.year}) is "
+                            text=f"We found that {m.title} ({m.year}) is "
                             f"already in the collection.")
                         maxResults += 1
                         continue    # media is already in collection
 
                     if mediaType == "serie":
-                        callbackdata = f"selectedmedia:{mediaType}:{m.tvdbId}"
+                        callbackdata = f"showdlsummary:{mediaType}:{m.tvdbId}"
                         if not m.tvdbId:
                             maxResults += 1
                             continue  # serie doesn't have ID
                     else:
-                        callbackdata = f"selectedmedia:{mediaType}:{m.imdbId}"
+                        callbackdata = f"showdlsummary:{mediaType}:{m.imdbId}"
                         if not m.imdbId:
                             maxResults += 1
                             continue  # movie doesn't have ID
@@ -1262,6 +1357,9 @@ class Pixlovarr():
         self.showqueue_handler = CommandHandler('queue', self.showQueue)
         self.dispatcher.add_handler(self.showqueue_handler)
 
+        self.showtop_handler = CommandHandler('top', self.showtop)
+        self.dispatcher.add_handler(self.showtop_handler)
+
 # Keyboard Handlders
 
         kbgrant_handler = CallbackQueryHandler(
@@ -1272,21 +1370,25 @@ class Pixlovarr():
             self.reject, pattern='^reject:')
         self.dispatcher.add_handler(kbreject_handler)
 
-        kbselectquality_handler = CallbackQueryHandler(
-            self.selectQuality, pattern='^selectedmedia:')
-        self.dispatcher.add_handler(kbselectquality_handler)
+        kbselectDownload_handler = CallbackQueryHandler(
+            self.selectDownload, pattern='^selectdownload:')
+        self.dispatcher.add_handler(kbselectDownload_handler)
 
         kbshowDownloadSummary_handler = CallbackQueryHandler(
             self.showDownloadSummary, pattern='^showdlsummary:')
         self.dispatcher.add_handler(kbshowDownloadSummary_handler)
 
         kbdownloadMedia_handler = CallbackQueryHandler(
-            self.downloadMedia, pattern='^download:')
+            self.downloadMedia, pattern='^downloadmedia:')
         self.dispatcher.add_handler(kbdownloadMedia_handler)
 
         kbdeleteMedia_handler = CallbackQueryHandler(
             self.deleteMedia, pattern='^deletemedia:')
         self.dispatcher.add_handler(kbdeleteMedia_handler)
+
+        kbfindtop_handler = CallbackQueryHandler(
+            self.findtop, pattern='^top:')
+        self.dispatcher.add_handler(kbfindtop_handler)
 
 # Admin Handlders
 
