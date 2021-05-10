@@ -132,7 +132,7 @@ class Pixlovarr():
             self.cmdHistory.pop(0)
 
     def isAdmin(self, update, context, verbose):
-        if str(update.effective_chat.id) == self.admin_user_id:
+        if str(update.effective_user.id) == self.admin_user_id:
             return True
         else:
             if verbose:
