@@ -57,6 +57,9 @@ In the directory /config the python script expects a config file called 'pixlova
         BOT_TOKEN = BOTTOKEN
         ADMIN_USER_ID = ID_NUMBER
 
+        [IMDB]
+        DEFAULT_LIMIT_RANKING = 5
+
         [SONARR]
         ENABLED = ON
         URL = http://192.168.1.1:8989
