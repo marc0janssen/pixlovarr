@@ -215,7 +215,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "start",
+                "/start",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -278,7 +278,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "signup",
+                "/signup",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -323,7 +323,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "help",
+                "/help",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -346,43 +346,81 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "userid",
+                "/userid",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
 
 # Member Commands
+    def showPopularSeries(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update):
 
-    def showtop(self, update, context):
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
 
-        self.series = self.imdb.get_top250_tv()
+            command = update.effective_message.text
 
-        keyboard = []
+            if command == "/ts":
+                media = self.imdb.get_top250_tv()
+                typeOfMedia = "serie"
 
-        for serie in self.series[:5]:
-            keyboard.append([InlineKeyboardButton(
-                f"{serie['title']} ({serie['year']})",
-                callback_data=f"top:serie:{serie['title']} ")]
+            elif command == "/ps":
+                media = self.imdb.get_popular100_tv()
+                typeOfMedia = "serie"
+
+            elif command == "/tm":
+                media = self.imdb.get_top250_movies()
+                typeOfMedia = "movie"
+
+            elif command == "/pm":
+                media = self.imdb.get_popular100_movies()
+                typeOfMedia = "movie"
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Hang in there...")
+
+            keyboard = []
+
+            for m in media[:5]:
+                if typeOfMedia == "serie":
+                    foundMedia = self.sonarr_node.lookup_serie(term=m['title'])
+                    if type(foundMedia) != SonarrSerieItem:
+                        foundMedia = foundMedia[0]
+                    foundMediaID = foundMedia.tvdbId
+                else:
+                    foundMedia = self.radarr_node.lookup_movie(term=m['title'])
+                    if type(foundMedia) != RadarrMovieItem:
+                        foundMedia = foundMedia[0]
+                    foundMediaID = foundMedia.imdbId
+
+                callbackdata = f"showdlsummary:{typeOfMedia}:{foundMediaID}"
+
+                keyboard.append([InlineKeyboardButton(
+                    f"{foundMedia.title}({foundMedia.year})",
+                    callback_data=callbackdata)]
+                )
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            update.message.reply_text(
+                'IMDb top 5 popular series at the moment:',
+                reply_markup=reply_markup
             )
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued {command}."
+            )
 
-        update.message.reply_text(
-            'Top 5 series at the moment:',
-            reply_markup=reply_markup
-        )
-
-        logging.info(
-            f"{update.effective_user.first_name} - "
-            f"{update.effective_user.id} "
-            f"issued /top."
-        )
-
-        self.addItemToHistory(
-            "top",
-            update.effective_user.first_name,
-            update.effective_user.id
-        )
+            self.addItemToHistory(
+                f"{command}",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
 
     def showQueue(self, update, context):
         if not self.isRejected(update) and \
@@ -478,7 +516,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "queue",
+                "/queue",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -518,7 +556,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "series",
+                "/series",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -537,7 +575,7 @@ class Pixlovarr():
             self.findMedia(update, context, "serie", ' '.join(context.args))
 
             self.addItemToHistory(
-                "ds",
+                "/ds",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -579,7 +617,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "movies",
+                "/movies",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -598,7 +636,7 @@ class Pixlovarr():
             self.findMedia(update, context, "movie", ' '.join(context.args))
 
             self.addItemToHistory(
-                "dm",
+                "/dm",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -698,7 +736,7 @@ class Pixlovarr():
                 )
 
             self.addItemToHistory(
-                "del",
+                "/del",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -715,7 +753,7 @@ class Pixlovarr():
         if self.isAdmin(update, context, True):
 
             self.addItemToHistory(
-                "history",
+                "/history",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -794,7 +832,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "new",
+                "/new",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -833,7 +871,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "allowed",
+                "/allowed",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -872,7 +910,7 @@ class Pixlovarr():
             )
 
             self.addItemToHistory(
-                "denied",
+                "/denied",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -890,14 +928,6 @@ class Pixlovarr():
             )
 
 # HandlerCallback Commands
-    def findtop(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
-            query = update.callback_query
-            query.answer()
-            data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:title
-
-            self.getTopMedia(query, context, "serie", data[2])
 
     def deleteMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1071,7 +1101,7 @@ class Pixlovarr():
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             query.message.reply_text(
-                "Please select a download quality:",
+                "Please select media quality:",
                 reply_markup=reply_markup
             )
 
@@ -1109,58 +1139,6 @@ class Pixlovarr():
                 "Please confirm your download:",
                 reply_markup=reply_markup
             )
-
-    def getTopMedia(self, update, context, mediaType, searchQuery):
-
-        if searchQuery:
-
-            if mediaType == "serie":
-                media = self.sonarr_node.lookup_serie(term=searchQuery)
-            else:
-                media = self.radarr_node.lookup_movie(term=searchQuery)
-
-            if media:
-
-                if type(media) == SonarrSerieItem or \
-                        type(media) == RadarrMovieItem:
-                    foundMedia = media
-                else:
-                    foundMedia = media[0]
-
-                if foundMedia.path:
-                    update.message.reply_text(
-                        f"We found that {foundMedia.title} ({foundMedia.year})"
-                        f" is already in the collection.")
-                    return    # media is already in collection
-
-                if mediaType == "serie":
-                    callbackdata = (
-                        f"showdlsummary:{mediaType}:{foundMedia.tvdbId}")
-                else:
-                    callbackdata = (
-                        f"showdlsummary:{mediaType}:{foundMedia.imdbId}")
-
-                keyboard = [[InlineKeyboardButton(
-                    f"{foundMedia.title}({foundMedia.year})",
-                    callback_data=callbackdata)]]
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
-
-                update.message.reply_text(
-                    "We found the following media for you:",
-                    reply_markup=reply_markup
-                )
-
-            else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"The specified query has no results, "
-                    f"{update.effective_user.first_name}.")
-        else:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Please specify a query, "
-                f"{update.effective_user.first_name}.")
 
     def findMedia(self, update, context, mediaType, searchQuery):
 
@@ -1370,8 +1348,21 @@ class Pixlovarr():
         self.showqueue_handler = CommandHandler('queue', self.showQueue)
         self.dispatcher.add_handler(self.showqueue_handler)
 
-        self.showtop_handler = CommandHandler('top', self.showtop)
-        self.dispatcher.add_handler(self.showtop_handler)
+        self.showPopularSeries_handler = CommandHandler(
+            'ps', self.showPopularSeries)
+        self.dispatcher.add_handler(self.showPopularSeries_handler)
+
+        self.showTopSeries_handler = CommandHandler(
+            'ts', self.showPopularSeries)
+        self.dispatcher.add_handler(self.showTopSeries_handler)
+
+        self.showPopularMovies_handler = CommandHandler(
+            'pm', self.showPopularSeries)
+        self.dispatcher.add_handler(self.showPopularMovies_handler)
+
+        self.showtopMovies_handler = CommandHandler(
+            'tm', self.showPopularSeries)
+        self.dispatcher.add_handler(self.showtopMovies_handler)
 
 # Keyboard Handlders
 
@@ -1398,10 +1389,6 @@ class Pixlovarr():
         kbdeleteMedia_handler = CallbackQueryHandler(
             self.deleteMedia, pattern='^deletemedia:')
         self.dispatcher.add_handler(kbdeleteMedia_handler)
-
-        kbfindtop_handler = CallbackQueryHandler(
-            self.findtop, pattern='^top:')
-        self.dispatcher.add_handler(kbfindtop_handler)
 
 # Admin Handlders
 
