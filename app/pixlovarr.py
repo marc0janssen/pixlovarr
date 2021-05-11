@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-09 12:58:25
+# update: 2021-05-11 17:30:34
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -18,6 +18,7 @@ import shutil
 import sys
 import re
 import imdb
+import random
 from time import time
 from datetime import datetime
 from pycliarr.api import (
@@ -47,6 +48,8 @@ class Pixlovarr():
 
         self.cmdHistory = []
         self.maxCmdHistory = 50
+        self.rankingLimitMin = 3
+        self.rankingLimitMax = 100
 
         self.imdb = imdb.IMDb()
 
@@ -58,12 +61,21 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
+
+                self.default_limit_ranking = min(
+                    int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
+                    self.rankingLimitMax)
+                self.default_limit_ranking = max(
+                    int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
+                    self.rankingLimitMin)
+
                 self.sonarr_enabled = True if (
                     self.config['SONARR']['ENABLED'] == "ON") else False
                 self.sonarr_season_folder = True if (
                     self.config['SONARR']['SEASON_FOLDER'] == "ON") else False
                 self.sonarr_url = self.config['SONARR']['URL']
                 self.sonarr_token = self.config['SONARR']['TOKEN']
+
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
                 self.radarr_url = self.config['RADARR']['URL']
@@ -100,6 +112,14 @@ class Pixlovarr():
             except KeyError:
                 logging.error(
                     "Seems a key(s) is missing from INI file. "
+                    "Please check for mistakes. Exiting."
+                )
+
+                sys.exit()
+
+            except ValueError:
+                logging.error(
+                    "Seems a value(s) is invalid in INI file. "
                     "Please check for mistakes. Exiting."
                 )
 
@@ -299,6 +319,12 @@ class Pixlovarr():
                     "/movies - List all movies with ID\n"
                     "/queue - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
+                    "/ts <num> - Show Top series\n"
+                    "/ps <num> - Show Top popular series\n"
+                    "/tm <num> - Show Top movies\n"
+                    "/pm <num> - Show Top popular movies\n"
+                    "/ti <num> - Show Top Indian movies\n"
+                    "/wm <num> - Show Top worst movies\n"
                     "/ds <keyword> - Download series\n"
                     "/dm <keyword> - Download movie\n"
                 )
@@ -352,7 +378,7 @@ class Pixlovarr():
             )
 
 # Member Commands
-    def showPopularSeries(self, update, context):
+    def showRankings(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
@@ -360,38 +386,102 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 text="Please be patient...")
 
-            command = update.effective_message.text
+            command = update.effective_message.text[:3]
+            try:
+                topAmount = min(int(context.args[0]), self.rankingLimitMax)
+                topAmount = max(int(context.args[0]), self.rankingLimitMin)
+
+            except ValueError:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"No idea what you want, give me a number. "
+                        f"Defaulting to Top {self.default_limit_ranking}"
+                    )
+                )
+                topAmount = self.default_limit_ranking
+
+            except IndexError:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"No limit given. "
+                        f"Defaulting to Top {self.default_limit_ranking}"
+                    )
+                )
+                topAmount = self.default_limit_ranking
 
             if command == "/ts":
                 media = self.imdb.get_top250_tv()
                 typeOfMedia = "serie"
+                adjective = ""
 
             elif command == "/ps":
                 media = self.imdb.get_popular100_tv()
                 typeOfMedia = "serie"
+                adjective = "popular "
 
             elif command == "/tm":
                 media = self.imdb.get_top250_movies()
                 typeOfMedia = "movie"
+                adjective = ""
 
             elif command == "/pm":
                 media = self.imdb.get_popular100_movies()
                 typeOfMedia = "movie"
+                adjective = "popular "
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Hang in there...")
+            elif command == "/ti":
+                media = self.imdb.get_top250_indian_movies()
+                typeOfMedia = "movie"
+                adjective = "Indian "
+
+            elif command == "/wm":
+                media = self.imdb.get_bottom100_movies()
+                typeOfMedia = "movie"
+                adjective = "worst "
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
+
+                return
 
             keyboard = []
 
-            for m in media[:5]:
+            count = 0
+            for m in media[:topAmount]:
+                count += 1
+                if count % 20 == 0:
+                    phrass = [
+                        "rm -rf /homes/* ... just kidding...",
+                        "It’s hardware that makes a machine fast. It’s "
+                        "software that makes a fast machine slow...",
+                        "We will deliver before the Holidays...",
+                        "Driving up the IMDb headquaters yourself and asking "
+                        "stuff in person seems faster...",
+                        "My software never has bugs. It just develops "
+                        "random features..."
+                    ]
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=random.choice(phrass))
+
                 if typeOfMedia == "serie":
                     foundMedia = self.sonarr_node.lookup_serie(term=m['title'])
+                    if foundMedia is None:
+                        continue
+
                     if type(foundMedia) != SonarrSerieItem:
                         foundMedia = foundMedia[0]
                     foundMediaID = foundMedia.tvdbId
                 else:
                     foundMedia = self.radarr_node.lookup_movie(term=m['title'])
+                    if foundMedia is None:
+                        continue
+
                     if type(foundMedia) != RadarrMovieItem:
                         foundMedia = foundMedia[0]
                     foundMediaID = foundMedia.imdbId
@@ -406,7 +496,8 @@ class Pixlovarr():
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             update.message.reply_text(
-                'IMDb top 5 popular series at the moment:',
+                f"IMDb top {topAmount} {adjective}{typeOfMedia}s "
+                f"at the moment:",
                 reply_markup=reply_markup
             )
 
@@ -1084,6 +1175,16 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 photo=image, caption=caption
             )
+            if media.imdbId:
+                movie = self.imdb.get_movie(media.imdbId[2:])
+                showExtraData = True
+            else:
+                if data[1] == "movie":
+                    movie = self.imdb.get_movie(data[2][2:])
+                    showExtraData = True
+                else:
+                    showExtraData = False
+
             if data[1] == "serie" and media.overview:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
@@ -1091,11 +1192,27 @@ class Pixlovarr():
                 )
 
             if data[1] == "movie":
-                movie = self.imdb.get_movie(data[2][2:])
                 infoText = movie['plot'][0].split("::")
+
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f"{infoText[0]}"[:4096]
+                )
+
+            if showExtraData:
+                genresText = ""
+                genres = movie.data['genres']
+                for genre in genres:
+                    genresText += f"{genre}, "
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"Genres: {genresText}"[:len(genresText)+8-2]
+                )
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"Rating: {movie['rating']}"
                 )
 
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1348,21 +1465,29 @@ class Pixlovarr():
         self.showqueue_handler = CommandHandler('queue', self.showQueue)
         self.dispatcher.add_handler(self.showqueue_handler)
 
-        self.showPopularSeries_handler = CommandHandler(
-            'ps', self.showPopularSeries)
-        self.dispatcher.add_handler(self.showPopularSeries_handler)
+        self.showRankings_handler = CommandHandler(
+            'ps', self.showRankings)
+        self.dispatcher.add_handler(self.showRankings_handler)
 
         self.showTopSeries_handler = CommandHandler(
-            'ts', self.showPopularSeries)
+            'ts', self.showRankings)
         self.dispatcher.add_handler(self.showTopSeries_handler)
 
         self.showPopularMovies_handler = CommandHandler(
-            'pm', self.showPopularSeries)
+            'pm', self.showRankings)
         self.dispatcher.add_handler(self.showPopularMovies_handler)
 
         self.showtopMovies_handler = CommandHandler(
-            'tm', self.showPopularSeries)
+            'tm', self.showRankings)
         self.dispatcher.add_handler(self.showtopMovies_handler)
+
+        self.showtopIndianMovies_handler = CommandHandler(
+            'ti', self.showRankings)
+        self.dispatcher.add_handler(self.showtopIndianMovies_handler)
+
+        self.showBottomMovies_handler = CommandHandler(
+            'wm', self.showRankings)
+        self.dispatcher.add_handler(self.showBottomMovies_handler)
 
 # Keyboard Handlders
 

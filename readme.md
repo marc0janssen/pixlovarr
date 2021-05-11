@@ -19,6 +19,12 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /movies - List all movies with ID
         /queue - List all queued items
         /del <id> - Delete media from catalog
+        /ts <num> - Show Top series
+        /ps <num> - Show Top popular series
+        /tm <num> - Show Top movies
+        /pm <num> - Show Top popular movies
+        /ti <num> - Show Top Indian movies
+        /wm <num> - Show Top worst movies
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie
 
@@ -73,4 +79,4 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-05-07 22:09:25
+2021-05-11 17:30:25
