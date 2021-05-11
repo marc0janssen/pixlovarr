@@ -378,6 +378,52 @@ class Pixlovarr():
             )
 
 # Member Commands
+    def futureQueue(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.radarr_enabled:
+
+            movies = self.radarr_node.get_movie()
+            movies.sort(key=self.sortOnTitle)
+
+            endtext = "There are no movies in the future queue."
+
+            fqCount = 0
+            if type(movies) is RadarrMovieItem:
+                if movies.status == "announced":
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{movies.title} ({str(movies.year)}) - "
+                        f"M{movies.id}\n"
+                        )
+                    fqCount = 1
+            else:
+                allMovies = ""
+                for m in movies:
+                    if m.status == "announced":
+                        fqCount += 1
+                        allMovies += f"{m.title} ({str(m.year)}) - M{m.id}\n"
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allMovies)
+
+                endtext = f"There are {fqCount} movies in the future queue."
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=endtext)
+
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued /fq."
+            )
+
+            self.addItemToHistory(
+                "/fq",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+
     def showRankings(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
@@ -685,7 +731,10 @@ class Pixlovarr():
 
             if type(movies) is RadarrMovieItem:
                 context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=movies.title)
+                    chat_id=update.effective_chat.id,
+                    text=f"{movies.title} ({str(movies.year)}) - "
+                    f"M{movies.id}\n"
+                    )
             else:
                 movies.sort(key=self.sortOnTitle)
 
@@ -1488,6 +1537,9 @@ class Pixlovarr():
         self.showBottomMovies_handler = CommandHandler(
             'wm', self.showRankings)
         self.dispatcher.add_handler(self.showBottomMovies_handler)
+
+        self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
+        self.dispatcher.add_handler(self.futurequeue_handler)
 
 # Keyboard Handlders
 
