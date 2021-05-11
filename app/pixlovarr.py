@@ -1013,25 +1013,34 @@ class Pixlovarr():
 
             else:
                 profiles = self.radarr_node.get_quality_profiles()
-                callbackdata = f"downloadmedia:{data[1]}:{data[2]}"
+                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
             keyboard = []
+            row = []
+            num_columns = 2
+            count = 0
 
             if profiles:
                 for p in profiles:
-                    keyboard.append([InlineKeyboardButton(
+                    row.append(InlineKeyboardButton(
                         f"{p['name']}",
-                        callback_data=f"{callbackdata}:{p['id']}")]
+                        callback_data=f"{callbackdata}:{p['id']}")
                     )
+
+                    count += 1
+
+                    if count % num_columns == 0 or count == len(profiles):
+                        keyboard.append(row)
+                        row = []
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
             else:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"No profiles were found, Please set them up in Sonarr "
-                    f"and Radarr, {update.effective_user.first_name}.")
+                    text=f"No profiles were found, Please set them up in"
+                    f"Sonarr and Radarr, {update.effective_user.first_name}.")
 
                 return
 
@@ -1087,15 +1096,17 @@ class Pixlovarr():
                         callback_data=f"{callbackdata}:New")]
                 ]
             else:
-                callbackdata = f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False"
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                callbackdata = (
+                    f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
                 keyboard = [[InlineKeyboardButton(
-                    "Download this movie",
+                    f"Download {media.title}({media.year})",
                     callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             query.message.reply_text(
-                "Please select:",
+                "Please confirm your download:",
                 reply_markup=reply_markup
             )
 
@@ -1123,9 +1134,11 @@ class Pixlovarr():
                     return    # media is already in collection
 
                 if mediaType == "serie":
-                    callbackdata = f"showdlsummary:{mediaType}:{foundMedia.tvdbId}"
+                    callbackdata = (
+                        f"showdlsummary:{mediaType}:{foundMedia.tvdbId}")
                 else:
-                    callbackdata = f"showdlsummary:{mediaType}:{foundMedia.imdbId}"
+                    callbackdata = (
+                        f"showdlsummary:{mediaType}:{foundMedia.imdbId}")
 
                 keyboard = [[InlineKeyboardButton(
                     f"{foundMedia.title}({foundMedia.year})",
