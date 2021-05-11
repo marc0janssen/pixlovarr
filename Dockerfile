@@ -31,9 +31,7 @@ RUN apk del \
 	openssl \
 	ca-certificates \
 	linux-headers \
-	libxml2 \
 	libxml2-dev \
-	libxslt \
 	libxslt-dev
 
 RUN rm -f /var/cache/apk/* \
