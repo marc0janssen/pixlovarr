@@ -425,6 +425,7 @@ class Pixlovarr():
                     "/movies - List all movies with ID\n"
                     "/queue - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
+                    "/mi <id> - Show media info\n"
                     "/ts <num> - Show Top series\n"
                     "/ps <num> - Show Top popular series\n"
                     "/tm <num> - Show Top movies\n"
