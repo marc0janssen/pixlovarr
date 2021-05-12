@@ -25,7 +25,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /pm <num> - Show Top popular movies
         /ti <num> - Show Top Indian movies
         /wm <num> - Show Top worst movies
-        /fg - Show queued announced items
+        /fq - Show queued announced items
         /ds <keyword> - Download serie
         /dm <keyword> - Download movie
 
