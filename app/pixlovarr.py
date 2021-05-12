@@ -1505,13 +1505,13 @@ class Pixlovarr():
 
 # Member Handlers
 
-        self.series_handler = CommandHandler('series', self.series)
+        self.series_handler = CommandHandler('ls', self.series)
         self.dispatcher.add_handler(self.series_handler)
 
         self.downloadseries_handler = CommandHandler('ds', self.downloadSeries)
         self.dispatcher.add_handler(self.downloadseries_handler)
 
-        self.movies_handler = CommandHandler('movies', self.movies)
+        self.movies_handler = CommandHandler('lm', self.movies)
         self.dispatcher.add_handler(self.movies_handler)
 
         self.downloadmovies_handler = CommandHandler('dm', self.downloadMovies)
