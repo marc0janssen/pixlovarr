@@ -423,7 +423,7 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/series - List all series with ID\n"
                     "/movies - List all movies with ID\n"
-                    "/queue - List all queued items\n"
+                    "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
                     "/mi <id> - Show media info\n"
                     "/ts <num> - Show Top series\n"
@@ -695,28 +695,25 @@ class Pixlovarr():
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
-            endtext = "There are no items in the queue."
             numOfItems = 0
 
             if self.sonarr_enabled:
                 queuesonarr = self.sonarr_node.get_queue()
 
-                numOfItems = self.countItemsinQueue(
-                    update, context, numOfItems, queuesonarr)
-
-                endtext = f"There are {numOfItems} items in the queue."
+                if queuesonarr:
+                    numOfItems = self.countItemsinQueue(
+                        update, context, numOfItems, queuesonarr)
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
 
-                numOfItems = self.countItemsinQueue(
-                    update, context, numOfItems, queueradarr)
-
-                endtext = f"There are {numOfItems} items in the queue."
+                if queueradarr:
+                    numOfItems = self.countItemsinQueue(
+                        update, context, numOfItems, queueradarr)
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=endtext
+                text=f"There are {numOfItems} items in the queue."
             )
 
             logging.info(
@@ -1520,7 +1517,7 @@ class Pixlovarr():
         self.downloadmovies_handler = CommandHandler('dm', self.downloadMovies)
         self.dispatcher.add_handler(self.downloadmovies_handler)
 
-        self.showqueue_handler = CommandHandler('queue', self.showQueue)
+        self.showqueue_handler = CommandHandler('qu', self.showQueue)
         self.dispatcher.add_handler(self.showqueue_handler)
 
         self.showRankings_handler = CommandHandler(
