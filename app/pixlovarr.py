@@ -421,8 +421,8 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/ls - List all series with ID\n"
-                    "/lm - List all movies with ID\n"
+                    "/ls <keyword> - List all series\n"
+                    "/lm <keyword> - List all movies\n"
                     "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
                     "/mi <id> - Show media info\n"
@@ -507,7 +507,7 @@ class Pixlovarr():
                         chat_id=update.effective_chat.id,
                         text=f"{series.title} ({str(series.year)}) - "
                         f"S{series.id}\n"
-                        )
+                    )
                     fqCount = 1
             else:
                 for s in series:
@@ -527,7 +527,7 @@ class Pixlovarr():
                         chat_id=update.effective_chat.id,
                         text=f"{movies.title} ({str(movies.year)}) - "
                         f"M{movies.id}\n"
-                        )
+                    )
                     fqCount = 1
             else:
                 for m in movies:
@@ -737,23 +737,38 @@ class Pixlovarr():
 
             endtext = "There are no series in the catalog."
 
-            if type(series) is SonarrSerieItem:
+            if series:
+                if type(series) is SonarrSerieItem:
+                    text = (
+                        f"{series.title} ({str(series.year)}) "
+                        f"- S{series.id}\n"
+                    )
 
-                text = f"{series.title} ({str(series.year)}) - S{series.id}\n"
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=text)
+                else:
+                    series.sort(key=self.sortOnTitle)
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=text)
-            else:
-                series.sort(key=self.sortOnTitle)
+                    allSeries = ""
+                    for s in series:
 
-                allSeries = ""
-                for s in series:
-                    allSeries += f"{s.title} ({str(s.year)}) - S{s.id}\n"
+                        if re.search(
+                            ' '.join(context.args).lower(), s.title.lower()) \
+                                or not context.args:
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allSeries)
+                            allSeries += (
+                                f"{s.title} ({str(s.year)}) - S{s.id}\n")
 
-                endtext = f"There are {len(series)} series in the catalog."
+                    if allSeries == "":
+                        allSeries = (
+                            f"There are no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
+
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=allSeries)
+
+                    endtext = f"There are {len(series)} series in the catalog."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
@@ -798,21 +813,34 @@ class Pixlovarr():
 
             endtext = "There are no movies in the catalog."
 
-            if type(movies) is RadarrMovieItem:
-                text = f"{movies.title} ({str(movies.year)}) - M{movies.id}\n"
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=text)
-            else:
-                movies.sort(key=self.sortOnTitle)
+            if movies:
+                if type(movies) is RadarrMovieItem:
+                    text = (
+                        f"{movies.title} ({str(movies.year)}) - "
+                        f"M{movies.id}\n")
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=text)
+                else:
+                    movies.sort(key=self.sortOnTitle)
 
-                allMovies = ""
-                for m in movies:
-                    allMovies += f"{m.title} ({str(m.year)}) - M{m.id}\n"
+                    allMovies = ""
+                    for m in movies:
+                        if re.search(
+                            ' '.join(context.args).lower(), m.title.lower()) \
+                                or not context.args:
+                            allMovies += (
+                                f"{m.title} ({str(m.year)}) - M{m.id}\n")
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allMovies)
+                    if allMovies == "":
+                        allMovies = (
+                            f"There are no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
 
-                endtext = f"There are {len(movies)} movies in the catalog."
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=allMovies)
+
+                    endtext = f"There are {len(movies)} movies in the catalog."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)

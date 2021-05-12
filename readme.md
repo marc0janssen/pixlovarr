@@ -15,8 +15,8 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
-        /ls - List all series with ID
-        /lm - List all movies with ID
+        /ls <keyword> - List all series
+        /lm <keyword> - List all movies
         /qu - List all queued items
         /del <id> - Delete media from catalog
         /mi <id> - Show media info
