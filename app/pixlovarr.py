@@ -1272,20 +1272,30 @@ class Pixlovarr():
                     text=f"{infoText[0]}"[:4096]
                 )
 
+                print(movie)
+
             if showExtraData:
                 genresText = ""
-                genres = movie.data['genres']
-                for genre in genres:
-                    genresText += f"{genre}, "
+                try:
+                    genres = movie.data['genres']
+                    for genre in genres:
+                        genresText += f"{genre}, "
+                except KeyError:
+                    genresText = "-, "
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f"Genres: {genresText}"[:len(genresText)+8-2]
-                )
+                )  # 8 for "Genres:" and 2 for the ending ", "
+
+                try:
+                    txtRating = movie['rating']
+                except KeyError:
+                    txtRating = "-"
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"Rating: {movie['rating']}"
+                    text=f"Rating: {txtRating}"
                 )
 
             reply_markup = InlineKeyboardMarkup(keyboard)
