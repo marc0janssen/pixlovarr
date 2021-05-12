@@ -728,7 +728,7 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-    def series(self, update, context):
+    def listSeries(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.sonarr_enabled:
@@ -789,7 +789,7 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-    def movies(self, update, context):
+    def listMovies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
@@ -1505,13 +1505,13 @@ class Pixlovarr():
 
 # Member Handlers
 
-        self.series_handler = CommandHandler('ls', self.series)
+        self.series_handler = CommandHandler('ls', self.listSeries)
         self.dispatcher.add_handler(self.series_handler)
 
         self.downloadseries_handler = CommandHandler('ds', self.downloadSeries)
         self.dispatcher.add_handler(self.downloadseries_handler)
 
-        self.movies_handler = CommandHandler('lm', self.movies)
+        self.movies_handler = CommandHandler('lm', self.listMovies)
         self.dispatcher.add_handler(self.movies_handler)
 
         self.downloadmovies_handler = CommandHandler('dm', self.downloadMovies)
