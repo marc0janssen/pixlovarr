@@ -421,8 +421,8 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/series - List all series with ID\n"
-                    "/movies - List all movies with ID\n"
+                    "/ls - List all series with ID\n"
+                    "/lm - List all movies with ID\n"
                     "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
                     "/mi <id> - Show media info\n"
@@ -761,11 +761,11 @@ class Pixlovarr():
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
-                f"issued /series."
+                f"issued /ls."
             )
 
             self.addItemToHistory(
-                "/series",
+                "/ls",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -820,11 +820,11 @@ class Pixlovarr():
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
-                f"issued /movies."
+                f"issued /lm."
             )
 
             self.addItemToHistory(
-                "/movies",
+                "/lm",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -896,8 +896,8 @@ class Pixlovarr():
                                 chat_id=update.effective_chat.id,
                                 text=(
                                     "This ID was not found in the "
-                                    "catalog.\nPlease check /series"
-                                    " or /movies for IDs."
+                                    "catalog.\nPlease check /ls"
+                                    " or /lm for IDs."
                                 )
                             )
 
@@ -911,7 +911,7 @@ class Pixlovarr():
                         chat_id=update.effective_chat.id,
                         text=(
                             "This ID was not recognized.\nPlease check "
-                            "/series or /movies for IDs."
+                            "/ls or /lm for IDs."
                         )
                     )
             else:
@@ -919,7 +919,7 @@ class Pixlovarr():
                     chat_id=update.effective_chat.id,
                     text=(
                         "There was no ID given.\nPlease check "
-                        "/series or /movies for IDs."
+                        "/ls or /lm for IDs."
                     )
                 )
 

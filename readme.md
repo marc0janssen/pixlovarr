@@ -15,10 +15,11 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
-        /series - List all series with ID
-        /movies - List all movies with ID
-        /queue - List all queued items
+        /ls - List all series with ID
+        /lm - List all movies with ID
+        /qu - List all queued items
         /del <id> - Delete media from catalog
+        /mi <id> - Show media info
         /ts <num> - Show Top series
         /ps <num> - Show Top popular series
         /tm <num> - Show Top movies
