@@ -325,6 +325,7 @@ class Pixlovarr():
                     "/pm <num> - Show Top popular movies\n"
                     "/ti <num> - Show Top Indian movies\n"
                     "/wm <num> - Show Top worst movies\n"
+                    "/fq - Show queued announced items\n"
                     "/ds <keyword> - Download series\n"
                     "/dm <keyword> - Download movie\n"
                 )
@@ -383,12 +384,36 @@ class Pixlovarr():
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
+            series = self.sonarr_node.get_serie()
+            series.sort(key=self.sortOnTitle)
+
             movies = self.radarr_node.get_movie()
             movies.sort(key=self.sortOnTitle)
 
-            endtext = "There are no movies in the future queue."
+            endtext = "There is no media in the announced queue."
 
             fqCount = 0
+            allSeries = "Series\n"
+            if type(series) is SonarrSerieItem:
+                if series.status == "upcoming":
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"{series.title} ({str(series.year)}) - "
+                        f"S{series.id}\n"
+                        )
+                    fqCount = 1
+            else:
+                for s in series:
+                    if s.status == "upcoming":
+                        fqCount += 1
+                        allSeries += f"{s.title} ({str(s.year)}) - S{s.id}\n"
+
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allSeries)
+
+                endtext = f"There are {fqCount} series in the announced queue."
+
+            allMovies = "Movies\n"
             if type(movies) is RadarrMovieItem:
                 if movies.status == "announced":
                     context.bot.send_message(
@@ -398,7 +423,6 @@ class Pixlovarr():
                         )
                     fqCount = 1
             else:
-                allMovies = ""
                 for m in movies:
                     if m.status == "announced":
                         fqCount += 1
@@ -407,7 +431,7 @@ class Pixlovarr():
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allMovies)
 
-                endtext = f"There are {fqCount} movies in the future queue."
+                endtext = f"There are {fqCount} items in the announced queue."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
