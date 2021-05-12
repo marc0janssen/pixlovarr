@@ -17,30 +17,24 @@ RUN apk add --update \
 	openssl \
 	ca-certificates \
 	linux-headers \
-	tzdata
-
-RUN pip3 install --no-cache \
+	tzdata \
+	&& pip3 install --no-cache \
 	python-telegram-bot \
 	pycliarr \
 	requests \
-	imdbpy
-	
-RUN apk del \
+	imdbpy \
+	&& apk del \
 	python3-dev \
 	build-base \
 	openssl \
 	ca-certificates \
 	linux-headers \
 	libxml2-dev \
-	libxslt-dev
-
-RUN rm -f /var/cache/apk/* \
-	&& rm -rf /tmp/*
-
-RUN chmod +x /app/update_git.sh
-RUN /app/update_git.sh
-
-RUN chmod +x /app/pixlovarr.py
+	libxslt-dev \
+	&& rm -f /var/cache/apk/* \
+	&& rm -rf /tmp/* \ 
+	&& chmod +x /app/update_git.sh \
+	&& /app/update_git.sh
 
 ENV TZ=Europe/Amsterdam
 
