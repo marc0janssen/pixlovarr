@@ -11,6 +11,7 @@ from telegram.ext import (
     MessageHandler,
     Filters
 )
+from urllib.parse import urlparse
 import logging
 import json
 import configparser
@@ -50,6 +51,7 @@ class Pixlovarr():
         self.maxCmdHistory = 50
         self.rankingLimitMin = 3
         self.rankingLimitMax = 100
+        self.youTubeURL = "https://www.youtube.com/watch?v="
 
         self.imdb = imdb.IMDb()
 
@@ -135,6 +137,61 @@ class Pixlovarr():
                             './config/pixlovarr.ini.example')
             sys.exit()
 
+    def getGenres(self, listOfGenres):
+        genresText = ""
+        try:
+            for genre in listOfGenres:
+                genresText += f"{genre}, "
+
+            genresText = genresText[:len(genresText)-2]
+        except KeyError:
+            genresText = "-"
+
+        return genresText
+
+    def is_http_or_https(self, url):
+        return urlparse(url).scheme in {'http', 'https'}
+
+    def countItemsinQueue(self, update, context, numOfItems, queue):
+        for queueitem in queue:
+
+            numOfItems += 1
+
+            try:
+                dt = (self.datetime_from_utc_to_local(
+                    datetime.strptime(queueitem[
+                        'estimatedCompletionTime'],
+                        "%Y-%m-%dT%H:%M:%S.%fZ")))
+
+                pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
+
+                tl = queueitem['timeleft']
+
+            except KeyError:
+                pt = "-"
+                tl = "-"
+
+            text = (
+                f"{queueitem['series']['title']} "
+                f"S{queueitem['episode']['seasonNumber']}"
+                f"E{queueitem['episode']['episodeNumber']} - "
+                f"'{queueitem['episode']['title']}'\n"
+                f"Status: {queueitem['status']}\n"
+                f"Protocol: {queueitem['protocol']}\n"
+                f"Timeleft: {tl}\n"
+                f"ETA: {pt}"
+            )
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=text
+            )
+
+            return numOfItems
+
+    def sortOnTitle(self, e):
+        return e.title
+
     def addItemToHistory(self, cmd, uname, uid):
         historyItem = {}
 
@@ -212,6 +269,55 @@ class Pixlovarr():
 
         except IOError:
             logging.warning(f"Can't write file {file}.")
+
+    def showMediaInfo(self, update, context, media):
+
+        if media.images:
+            image = f"{media.images[0]['url']}" if self.is_http_or_https(
+                media.images[0]['url']) else media.images[0]['remoteUrl']
+        else:
+            image = self.urlNoImage
+
+        caption = f"{media.title}({media.year})"
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=image, caption=caption
+        )
+
+        try:
+            textoverview = media.overview if media.overview != "" \
+                else "No description available."
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"{textoverview}"[:4096]
+            )
+        except AttributeError:
+            pass
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Genres: {self.getGenres(media.genres)}"
+        )
+
+        try:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(
+                    f"Rating: {media.ratings['value']} "
+                    f"votes: {media.ratings['votes']}"
+                )
+            )
+        except AttributeError:
+            pass
+
+        try:
+            youTubeURL = f"{self.youTubeURL}{media.youTubeTrailerId}"
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"{youTubeURL}"
+            )
+        except AttributeError:
+            pass
 
 # Default Commands
 
@@ -382,7 +488,7 @@ class Pixlovarr():
     def futureQueue(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
-                self.radarr_enabled:
+                (self.sonarr_enabled or self.radarr_enabled):
 
             series = self.sonarr_node.get_serie()
             series.sort(key=self.sortOnTitle)
@@ -456,7 +562,8 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 text="Please be patient...")
 
-            command = update.effective_message.text[:3]
+            command = update.effective_message.text.split(" ")
+
             try:
                 topAmount = min(int(context.args[0]), self.rankingLimitMax)
                 topAmount = max(int(context.args[0]), self.rankingLimitMin)
@@ -481,32 +588,32 @@ class Pixlovarr():
                 )
                 topAmount = self.default_limit_ranking
 
-            if command == "/ts":
+            if command[0] == "/ts":
                 media = self.imdb.get_top250_tv()
                 typeOfMedia = "serie"
                 adjective = ""
 
-            elif command == "/ps":
+            elif command[0] == "/ps":
                 media = self.imdb.get_popular100_tv()
                 typeOfMedia = "serie"
                 adjective = "popular "
 
-            elif command == "/tm":
+            elif command[0] == "/tm":
                 media = self.imdb.get_top250_movies()
                 typeOfMedia = "movie"
                 adjective = ""
 
-            elif command == "/pm":
+            elif command[0] == "/pm":
                 media = self.imdb.get_popular100_movies()
                 typeOfMedia = "movie"
                 adjective = "popular "
 
-            elif command == "/ti":
+            elif command[0] == "/ti":
                 media = self.imdb.get_top250_indian_movies()
                 typeOfMedia = "movie"
                 adjective = "Indian "
 
-            elif command == "/wm":
+            elif command[0] == "/wm":
                 media = self.imdb.get_bottom100_movies()
                 typeOfMedia = "movie"
                 adjective = "worst "
@@ -593,77 +700,18 @@ class Pixlovarr():
             if self.sonarr_enabled:
                 queuesonarr = self.sonarr_node.get_queue()
 
-                for queueitem in queuesonarr:
+                numOfItems = self.countItemsinQueue(
+                    update, context, numOfItems, queuesonarr)
 
-                    numOfItems += 1
-
-                    try:
-                        dt = (self.datetime_from_utc_to_local(
-                            datetime.strptime(queueitem[
-                                'estimatedCompletionTime'],
-                                "%Y-%m-%dT%H:%M:%S.%fZ")))
-
-                        pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
-
-                        tl = queueitem['timeleft']
-
-                    except KeyError:
-                        pt = "-"
-                        tl = "-"
-
-                    text = (
-                        f"{queueitem['series']['title']} "
-                        f"S{queueitem['episode']['seasonNumber']}"
-                        f"E{queueitem['episode']['episodeNumber']} - "
-                        f"'{queueitem['episode']['title']}'\n"
-                        f"Status: {queueitem['status']}\n"
-                        f"Protocol: {queueitem['protocol']}\n"
-                        f"Timeleft: {tl}\n"
-                        f"ETA: {pt}"
-                    )
-
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=text
-                    )
-
-                    endtext = f"There are {numOfItems} items in the queue."
+                endtext = f"There are {numOfItems} items in the queue."
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
 
-                for queueitem in queueradarr:
+                numOfItems = self.countItemsinQueue(
+                    update, context, numOfItems, queueradarr)
 
-                    numOfItems += 1
-
-                    try:
-                        dt = self.datetime_from_utc_to_local(datetime.strptime(
-                            queueitem['estimatedCompletionTime'],
-                            "%Y-%m-%dT%H:%M:%SZ"))
-
-                        pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
-
-                        tl = queueitem['timeleft']
-
-                    except KeyError:
-                        pt = "-"
-                        tl = "-"
-
-                    text = (
-                        f"{queueitem['movie']['title']} "
-                        f"({queueitem['movie']['year']})\n"
-                        f"Status: {queueitem['status']}\n"
-                        f"Protocol: {queueitem['protocol']}\n"
-                        f"Timeleft: {tl}\n"
-                        f"ETA: {pt}"
-                    )
-
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=text
-                    )
-
-                    endtext = f"There are {numOfItems} items in the queue."
+                endtext = f"There are {numOfItems} items in the queue."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -693,8 +741,10 @@ class Pixlovarr():
 
             if type(series) is SonarrSerieItem:
 
+                text = f"{series.title} ({str(series.year)}) - S{series.id}\n"
+
                 context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=series.title)
+                    chat_id=update.effective_chat.id, text=text)
             else:
                 series.sort(key=self.sortOnTitle)
 
@@ -741,9 +791,6 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-    def sortOnTitle(self, e):
-        return e.title
-
     def movies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -754,11 +801,9 @@ class Pixlovarr():
             endtext = "There are no movies in the catalog."
 
             if type(movies) is RadarrMovieItem:
+                text = f"{movies.title} ({str(movies.year)}) - M{movies.id}\n"
                 context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"{movies.title} ({str(movies.year)}) - "
-                    f"M{movies.id}\n"
-                    )
+                    chat_id=update.effective_chat.id, text=text)
             else:
                 movies.sort(key=self.sortOnTitle)
 
@@ -805,9 +850,11 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-    def showDeleteMedia(self, update, context):
+    def movieInfo(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
+
+            command = update.effective_message.text.split(" ")
 
             if context.args:
 
@@ -822,46 +869,25 @@ class Pixlovarr():
                         else:
                             media = self.radarr_node.get_movie(int(mediaID))
 
-                        if media.images:
-                            image = f"{media.images[0]['remoteUrl']}"
-                        else:
-                            image = self.urlNoImage
+                        self.showMediaInfo(update, context, media)
 
-                        caption = f"{media.title}({media.year})"
-                        context.bot.send_photo(
-                            chat_id=update.effective_chat.id,
-                            photo=image, caption=caption
-                        )
+                        if command[0] == "/del":
+                            callbackdata = (
+                                f"deletemedia:{typeOfMedia}:{mediaID}")
+                            if self.isAdmin(update, context, False):
+                                callbackdata += ":True"
+                            else:
+                                callbackdata += ":False"
 
-                        if typeOfMedia == "serie" and media.overview:
-                            context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=f"{media.overview}"[:4096]
+                            keyboard = [[InlineKeyboardButton(
+                                f"{media.title}({media.year})",
+                                callback_data=callbackdata)]]
+
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            update.message.reply_text(
+                                "Do you want to delete this media:",
+                                reply_markup=reply_markup
                             )
-
-                        if typeOfMedia == "movie":
-                            movie = self.imdb.get_movie(media.imdbId[2:])
-                            infoText = movie['plot'][0].split("::")
-                            context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=f"{infoText[0]}"[:4096]
-                            )
-
-                        callbackdata = f"deletemedia:{typeOfMedia}:{mediaID}"
-                        if self.isAdmin(update, context, False):
-                            callbackdata += ":True"
-                        else:
-                            callbackdata += ":False"
-
-                        keyboard = [[InlineKeyboardButton(
-                            f"{media.title}({media.year})",
-                            callback_data=callbackdata)]]
-
-                        reply_markup = InlineKeyboardMarkup(keyboard)
-                        update.message.reply_text(
-                            "Do you want to delete this media:",
-                            reply_markup=reply_markup
-                        )
 
                     except CliServerError as e:
 
@@ -900,7 +926,7 @@ class Pixlovarr():
                 )
 
             self.addItemToHistory(
-                "/del",
+                f"{command[0]}",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -908,7 +934,7 @@ class Pixlovarr():
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
-                f"issued /del."
+                f"issued {command[0]}."
             )
 
 # Admin Commands
@@ -1210,6 +1236,8 @@ class Pixlovarr():
                 callbackdata = f"selectdownload:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
+            self.showMediaInfo(update, context, media)
+
             keyboard = []
             row = []
             num_columns = 2
@@ -1237,66 +1265,6 @@ class Pixlovarr():
                     f"Sonarr and Radarr, {update.effective_user.first_name}.")
 
                 return
-
-            if media.images:
-                image = f"{media.images[0]['url']}"
-            else:
-                image = self.urlNoImage
-
-            caption = f"{media.title}({media.year})"
-            context.bot.send_photo(
-                chat_id=update.effective_chat.id,
-                photo=image, caption=caption
-            )
-            if media.imdbId:
-                movie = self.imdb.get_movie(media.imdbId[2:])
-                showExtraData = True
-            else:
-                if data[1] == "movie":
-                    movie = self.imdb.get_movie(data[2][2:])
-                    showExtraData = True
-                else:
-                    showExtraData = False
-
-            if data[1] == "serie" and media.overview:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"{media.overview}"[:4096]
-                )
-
-            if data[1] == "movie":
-                infoText = movie['plot'][0].split("::")
-
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"{infoText[0]}"[:4096]
-                )
-
-                print(movie)
-
-            if showExtraData:
-                genresText = ""
-                try:
-                    genres = movie.data['genres']
-                    for genre in genres:
-                        genresText += f"{genre}, "
-                except KeyError:
-                    genresText = "-, "
-
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"Genres: {genresText}"[:len(genresText)+8-2]
-                )  # 8 for "Genres:" and 2 for the ending ", "
-
-                try:
-                    txtRating = movie['rating']
-                except KeyError:
-                    txtRating = "-"
-
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"Rating: {txtRating}"
-                )
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1374,20 +1342,26 @@ class Pixlovarr():
                     if m.path:
                         context.bot.send_message(
                             chat_id=update.effective_chat.id,
-                            text=f"We found that {m.title} ({m.year}) is "
+                            text=f"We found that {m.title}({m.year}) is "
                             f"already in the collection.")
+
                         maxResults += 1
+
                         continue    # media is already in collection
 
                     if mediaType == "serie":
                         callbackdata = f"showdlsummary:{mediaType}:{m.tvdbId}"
                         if not m.tvdbId:
+
                             maxResults += 1
+
                             continue  # serie doesn't have ID
                     else:
                         callbackdata = f"showdlsummary:{mediaType}:{m.imdbId}"
                         if not m.imdbId:
+
                             maxResults += 1
+
                             continue  # movie doesn't have ID
 
                     keyboard.append([InlineKeyboardButton(
@@ -1575,6 +1549,9 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
+        self.movieinfo_handler = CommandHandler('mi', self.movieInfo)
+        self.dispatcher.add_handler(self.movieinfo_handler)
+
 # Keyboard Handlders
 
         kbgrant_handler = CallbackQueryHandler(
@@ -1617,7 +1594,7 @@ class Pixlovarr():
         )
         self.dispatcher.add_handler(self.cmdhistory_handler)
 
-        self.delete_handler = CommandHandler('del', self.showDeleteMedia)
+        self.delete_handler = CommandHandler('del', self.movieInfo)
         self.dispatcher.add_handler(self.delete_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
