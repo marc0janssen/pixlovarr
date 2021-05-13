@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-11 17:30:34
+# update: 22021-05-13 16:09:31
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -28,9 +28,10 @@ from pycliarr.api import (
 )
 from pycliarr.api import (
     SonarrCli,
-    SonarrSerieItem
+    SonarrSerieItem,
+    exceptions
 )
-from pycliarr.api.exceptions import CliServerError
+# from pycliarr.api.exceptions import CliServerError
 
 
 class Pixlovarr():
@@ -319,10 +320,57 @@ class Pixlovarr():
         except AttributeError:
             pass
 
+    def listMedia(self, update, context, media):
+        if type(media) is SonarrSerieItem or \
+                type(media) is RadarrMovieItem:
+            text = (
+                f"{media.title} ({str(media.year)}) "
+                f"- S{media.id}\n"
+            )
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=text)
+        else:
+            media.sort(key=self.sortOnTitle)
+
+            allMedia = ""
+            for m in media:
+
+                if re.search(
+                    ' '.join(context.args).lower(), m.title.lower()) \
+                        or not context.args:
+
+                    allMedia += (
+                        f"{m.title} ({str(m.year)}) - S{m.id}\n")
+
+            if allMedia == "":
+                allMedia = (
+                    f"There are no results found, "
+                    f"{update.effective_user.first_name}."
+                )
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=allMedia)
+
+    def logCommand(self, update):
+        logging.info(
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} "
+            f"issued {update.effective_message.text}."
+        )
+
+        self.addItemToHistory(
+            f"{update.effective_message.text}",
+            update.effective_user.first_name,
+            update.effective_user.id
+        )
+
 # Default Commands
 
     def start(self, update, context):
         if not self.isRejected(update):
+            self.logCommand(update)
+
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=(
@@ -334,20 +382,11 @@ class Pixlovarr():
                 )
             )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /start."
-            )
-
-            self.addItemToHistory(
-                "/start",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def signup(self, update, context):
         if not self.isRejected(update):
+
+            self.logCommand(update)
+
             if not self.isGranted(update):
                 if not str(update.effective_user.id) in self.signups:
 
@@ -397,20 +436,10 @@ class Pixlovarr():
                     )
                 )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /signup."
-            )
-
-            self.addItemToHistory(
-                "/signup",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def help(self, update, context):
         if not self.isRejected(update):
+            self.logCommand(update)
+
             helpText = (
                 "-- User commands --\n"
                 "/start - Start this bot\n"
@@ -450,20 +479,9 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /help."
-            )
-
-            self.addItemToHistory(
-                "/help",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def userid(self, update, context):
         if not self.isRejected(update):
+            self.logCommand(update)
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -473,23 +491,13 @@ class Pixlovarr():
                 )
             )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /userid."
-            )
-
-            self.addItemToHistory(
-                "/userid",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
 # Member Commands
     def futureQueue(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 (self.sonarr_enabled or self.radarr_enabled):
+
+            self.logCommand(update)
 
             series = self.sonarr_node.get_serie()
             series.sort(key=self.sortOnTitle)
@@ -543,21 +551,11 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /fq."
-            )
-
-            self.addItemToHistory(
-                "/fq",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def showRankings(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
+
+            self.logCommand(update)
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -679,21 +677,11 @@ class Pixlovarr():
                 reply_markup=reply_markup
             )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued {command[0]}."
-            )
-
-            self.addItemToHistory(
-                f"{command[0]}",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def showQueue(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
+
+            self.logCommand(update)
 
             numOfItems = 0
 
@@ -716,169 +704,65 @@ class Pixlovarr():
                 text=f"There are {numOfItems} items in the queue."
             )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /queue."
-            )
-
-            self.addItemToHistory(
-                "/queue",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def listSeries(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.sonarr_enabled:
+
+            self.logCommand(update)
 
             series = self.sonarr_node.get_serie()
 
             endtext = "There are no series in the catalog."
 
             if series:
-                if type(series) is SonarrSerieItem:
-                    text = (
-                        f"{series.title} ({str(series.year)}) "
-                        f"- S{series.id}\n"
-                    )
-
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=text)
-                else:
-                    series.sort(key=self.sortOnTitle)
-
-                    allSeries = ""
-                    for s in series:
-
-                        if re.search(
-                            ' '.join(context.args).lower(), s.title.lower()) \
-                                or not context.args:
-
-                            allSeries += (
-                                f"{s.title} ({str(s.year)}) - S{s.id}\n")
-
-                    if allSeries == "":
-                        allSeries = (
-                            f"There are no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
-
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allSeries)
-
-                    endtext = f"There are {len(series)} series in the catalog."
+                self. listMedia(update, context, series)
+                endtext = f"There are {len(series)} series in the catalog."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
-
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /ls."
-            )
-
-            self.addItemToHistory(
-                "/ls",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
 
     def downloadSeries(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.sonarr_enabled:
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /ds."
-            )
+            self.logCommand(update)
 
             self.findMedia(update, context, "serie", ' '.join(context.args))
-
-            self.addItemToHistory(
-                "/ds",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
 
     def listMovies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
+            self.logCommand(update)
+
             movies = self.radarr_node.get_movie()
 
             endtext = "There are no movies in the catalog."
 
             if movies:
-                if type(movies) is RadarrMovieItem:
-                    text = (
-                        f"{movies.title} ({str(movies.year)}) - "
-                        f"M{movies.id}\n")
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=text)
-                else:
-                    movies.sort(key=self.sortOnTitle)
-
-                    allMovies = ""
-                    for m in movies:
-                        if re.search(
-                            ' '.join(context.args).lower(), m.title.lower()) \
-                                or not context.args:
-                            allMovies += (
-                                f"{m.title} ({str(m.year)}) - M{m.id}\n")
-
-                    if allMovies == "":
-                        allMovies = (
-                            f"There are no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
-
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allMovies)
-
-                    endtext = f"There are {len(movies)} movies in the catalog."
+                self. listMedia(update, context, movies)
+                endtext = f"There are {len(movies)} movies in the catalog."
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
-
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /lm."
-            )
-
-            self.addItemToHistory(
-                "/lm",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
 
     def downloadMovies(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /dm."
-            )
+            self.logCommand(update)
 
             self.findMedia(update, context, "movie", ' '.join(context.args))
-
-            self.addItemToHistory(
-                "/dm",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
 
     def displayInfo(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
+
+            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -915,7 +799,7 @@ class Pixlovarr():
                                 reply_markup=reply_markup
                             )
 
-                    except CliServerError as e:
+                    except exceptions.CliServerError as e:
 
                         errorResponse = json.loads(e.response)
                         if (errorResponse["message"] == "NotFound"):
@@ -951,28 +835,12 @@ class Pixlovarr():
                     )
                 )
 
-            self.addItemToHistory(
-                f"{command[0]}",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued {command[0]}."
-            )
-
 # Admin Commands
 
     def showCmdHistory(self, update, context):
         if self.isAdmin(update, context, True):
 
-            self.addItemToHistory(
-                "/history",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
+            self.logCommand(update)
 
             endtext = "No items in the command history."
 
@@ -1000,14 +868,10 @@ class Pixlovarr():
                 text=endtext
             )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /history."
-            )
-
     def new(self, update, context):
         if self.isAdmin(update, context, True):
+            self.logCommand(update)
+
             if self.signups:
 
                 keyboard = []
@@ -1041,20 +905,12 @@ class Pixlovarr():
                     )
                 )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /new."
-            )
-
-            self.addItemToHistory(
-                "/new",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
+            self.logCommand(update)
 
     def allowed(self, update, context):
         if self.isAdmin(update, context, True):
+            self.logCommand(update)
+
             if self.members:
 
                 keyboard = []
@@ -1080,20 +936,10 @@ class Pixlovarr():
                     )
                 )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /allowed."
-            )
-
-            self.addItemToHistory(
-                "/allowed",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def denied(self, update, context):
         if self.isAdmin(update, context, True):
+            self.logCommand(update)
+
             if self.rejected:
 
                 keyboard = []
@@ -1119,29 +965,14 @@ class Pixlovarr():
                     )
                 )
 
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued /denied."
-            )
-
-            self.addItemToHistory(
-                "/denied",
-                update.effective_user.first_name,
-                update.effective_user.id
-            )
-
     def unknown(self, update, context):
         if not self.isRejected(update):
+            self.logCommand(update)
+
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Sorry {update.effective_user.first_name}, "
                 f"I didn't understand that command.")
-
-            logging.info(
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} Unknown command given."
-            )
 
 # HandlerCallback Commands
 
@@ -1165,7 +996,7 @@ class Pixlovarr():
                     chat_id=update.effective_chat.id,
                     text=f"The {data[1]} has been deleted.")
 
-            except CliServerError as e:
+            except exceptions.CliServerError as e:
                 errorResponse = json.loads(e.response)
 
                 context.bot.send_message(
@@ -1208,7 +1039,7 @@ class Pixlovarr():
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
-                except CliServerError as e:
+                except exceptions.CliServerError as e:
                     errorResponse = json.loads(e.response)
 
                     context.bot.send_message(
@@ -1223,7 +1054,7 @@ class Pixlovarr():
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
 
-                except CliServerError as e:
+                except exceptions.CliServerError as e:
                     errorResponse = json.loads(e.response)
 
                     context.bot.send_message(
