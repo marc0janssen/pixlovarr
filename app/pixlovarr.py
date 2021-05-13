@@ -425,7 +425,7 @@ class Pixlovarr():
                     "/lm <keyword> - List all movies\n"
                     "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
-                    "/mi <id> - Show media info\n"
+                    "/di <id> - Display media info\n"
                     "/ts <num> - Show Top series\n"
                     "/ps <num> - Show Top popular series\n"
                     "/tm <num> - Show Top movies\n"
@@ -682,11 +682,11 @@ class Pixlovarr():
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
-                f"issued {command}."
+                f"issued {command[0]}."
             )
 
             self.addItemToHistory(
-                f"{command}",
+                f"{command[0]}",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
@@ -876,7 +876,7 @@ class Pixlovarr():
                 update.effective_user.id
             )
 
-    def movieInfo(self, update, context):
+    def displayInfo(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
@@ -1575,10 +1575,10 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
-        self.movieinfo_handler = CommandHandler('mi', self.movieInfo)
-        self.dispatcher.add_handler(self.movieinfo_handler)
+        self.displayInfo_handler = CommandHandler('di', self.displayInfo)
+        self.dispatcher.add_handler(self.displayInfo_handler)
 
-# Keyboard Handlders
+# Keyboard Handlers
 
         kbgrant_handler = CallbackQueryHandler(
             self.grant, pattern='^grant:')
@@ -1620,7 +1620,7 @@ class Pixlovarr():
         )
         self.dispatcher.add_handler(self.cmdhistory_handler)
 
-        self.delete_handler = CommandHandler('del', self.movieInfo)
+        self.delete_handler = CommandHandler('del', self.displayInfo)
         self.dispatcher.add_handler(self.delete_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
