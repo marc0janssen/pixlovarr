@@ -17,6 +17,8 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /userid - Show your userid
         /ls <keyword> - List all series
         /lm <keyword> - List all movies
+        /sc <keyword> - Series calendar
+        /mc <keyword> - Movies calendar
         /qu - List all queued items
         /del <id> - Delete media from catalog
         /di <id> - Display media info
@@ -84,4 +86,4 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-05-12 13:42:36
+2021-05-13 22:49:04

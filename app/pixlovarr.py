@@ -193,6 +193,9 @@ class Pixlovarr():
     def sortOnTitle(self, e):
         return e.title
 
+    def sortOnTitleDict(self, e):
+        return e['title']
+
     def addItemToHistory(self, cmd, uname, uid):
         historyItem = {}
 
@@ -288,17 +291,21 @@ class Pixlovarr():
         try:
             textoverview = media.overview if media.overview != "" \
                 else "No description available."
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"{textoverview}"[:4096]
-            )
         except AttributeError:
-            pass
+            textoverview = "No description available."
 
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Genres: {self.getGenres(media.genres)}"
+            text=f"{textoverview}"[:4096]
         )
+
+        try:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"Genres: {self.getGenres(media.genres)}"
+            )
+        except AttributeError:
+            pass
 
         try:
             context.bot.send_message(
@@ -319,6 +326,39 @@ class Pixlovarr():
             )
         except AttributeError:
             pass
+
+    def showCalenderMediaInfo(self, update, context, media):
+        try:
+            title = (
+                f"{media['series']['title']}({media['series']['year']}) "
+                f"- {media['title']} - S{media['seriesId']}"
+            )
+        except KeyError:
+            try:
+                title = f"{media['title']}({media['year']}) - M{media['id']}"
+            except KeyError:
+                title = "-"
+
+        try:
+            dateCinema = datetime.strftime(
+                datetime.strptime(
+                    media['inCinemas'], '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+            dateText = "In cinemas"
+        except KeyError:
+            try:
+                dateCinema = media['airDate']
+                dateText = "Airdate"
+            except KeyError:
+                dateCinema = "-"
+                dateText = "Date"
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(
+                f"{title}\n"
+                f"{dateText}: {dateCinema}"
+            )
+        )
 
     def listMedia(self, update, context, media):
         if type(media) is SonarrSerieItem or \
@@ -352,7 +392,31 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=allMedia)
 
+    def listCalendar(self, update, context, media):
+        if type(media) is SonarrSerieItem or \
+                type(media) is RadarrMovieItem:
+            self.showCalenderMediaInfo(update, context, media)
+
+        else:
+            media.sort(key=self.sortOnTitleDict)
+
+            for m in media:
+
+                try:
+                    searchString = f"{m['series']['title']} {m['title']}"
+                except KeyError:
+                    searchString = m['title']
+
+                if re.search(
+                    ' '.join(context.args).lower(), searchString.lower()) \
+                        or not context.args:
+
+                    self.showCalenderMediaInfo(update, context, m)
+
     def logCommand(self, update):
+
+        print(update.effective_message.text)
+
         logging.info(
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} "
@@ -452,6 +516,8 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/ls <keyword> - List all series\n"
                     "/lm <keyword> - List all movies\n"
+                    "/sc <keyword> - Series calendar\n"
+                    "/mc <keyword> - Movies calendar\n"
                     "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
                     "/di <id> - Display media info\n"
@@ -492,6 +558,46 @@ class Pixlovarr():
             )
 
 # Member Commands
+    def geCalendar(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.radarr_enabled:
+
+            self.logCommand(update)
+
+            command = update.effective_message.text.split(" ")
+
+            startDate = datetime.strptime("2021-5-12", "%Y-%m-%d")
+            endDate = datetime.strptime("2022-5-19", "%Y-%m-%d")
+
+            if command[0] == "/sc":
+                media = self.sonarr_node.get_calendar(
+                    start_date=startDate, end_date=endDate)
+                typeOfMedia = "serie"
+
+            elif command[0] == "/mc":
+                media = self.radarr_node.get_calendar(
+                    start_date=startDate, end_date=endDate)
+                typeOfMedia = "movie"
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
+
+                return
+
+            endtext = f"There are no {typeOfMedia}s in the calendar."
+
+            if media:
+                self.listCalendar(update, context, media)
+                endtext = (
+                    f"There are {len(media)} {typeOfMedia}s "
+                    f"in the calendar.")
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=endtext)
+
     def futureQueue(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -704,24 +810,6 @@ class Pixlovarr():
                 text=f"There are {numOfItems} items in the queue."
             )
 
-    def listSeries(self, update, context):
-        if not self.isRejected(update) and \
-                self.isGranted(update) and \
-                self.sonarr_enabled:
-
-            self.logCommand(update)
-
-            series = self.sonarr_node.get_serie()
-
-            endtext = "There are no series in the catalog."
-
-            if series:
-                self. listMedia(update, context, series)
-                endtext = f"There are {len(series)} series in the catalog."
-
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=endtext)
-
     def downloadSeries(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -731,20 +819,34 @@ class Pixlovarr():
 
             self.findMedia(update, context, "serie", ' '.join(context.args))
 
-    def listMovies(self, update, context):
+    def list(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
 
             self.logCommand(update)
 
-            movies = self.radarr_node.get_movie()
+            command = update.effective_message.text.split(" ")
 
-            endtext = "There are no movies in the catalog."
+            if command[0] == "/ls":
+                media = self.sonarr_node.get_serie()
+                typeOfMedia = "serie"
+            elif command[0] == "/lm":
+                media = self.radarr_node.get_movie()
+                typeOfMedia = "movie"
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
 
-            if movies:
-                self. listMedia(update, context, movies)
-                endtext = f"There are {len(movies)} movies in the catalog."
+                return
+
+            endtext = f"There are no {typeOfMedia}s in the catalog."
+
+            if media:
+                self.listMedia(update, context, media)
+                endtext = (
+                    f"There are {len(media)} {typeOfMedia}s in the catalog.")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
@@ -967,6 +1069,7 @@ class Pixlovarr():
 
     def unknown(self, update, context):
         if not self.isRejected(update):
+
             self.logCommand(update)
 
             context.bot.send_message(
@@ -1364,13 +1467,13 @@ class Pixlovarr():
 
 # Member Handlers
 
-        self.series_handler = CommandHandler('ls', self.listSeries)
+        self.series_handler = CommandHandler('ls', self.list)
         self.dispatcher.add_handler(self.series_handler)
 
         self.downloadseries_handler = CommandHandler('ds', self.downloadSeries)
         self.dispatcher.add_handler(self.downloadseries_handler)
 
-        self.movies_handler = CommandHandler('lm', self.listMovies)
+        self.movies_handler = CommandHandler('lm', self.list)
         self.dispatcher.add_handler(self.movies_handler)
 
         self.downloadmovies_handler = CommandHandler('dm', self.downloadMovies)
@@ -1408,6 +1511,12 @@ class Pixlovarr():
 
         self.displayInfo_handler = CommandHandler('di', self.displayInfo)
         self.dispatcher.add_handler(self.displayInfo_handler)
+
+        self.showMovieCalendar_handler = CommandHandler('mc', self.geCalendar)
+        self.dispatcher.add_handler(self.showMovieCalendar_handler)
+
+        self.showSerieCalendar_handler = CommandHandler('sc', self.geCalendar)
+        self.dispatcher.add_handler(self.showSerieCalendar_handler)
 
 # Keyboard Handlers
 
