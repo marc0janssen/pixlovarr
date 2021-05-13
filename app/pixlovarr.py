@@ -21,7 +21,7 @@ import re
 import imdb
 import random
 from time import time
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pycliarr.api import (
     RadarrCli,
     RadarrMovieItem
@@ -64,6 +64,8 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
+                self.calendar_period_days = \
+                    self.config['COMMON']['CALENDAR_PERIOD_DAYS']
 
                 self.default_limit_ranking = min(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
@@ -567,8 +569,9 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            startDate = datetime.strptime("2021-5-12", "%Y-%m-%d")
-            endDate = datetime.strptime("2022-5-19", "%Y-%m-%d")
+            startDate = date.today()
+            endDate = startDate + timedelta(
+                days=int(self.calendar_period_days))
 
             if command[0] == "/sc":
                 media = self.sonarr_node.get_calendar(

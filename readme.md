@@ -60,6 +60,7 @@ In the directory /config the python script expects a config file called 'pixlova
         [COMMON]
         BOT_TOKEN = BOTTOKEN
         ADMIN_USER_ID = ID_NUMBER
+        CALENDAR_PERIOD_DAYS = 30
 
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
