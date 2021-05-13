@@ -19,7 +19,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /lm <keyword> - List all movies
         /qu - List all queued items
         /del <id> - Delete media from catalog
-        /mi <id> - Show media info
+        /di <id> - Display media info
         /ts <num> - Show Top series
         /ps <num> - Show Top popular series
         /tm <num> - Show Top movies
