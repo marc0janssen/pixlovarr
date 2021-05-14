@@ -142,6 +142,23 @@ class Pixlovarr():
                             './config/pixlovarr.ini.example')
             sys.exit()
 
+    def getProfileInfo(self, profileID, mediaOfType):
+
+        if mediaOfType == "serie":
+            profiles = self.sonarr_node.get_quality_profiles()
+
+        else:
+            profiles = self.radarr_node.get_quality_profiles()
+
+        if profiles:
+
+            for count, p in enumerate(profiles):
+
+                if p['id'] == profileID:
+                    return p['name']
+
+        return ""
+
     def getGenres(self, listOfGenres):
         genresText = ""
         try:
@@ -278,7 +295,7 @@ class Pixlovarr():
         except IOError:
             logging.warning(f"Can't write file {file}.")
 
-    def showMediaInfo(self, update, context, media):
+    def showMediaInfo(self, update, context, typeOfMedia, media):
 
         if media.images:
             image = f"{media.images[0]['url']}" if self.is_http_or_https(
@@ -375,6 +392,16 @@ class Pixlovarr():
         except AttributeError:
             pass
 
+        qualityText = self.getProfileInfo(media.qualityProfileId, typeOfMedia)
+        if qualityText != "":
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(
+                    f"Quality: {qualityText}"
+                )
+            )
+
         try:
             youTubeURL = f"{self.youTubeURL}{media.youTubeTrailerId}"
             context.bot.send_message(
@@ -416,13 +443,16 @@ class Pixlovarr():
                 f"{dateText}: {dateCinema}\n\n"
             )
 
-    def listMedia(self, update, context, media):
+    def listMedia(self, update, context, typeOfMedia, media):
+
+        mediaMarker = "S" if typeOfMedia == "serie" else "M"
+
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
 
             text = (
                 f"{media.title} ({str(media.year)}) "
-                f"- S{media.id}\n"
+                f"- {mediaMarker}{media.id}\n"
             )
 
             context.bot.send_message(
@@ -439,7 +469,7 @@ class Pixlovarr():
                         or not context.args:
 
                     allMedia += (
-                        f"{m.title} ({str(m.year)}) - S{m.id}\n")
+                        f"{m.title} ({str(m.year)}) - {mediaMarker}{m.id}\n")
 
                     if (count % self.listLength == 0 and count != 0):
                         context.bot.send_message(
@@ -940,7 +970,7 @@ class Pixlovarr():
             endtext = f"There are no {typeOfMedia}s in the catalog."
 
             if media:
-                self.listMedia(update, context, media)
+                self.listMedia(update, context, typeOfMedia, media)
                 endtext = (
                     f"There are {len(media)} {typeOfMedia}s in the catalog.")
 
@@ -977,7 +1007,7 @@ class Pixlovarr():
                         else:
                             media = self.radarr_node.get_movie(int(mediaID))
 
-                        self.showMediaInfo(update, context, media)
+                        self.showMediaInfo(update, context, typeOfMedia, media)
 
                         if command[0] == "/del":
                             callbackdata = (
@@ -1292,7 +1322,7 @@ class Pixlovarr():
                 callbackdata = f"selectdownload:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-            self.showMediaInfo(update, context, media)
+            self.showMediaInfo(update, context, data[1], media)
 
             keyboard = []
             row = []
