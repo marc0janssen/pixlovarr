@@ -42,8 +42,7 @@ class Pixlovarr():
             level=logging.INFO)
 
         self.urlNoImage = (
-            "https://2.bp.blogspot.com/-s5kMEQvEAog/T3CgSowJ7xI/"
-            "AAAAAAAADHc/Hqk13CMLQQI/s400/banner.jpg"
+            "https://postimg.cc/3dfySHP9"
         )
 
         self.config_file = "./config/pixlovarr.ini"
@@ -198,6 +197,9 @@ class Pixlovarr():
     def sortOnTitle(self, e):
         return e.title
 
+    def sortOnNameDict(self, e):
+        return e['name']
+
     def addItemToHistory(self, cmd, uname, uid):
         historyItem = {}
 
@@ -302,9 +304,53 @@ class Pixlovarr():
         )
 
         try:
+            if media.episodeCount < 0:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"Episode count: {media.episodeCount}"
+                )
+        except AttributeError:
+            pass
+
+        try:
+            genres = self.getGenres(media.genres) \
+                if self.getGenres(media.genres) != '' else '-'
+
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=f"Genres: {self.getGenres(media.genres)}"
+                text=(
+                    f"Genres: {genres}")
+            )
+        except AttributeError:
+            pass
+
+        try:
+            if media.ratings['votes'] < 0:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"Rating: {media.ratings['value']} "
+                        f"votes: {media.ratings['votes']}"
+                    )
+                )
+        except AttributeError:
+            pass
+
+        try:
+            if media.runtime < 0:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"Runtime: {media.runtime} minutes"
+                    )
+                )
+        except AttributeError:
+            pass
+
+        try:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"Status: {media.status}"
             )
         except AttributeError:
             pass
@@ -313,8 +359,17 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=(
-                    f"Rating: {media.ratings['value']} "
-                    f"votes: {media.ratings['votes']}"
+                    f"Network: {media.network if media.network != '' else '-'}"
+                )
+            )
+        except AttributeError:
+            pass
+
+        try:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(
+                    f"Studio: {media.studio if media.studio != '' else '-'}"
                 )
             )
         except AttributeError:
@@ -1244,6 +1299,9 @@ class Pixlovarr():
             num_columns = 2
 
             if profiles:
+
+                profiles.sort(key=self.sortOnNameDict)
+
                 for count, p in enumerate(profiles):
                     row.append(InlineKeyboardButton(
                         f"{p['name']}",
