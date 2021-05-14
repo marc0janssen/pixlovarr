@@ -195,9 +195,6 @@ class Pixlovarr():
     def sortOnTitle(self, e):
         return e.title
 
-    def sortOnTitleDict(self, e):
-        return e['title']
-
     def addItemToHistory(self, cmd, uname, uid):
         historyItem = {}
 
@@ -362,6 +359,8 @@ class Pixlovarr():
             )
         )
 
+        sleep(0.5)
+
     def listMedia(self, update, context, media):
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
@@ -400,7 +399,6 @@ class Pixlovarr():
             self.showCalenderMediaInfo(update, context, media)
 
         else:
-            # media.sort(key=self.sortOnTitleDict)
 
             for m in media:
 
@@ -414,7 +412,6 @@ class Pixlovarr():
                         or not context.args:
 
                     self.showCalenderMediaInfo(update, context, m)
-                    sleep(0.5)
 
     def logCommand(self, update):
         logging.info(
