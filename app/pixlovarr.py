@@ -20,7 +20,7 @@ import sys
 import re
 import imdb
 import random
-from time import sleep, time
+from time import time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
     RadarrCli,
@@ -52,6 +52,7 @@ class Pixlovarr():
         self.maxCmdHistory = 50
         self.rankingLimitMin = 3
         self.rankingLimitMax = 100
+        self.listLength = 75
         self.youTubeURL = "https://www.youtube.com/watch?v="
 
         self.imdb = imdb.IMDb()
@@ -64,8 +65,6 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
-                self.calendar_period_days = \
-                    self.config['COMMON']['CALENDAR_PERIOD_DAYS']
 
                 self.default_limit_ranking = min(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
@@ -80,11 +79,15 @@ class Pixlovarr():
                     self.config['SONARR']['SEASON_FOLDER'] == "ON") else False
                 self.sonarr_url = self.config['SONARR']['URL']
                 self.sonarr_token = self.config['SONARR']['TOKEN']
+                self.calendar_period_days_series = \
+                    self.config['SONARR']['CALENDAR_PERIOD_DAYS_SERIES']
 
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
                 self.radarr_url = self.config['RADARR']['URL']
                 self.radarr_token = self.config['RADARR']['TOKEN']
+                self.calendar_period_days_movies = \
+                    self.config['RADARR']['CALENDAR_PERIOD_DAYS_MOVIES']
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -98,7 +101,7 @@ class Pixlovarr():
 
                 if not self.sonarr_enabled and not self.radarr_enabled:
                     logging.error(
-                        "Both Sonarr and Radarr are not enabled. Exiting."
+                        "Sonarr nor Radarr are enabled. Exiting."
                     )
 
                     sys.exit()
@@ -114,10 +117,10 @@ class Pixlovarr():
                 self.members = self.loaddata(self.pixlovarr_members_file)
                 self.rejected = self.loaddata(self.pixlovarr_rejected_file)
 
-            except KeyError:
+            except KeyError as e:
                 logging.error(
-                    "Seems a key(s) is missing from INI file. "
-                    "Please check for mistakes. Exiting."
+                    f"Seems a key(s) {e} is missing from INI file. "
+                    f"Please check for mistakes. Exiting."
                 )
 
                 sys.exit()
@@ -329,8 +332,10 @@ class Pixlovarr():
     def showCalenderMediaInfo(self, update, context, media):
         try:
             title = (
-                f"{media['series']['title']}({media['series']['year']}) "
-                f"- {media['title']} - S{media['seriesId']}"
+                f"{media['series']['title']}({media['series']['year']}) - "
+                f"S{media['seriesId']}\n"
+                f"Episode: S{media['seasonNumber']}E{media['episodeNumber']}"
+                f" - {media['title']}"
             )
         except KeyError:
             try:
@@ -351,19 +356,15 @@ class Pixlovarr():
                 dateCinema = "-"
                 dateText = "Date"
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(
+        return(
                 f"{title}\n"
-                f"{dateText}: {dateCinema}"
+                f"{dateText}: {dateCinema}\n\n"
             )
-        )
-
-        sleep(0.5)
 
     def listMedia(self, update, context, media):
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
+
             text = (
                 f"{media.title} ({str(media.year)}) "
                 f"- S{media.id}\n"
@@ -375,7 +376,8 @@ class Pixlovarr():
             media.sort(key=self.sortOnTitle)
 
             allMedia = ""
-            for m in media:
+            itemInList = False
+            for count, m in enumerate(media):
 
                 if re.search(
                     ' '.join(context.args).lower(), m.title.lower()) \
@@ -384,23 +386,42 @@ class Pixlovarr():
                     allMedia += (
                         f"{m.title} ({str(m.year)}) - S{m.id}\n")
 
-            if allMedia == "":
-                allMedia = (
-                    f"There are no results found, "
-                    f"{update.effective_user.first_name}."
-                )
+                    if (count % self.listLength == 0 and count != 0):
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id, text=allMedia)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=allMedia)
+                        allMedia = ""
+
+                    itemInList = True
+
+            if allMedia != "":
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allMedia)
+
+            if not itemInList:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"There are no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+                )
 
     def listCalendar(self, update, context, media):
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
-            self.showCalenderMediaInfo(update, context, media)
+            text = self.showCalenderMediaInfo(update, context, media)
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=text
+            )
 
         else:
 
-            for m in media:
+            allMedia = ""
+            itemInList = False
+            for count, m in enumerate(media):
 
                 try:
                     searchString = f"{m['series']['title']} {m['title']}"
@@ -411,7 +432,29 @@ class Pixlovarr():
                     ' '.join(context.args).lower(), searchString.lower()) \
                         or not context.args:
 
-                    self.showCalenderMediaInfo(update, context, m)
+                    allMedia += (
+                        self.showCalenderMediaInfo(update, context, m))
+
+                    if (count % self.listLength == 0 and count != 0):
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id, text=allMedia)
+
+                        allMedia = ""
+
+                    itemInList = True
+
+            if allMedia != "":
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allMedia)
+
+            if not itemInList:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"There are no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+                )
 
     def logCommand(self, update):
         logging.info(
@@ -565,15 +608,17 @@ class Pixlovarr():
             command = update.effective_message.text.split(" ")
 
             startDate = date.today()
-            endDate = startDate + timedelta(
-                days=int(self.calendar_period_days))
 
             if command[0] == "/sc":
+                endDate = startDate + timedelta(
+                    days=int(self.calendar_period_days_series))
                 media = self.sonarr_node.get_calendar(
                     start_date=startDate, end_date=endDate)
                 typeOfMedia = "serie"
 
             elif command[0] == "/mc":
+                endDate = startDate + timedelta(
+                    days=int(self.calendar_period_days_movies))
                 media = self.radarr_node.get_calendar(
                     start_date=startDate, end_date=endDate)
                 typeOfMedia = "movie"
@@ -620,7 +665,7 @@ class Pixlovarr():
                         text=f"{series.title} ({str(series.year)}) - "
                         f"S{series.id}\n"
                     )
-                    fqCount = 1
+                    fqCount += 1
             else:
                 for s in series:
                     if s.status == "upcoming":
@@ -640,7 +685,7 @@ class Pixlovarr():
                         text=f"{movies.title} ({str(movies.year)}) - "
                         f"M{movies.id}\n"
                     )
-                    fqCount = 1
+                    fqCount += 1
             else:
                 for m in movies:
                     if m.status == "announced":
@@ -730,10 +775,8 @@ class Pixlovarr():
 
             keyboard = []
 
-            count = 0
-            for m in media[:topAmount]:
-                count += 1
-                if count % 20 == 0:
+            for count, m in enumerate(media[:topAmount]):
+                if count % 20 == 0 and count != 0:
                     phrass = [
                         "rm -rf /homes/* ... just kidding...",
                         "It’s hardware that makes a machine fast. It’s "
@@ -1199,18 +1242,16 @@ class Pixlovarr():
             keyboard = []
             row = []
             num_columns = 2
-            count = 0
 
             if profiles:
-                for p in profiles:
+                for count, p in enumerate(profiles):
                     row.append(InlineKeyboardButton(
                         f"{p['name']}",
                         callback_data=f"{callbackdata}:{p['id']}")
                     )
 
-                    count += 1
-
-                    if count % num_columns == 0 or count == len(profiles):
+                    if (count+1) % num_columns == 0 or \
+                            count == len(profiles)-1:
                         keyboard.append(row)
                         row = []
 
