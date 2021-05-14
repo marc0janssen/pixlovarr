@@ -60,21 +60,22 @@ In the directory /config the python script expects a config file called 'pixlova
         [COMMON]
         BOT_TOKEN = BOTTOKEN
         ADMIN_USER_ID = ID_NUMBER
-        CALENDAR_PERIOD_DAYS = 30
 
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
 
         [SONARR]
-        ENABLED = ON
+        [ENABLED] = ON
         URL = http://192.168.1.1:8989
         TOKEN = SONARR_API_TOKEN
         SEASON_FOLDER = ON
+        CALENDAR_PERIOD_DAYS_SERIES = 30
 
         [RADARR]
-        ENABLED = OFF
+        [ENABLED] = OFF
         [URL] = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
+        CALENDAR_PERIOD_DAYS_MOVIES = 180
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 
