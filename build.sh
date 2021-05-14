@@ -7,5 +7,3 @@
 
 docker image rm marc0janssen/pixlovarr:latest
 docker build -t marc0janssen/pixlovarr:latest -f ./Dockerfile .
-docker push marc0janssen/pixlovarr:latest
-docker pushrm marc0janssen/pixlovarr:latest
