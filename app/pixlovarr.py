@@ -20,7 +20,7 @@ import sys
 import re
 import imdb
 import random
-from time import time
+from time import sleep, time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
     RadarrCli,
@@ -400,7 +400,7 @@ class Pixlovarr():
             self.showCalenderMediaInfo(update, context, media)
 
         else:
-            media.sort(key=self.sortOnTitleDict)
+            # media.sort(key=self.sortOnTitleDict)
 
             for m in media:
 
@@ -414,11 +414,9 @@ class Pixlovarr():
                         or not context.args:
 
                     self.showCalenderMediaInfo(update, context, m)
+                    sleep(0.5)
 
     def logCommand(self, update):
-
-        print(update.effective_message.text)
-
         logging.info(
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} "
