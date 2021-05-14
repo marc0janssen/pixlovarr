@@ -304,7 +304,7 @@ class Pixlovarr():
         )
 
         try:
-            if media.episodeCount < 0:
+            if media.episodeCount > 0:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=f"Episode count: {media.episodeCount}"
@@ -325,7 +325,7 @@ class Pixlovarr():
             pass
 
         try:
-            if media.ratings['votes'] < 0:
+            if media.ratings['votes'] > 0:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=(
@@ -337,7 +337,7 @@ class Pixlovarr():
             pass
 
         try:
-            if media.runtime < 0:
+            if media.runtime > 0:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=(
