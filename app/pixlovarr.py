@@ -176,7 +176,10 @@ class Pixlovarr():
     def is_http_or_https(self, url):
         return urlparse(url).scheme in {'http', 'https'}
 
-    def countItemsinQueue(self, update, context, numOfItems, queue):
+    def countItemsinQueue(
+        self, update, context,
+            numOfItems, queue, typeOfMedia):
+
         for queueitem in queue:
 
             numOfItems += 1
@@ -195,16 +198,49 @@ class Pixlovarr():
                 pt = "-"
                 tl = "-"
 
-            text = (
-                f"{queueitem['series']['title']} "
-                f"S{queueitem['episode']['seasonNumber']}"
-                f"E{queueitem['episode']['episodeNumber']} - "
-                f"'{queueitem['episode']['title']}'\n"
-                f"Status: {queueitem['status']}\n"
-                f"Protocol: {queueitem['protocol']}\n"
-                f"Timeleft: {tl}\n"
-                f"ETA: {pt}"
-            )
+            if typeOfMedia == "serie":
+                text = (
+                    f"{queueitem['series']['title']} "
+                    f"S{queueitem['episode']['seasonNumber']}"
+                    f"E{queueitem['episode']['episodeNumber']} - "
+                    f"'{queueitem['episode']['title']}'\n"
+                    f"Status: {queueitem['status']}\n"
+                    f"Protocol: {queueitem['protocol']}\n"
+                    f"Timeleft: {tl}\n"
+                    f"ETA: {pt}"
+                )
+
+#                title = f"{queueitem['episode']['title']}"
+            else:
+                text = (
+                    f"{queueitem['movie']['title']}"
+                    f"({queueitem['movie']['year']})\n"
+                    f"Status: {queueitem['status']}\n"
+                    f"Protocol: {queueitem['protocol']}\n"
+                    f"Timeleft: {tl}\n"
+                    f"ETA: {pt}"
+                )
+
+#                title = (
+#                    f"{queueitem['movie']['title']}"
+#                    f"({queueitem['movie']['year']})"
+#                )
+
+#            callbackdata = (
+#                f"deletequeueitem:{typeOfMedia}:"
+#                f"{queueitem['id']}:{title}"
+#            )
+
+#            keyboard = [[InlineKeyboardButton(
+#                f"Remove {title}",
+#                callback_data=callbackdata)]]
+
+#            reply_markup = InlineKeyboardMarkup(keyboard)
+
+#            update.message.reply_text(
+#                f"{text}",
+#                reply_markup=reply_markup
+#            )
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -928,14 +964,14 @@ class Pixlovarr():
 
                 if queuesonarr:
                     numOfItems = self.countItemsinQueue(
-                        update, context, numOfItems, queuesonarr)
+                        update, context, numOfItems, queuesonarr, "serie")
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
 
                 if queueradarr:
                     numOfItems = self.countItemsinQueue(
-                        update, context, numOfItems, queueradarr)
+                        update, context, numOfItems, queueradarr, "movie")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1210,6 +1246,26 @@ class Pixlovarr():
                 f"I didn't understand that command.")
 
 # HandlerCallback Commands
+    def deleteQueueItem(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:queueID, 3:mediaTitle
+
+            print(data[2])
+
+            if data[1] == "serie":
+                res = self.sonarr_node.delete_queue(int(data[2]))
+            else:
+                res = self.radarr_node.delete_queue(int(data[2]))
+
+            print(res)
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"The {data[1]} {data[3]} was removed from the queue.")
 
     def deleteMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1676,6 +1732,10 @@ class Pixlovarr():
         kbdeleteMedia_handler = CallbackQueryHandler(
             self.deleteMedia, pattern='^deletemedia:')
         self.dispatcher.add_handler(kbdeleteMedia_handler)
+
+        kbdeleteQueueItem_handler = CallbackQueryHandler(
+            self.deleteQueueItem, pattern='^deletequeueitem:')
+        self.dispatcher.add_handler(kbdeleteQueueItem_handler)
 
 # Admin Handlders
 
