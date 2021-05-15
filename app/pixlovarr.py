@@ -20,7 +20,7 @@ import sys
 import re
 import imdb
 import random
-from time import time
+from time import time, sleep
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
     RadarrCli,
@@ -271,6 +271,8 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 text=text
             )
+
+            sleep(1)
 
         return numOfItems
 
