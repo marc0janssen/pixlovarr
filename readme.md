@@ -15,22 +15,22 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
-        /ls <keyword> - List all series
-        /lm <keyword> - List all movies
-        /sc <keyword> - Series calendar
-        /mc <keyword> - Movies calendar
+        /ls #<genre> <word> - List all series
+        /lm #<genre> <word> - List all movies
+        /sc <word> - Series calendar
+        /mc <word> - Movies calendar
         /qu - List all queued items
         /del <id> - Delete media from catalog
         /di <id> - Display media info
-        /ts <num> - Show Top series
-        /ps <num> - Show Top popular series
-        /tm <num> - Show Top movies
-        /pm <num> - Show Top popular movies
-        /ti <num> - Show Top Indian movies
-        /wm <num> - Show Top worst movies
+        /ts T<#> - Show Top series
+        /ps T<#> - Show Top popular series
+        /tm T<#> - Show Top movies
+        /pm T<#> - Show Top popular movies
+        /ti T<#> - Show Top Indian movies
+        /wm T<#> - Show Top worst movies
         /fq - Show queued announced items
-        /ds <keyword> - Download serie
-        /dm <keyword> - Download movie
+        /ds T<#> <keyword> - Download serie
+        /dm T<#> <keyword> - Download movie
 
         -- Admin commands --
         /new - Show all new signups

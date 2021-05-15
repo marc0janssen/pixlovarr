@@ -158,6 +158,22 @@ class Pixlovarr():
 
         return ""
 
+    def getTopAmount(self, update, context, ranking):
+        if re.match("^[Tt]\\d+$", ranking):
+            return self.clamp(
+                int(ranking[1:]),
+                self.rankingLimitMin,
+                self.rankingLimitMax
+            )
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(
+                    f"Defaulting to Top {self.default_limit_ranking}"
+                )
+            )
+            return self.default_limit_ranking
+
     def clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)
 
@@ -335,6 +351,8 @@ class Pixlovarr():
 
     def showMediaInfo(self, update, context, typeOfMedia, media):
 
+        txtMediaInfo = ""
+
         if media.images:
             image = f"{media.images[0]['url']}" if self.is_http_or_https(
                 media.images[0]['url']) else media.images[0]['remoteUrl']
@@ -348,22 +366,17 @@ class Pixlovarr():
         )
 
         try:
-            textoverview = media.overview if media.overview != "" \
-                else "No description available."
+            textoverview = f"{media.overview[:4092]}\n\n" if \
+                media.overview != "" else "No description available.\n\n"
         except AttributeError:
-            textoverview = "No description available."
+            textoverview = "No description available.\n\n"
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"{textoverview}"[:4096]
-        )
+        txtMediaInfo += textoverview
 
         try:
             if media.episodeCount > 0:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"Episode count: {media.episodeCount}"
-                )
+                textEpisode = f"Episode count: {media.episodeCount}\n\n"
+                txtMediaInfo += textEpisode
         except AttributeError:
             pass
 
@@ -371,73 +384,68 @@ class Pixlovarr():
             genres = self.getGenres(media.genres) \
                 if self.getGenres(media.genres) != '' else '-'
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
-                    f"Genres: {genres}")
-            )
+            txtGenres = f"Genres: {genres}\n\n"
+            txtMediaInfo += txtGenres
+
         except AttributeError:
             pass
 
         try:
             if media.ratings['votes'] > 0:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"Rating: {media.ratings['value']} "
-                        f"votes: {media.ratings['votes']}"
-                    )
+                txtRatings = (
+                    f"Rating: {media.ratings['value']} "
+                    f"votes: {media.ratings['votes']}\n\n"
                 )
+                txtMediaInfo += txtRatings
+
         except AttributeError:
             pass
 
         try:
             if media.runtime > 0:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"Runtime: {media.runtime} minutes"
-                    )
-                )
+                txtRuntime = f"Runtime: {media.runtime} minutes\n\n"
+                txtMediaInfo += txtRuntime
+
         except AttributeError:
             pass
 
         try:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Status: {media.status}"
-            )
+            txtStatus = f"Status: {media.status}\n\n"
+            txtMediaInfo += txtStatus
+
         except AttributeError:
             pass
 
         try:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
-                    f"Network: {media.network if media.network != '' else '-'}"
-                )
+            txtNetwork = (
+                f"Network: {media.network if media.network != '' else '-'}\n\n"
             )
+            txtMediaInfo += txtNetwork
+
         except AttributeError:
             pass
 
         try:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
-                    f"Studio: {media.studio if media.studio != '' else '-'}"
-                )
+            txtStudio = (
+                f"Studio: {media.studio if media.studio != '' else '-'}\n\n"
             )
+            txtMediaInfo += txtStudio
+
         except AttributeError:
             pass
 
         qualityText = self.getProfileInfo(media.qualityProfileId, typeOfMedia)
         if qualityText != "":
 
+            txtQuality = (
+                f"Quality: {qualityText}\n\n"
+            )
+            txtMediaInfo += txtQuality
+
+        if txtMediaInfo != "":
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=(
-                    f"Quality: {qualityText}"
-                )
+                text=txtMediaInfo
             )
 
         try:
@@ -501,22 +509,35 @@ class Pixlovarr():
 
             allMedia = ""
             itemInList = False
+            genre = ""
+
+            if len(context.args) > 0:
+                if re.match("^#[A-Za-z]+$", context.args[0]):
+                    genre = context.args[0][1:]
+                    context.args.pop(0)
+
             for count, m in enumerate(media):
 
                 if re.search(
                     ' '.join(context.args).lower(), m.title.lower()) \
                         or not context.args:
 
-                    allMedia += (
-                        f"{m.title} ({str(m.year)}) - {mediaMarker}{m.id}\n")
+                    if genre.lower() in (genre.lower() for genre in m.genres) \
+                            or not genre:
 
-                    if (count % self.listLength == 0 and count != 0):
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id, text=allMedia)
+                        allMedia += (
+                            f"{m.title} ({str(m.year)}) - "
+                            f"{mediaMarker}{m.id}\n")
 
-                        allMedia = ""
+                        if (count % self.listLength == 0 and count != 0):
+                            context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=allMedia
+                            )
 
-                    itemInList = True
+                            allMedia = ""
+
+                        itemInList = True
 
             if allMedia != "":
                 context.bot.send_message(
@@ -678,22 +699,22 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/ls <keyword> - List all series\n"
-                    "/lm <keyword> - List all movies\n"
-                    "/sc <keyword> - Series calendar\n"
-                    "/mc <keyword> - Movies calendar\n"
+                    "/ls #<genre> <word> - List all series\n"
+                    "/lm #<genre> <word> - List all movies\n"
+                    "/sc <word> - Series calendar\n"
+                    "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
                     "/del <id> - Delete media from catalog\n"
                     "/di <id> - Display media info\n"
-                    "/ts <num> - Show Top series\n"
-                    "/ps <num> - Show Top popular series\n"
-                    "/tm <num> - Show Top movies\n"
-                    "/pm <num> - Show Top popular movies\n"
-                    "/ti <num> - Show Top Indian movies\n"
-                    "/wm <num> - Show Top worst movies\n"
+                    "/ts T<#> - Show Top series\n"
+                    "/ps T<#> - Show Top popular series\n"
+                    "/tm T<#> - Show Top movies\n"
+                    "/pm T<#> - Show Top popular movies\n"
+                    "/ti T<#> - Show Top Indian movies\n"
+                    "/wm T<#> - Show Top worst movies\n"
                     "/fq - Show queued announced items\n"
-                    "/ds <keyword> - Download series\n"
-                    "/dm <keyword> - Download movie\n"
+                    "/ds T<#> <keyword> - Download series\n"
+                    "/dm T<#> <keyword> - Download movie\n"
                 )
 
             if self.isAdmin(update, context, False):
@@ -832,32 +853,8 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            try:
-                topAmount = self.clamp(
-                    int(context.args[0]),
-                    self.rankingLimitMin,
-                    self.rankingLimitMax
-                )
-
-            except ValueError:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"No idea what you want, give me a number. "
-                        f"Defaulting to Top {self.default_limit_ranking}"
-                    )
-                )
-                topAmount = self.default_limit_ranking
-
-            except IndexError:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"No limit given. "
-                        f"Defaulting to Top {self.default_limit_ranking}"
-                    )
-                )
-                topAmount = self.default_limit_ranking
+            topAmount = self.getTopAmount(
+                update, context, ' '.join(context.args))
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1471,6 +1468,15 @@ class Pixlovarr():
                 f"a {mediaType} with keywords '{searchQuery}'"
             )
 
+            args = searchQuery.split(' ')
+
+            topAmount = self.getTopAmount(update, context, args[0])
+
+            if re.match("^[Tt]\\d+$", args[0]):
+                args.pop(0)
+
+            searchQuery = ' '.join(args)
+
             if mediaType == "serie":
                 media = self.sonarr_node.lookup_serie(term=searchQuery)
             else:
@@ -1485,7 +1491,7 @@ class Pixlovarr():
                     media = []
                     media.append(temp)
 
-                maxResults = 4
+                maxResults = topAmount - 1
 
                 for m in media:
                     if m.path:
