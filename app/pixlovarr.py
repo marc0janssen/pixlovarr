@@ -201,10 +201,16 @@ class Pixlovarr():
             numOfItems += 1
 
             try:
-                dt = (self.datetime_from_utc_to_local(
-                    datetime.strptime(queueitem[
-                        'estimatedCompletionTime'],
-                        "%Y-%m-%dT%H:%M:%S.%fZ")))
+                if typeOfMedia == "serie":
+                    dt = (self.datetime_from_utc_to_local(
+                        datetime.strptime(queueitem[
+                            'estimatedCompletionTime'],
+                            "%Y-%m-%dT%H:%M:%S.%fZ")))
+                else:
+                    dt = (self.datetime_from_utc_to_local(
+                        datetime.strptime(queueitem[
+                            'estimatedCompletionTime'],
+                            "%Y-%m-%dT%H:%M:%SZ")))
 
                 pt = datetime.strftime(dt, "%Y-%m-%d %H:%M:%S")
 
@@ -237,6 +243,9 @@ class Pixlovarr():
                     f"ETA: {pt}"
                 )
 
+        #    txtQueue += text
+
+
 #                title = (
 #                    f"{queueitem['movie']['title']}"
 #                    f"({queueitem['movie']['year']})"
@@ -263,7 +272,7 @@ class Pixlovarr():
                 text=text
             )
 
-            return numOfItems
+        return numOfItems
 
     def sortOnTitle(self, e):
         return e.title
