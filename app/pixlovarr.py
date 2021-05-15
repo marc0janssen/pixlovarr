@@ -65,12 +65,11 @@ class Pixlovarr():
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
 
-                self.default_limit_ranking = min(
+                self.default_limit_ranking = self.clamp(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
-                    self.rankingLimitMax)
-                self.default_limit_ranking = max(
-                    int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
-                    self.rankingLimitMin)
+                    self.rankingLimitMin,
+                    self.rankingLimitMax
+                )
 
                 self.sonarr_enabled = True if (
                     self.config['SONARR']['ENABLED'] == "ON") else False
@@ -158,6 +157,9 @@ class Pixlovarr():
                     return p['name']
 
         return ""
+
+    def clamp(self, n, minn, maxn):
+        return max(min(maxn, n), minn)
 
     def getGenres(self, listOfGenres):
         genresText = ""
@@ -440,9 +442,9 @@ class Pixlovarr():
                 dateText = "Date"
 
         return(
-                f"{title}\n"
-                f"{dateText}: {dateCinema}\n\n"
-            )
+            f"{title}\n"
+            f"{dateText}: {dateCinema}\n\n"
+        )
 
     def listMedia(self, update, context, typeOfMedia, media):
 
@@ -799,8 +801,11 @@ class Pixlovarr():
             command = update.effective_message.text.split(" ")
 
             try:
-                topAmount = min(int(context.args[0]), self.rankingLimitMax)
-                topAmount = max(int(context.args[0]), self.rankingLimitMin)
+                topAmount = self.clamp(
+                    int(context.args[0]),
+                    self.rankingLimitMin,
+                    self.rankingLimitMax
+                )
 
             except ValueError:
                 context.bot.send_message(
