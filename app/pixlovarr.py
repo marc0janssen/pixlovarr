@@ -794,10 +794,6 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
-
             command = update.effective_message.text.split(" ")
 
             try:
@@ -826,6 +822,10 @@ class Pixlovarr():
                     )
                 )
                 topAmount = self.default_limit_ranking
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
 
             if command[0] == "/ts":
                 media = self.imdb.get_top250_tv()
