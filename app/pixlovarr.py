@@ -272,7 +272,7 @@ class Pixlovarr():
                 text=text
             )
 
-            sleep(1.5)
+            sleep(2)
 
         return numOfItems
 
