@@ -403,11 +403,12 @@ class Pixlovarr():
             )
 
         try:
-            youTubeURL = f"{self.youTubeURL}{media.youTubeTrailerId}"
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"{youTubeURL}"
-            )
+            if media.youTubeTrailerId:
+                youTubeURL = f"{self.youTubeURL}{media.youTubeTrailerId}"
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"{youTubeURL}"
+                )
         except AttributeError:
             pass
 
