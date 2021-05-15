@@ -867,7 +867,7 @@ class Pixlovarr():
             keyboard = []
 
             for count, m in enumerate(media[:topAmount]):
-                if count % 20 == 0 and count != 0:
+                if count % 12 == 0 and count != 0:
                     phrass = [
                         "rm -rf /homes/* ... just kidding...",
                         "It’s hardware that makes a machine fast. It’s "
