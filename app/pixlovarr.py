@@ -203,7 +203,7 @@ class Pixlovarr():
             numOfItems += 1
 
             try:
-                if typeOfMedia == "serie":
+                if typeOfMedia == "episode":
                     dt = (self.datetime_from_utc_to_local(
                         datetime.strptime(queueitem[
                             'estimatedCompletionTime'],
@@ -222,7 +222,7 @@ class Pixlovarr():
                 pt = "-"
                 tl = "-"
 
-            if typeOfMedia == "serie":
+            if typeOfMedia == "episode":
                 text = (
                     f"{queueitem['series']['title']} "
                     f"S{queueitem['episode']['seasonNumber']}"
@@ -1004,7 +1004,7 @@ class Pixlovarr():
 
                 if queuesonarr:
                     numOfItems = self.countItemsinQueue(
-                        update, context, numOfItems, queuesonarr, "serie")
+                        update, context, numOfItems, queuesonarr, "episode")
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
@@ -1259,7 +1259,7 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:queueID, 3:mediaTitle
 
             try:
-                if data[1] == "serie":
+                if data[1] == "episode":
                     self.sonarr_node.delete_queue(int(data[2]))
                 else:
                     self.radarr_node.delete_queue(int(data[2]))
