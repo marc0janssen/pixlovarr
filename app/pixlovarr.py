@@ -554,7 +554,7 @@ class Pixlovarr():
                             f"{m.title} ({str(m.year)}) - "
                             f"{mediaMarker}{m.id}\n")
 
-                        if (count+1 % self.listLength == 0 and count != 0):
+                        if ((count+1) % self.listLength == 0 and count != 0):
                             context.bot.send_message(
                                 chat_id=update.effective_chat.id,
                                 text=allMedia
