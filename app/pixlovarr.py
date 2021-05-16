@@ -1489,8 +1489,10 @@ class Pixlovarr():
 
             if mediaType == "serie":
                 media = self.sonarr_node.lookup_serie(term=searchQuery)
+                mediaMarker = "S"
             else:
                 media = self.radarr_node.lookup_movie(term=searchQuery)
+                mediaMarker = "M"
 
             if media:
                 keyboard = []
@@ -1503,12 +1505,14 @@ class Pixlovarr():
 
                 maxResults = topAmount - 1
 
+                presentMedia = ""
+
                 for m in media:
                     if m.path:
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=f"We found that {m.title}({m.year}) is "
-                            f"already in the collection.")
+                        presentMedia += (
+                            f"{m.title}({m.year}) - "
+                            f"{mediaMarker}{m.id}\n"
+                        )
 
                         maxResults += 1
 
@@ -1537,13 +1541,22 @@ class Pixlovarr():
                     if media.index(m) == maxResults:
                         break
 
-                if keyboard:
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-
-                    update.message.reply_text(
-                        "We found the following media for you:",
-                        reply_markup=reply_markup
+#                if keyboard:
+                if presentMedia != "":
+                    presentMedia = (
+                        f"We found these in your catalog"
+                        f" already:\n{presentMedia}"
                     )
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=presentMedia)
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                update.message.reply_text(
+                    "We found the following media for you:",
+                    reply_markup=reply_markup
+                )
 
             else:
                 context.bot.send_message(
