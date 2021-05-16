@@ -20,7 +20,7 @@ import sys
 import re
 import imdb
 import random
-from time import time, sleep
+from time import time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
     RadarrCli,
@@ -271,8 +271,6 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 text=text
             )
-
-            sleep(2.5)
 
         return numOfItems
 
@@ -993,7 +991,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            self.findMedia(update, context, "serie", ' '.join(context.args))
+            self.findMedia(update, context, "serie")
 
     def list(self, update, context):
         if not self.isRejected(update) and \
@@ -1034,7 +1032,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            self.findMedia(update, context, "movie", ' '.join(context.args))
+            self.findMedia(update, context, "movie")
 
     def displayInfo(self, update, context):
         if not self.isRejected(update) and \
@@ -1465,9 +1463,9 @@ class Pixlovarr():
                 reply_markup=reply_markup
             )
 
-    def findMedia(self, update, context, mediaType, searchQuery):
+    def findMedia(self, update, context, mediaType):
 
-        if searchQuery:
+        if ' '.join(context.args):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Searching for {mediaType}s..."
@@ -1476,17 +1474,18 @@ class Pixlovarr():
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} is searching for "
-                f"a {mediaType} with keywords '{searchQuery}'"
+                f"a {mediaType} with keywords '{' '.join(context.args)}'"
             )
 
-            args = searchQuery.split(' ')
+            args = ""
+            if len(context.args) > 0:
+                args = context.args[0]
+                if re.match("^[Tt]\\d+$", args):
+                    context.args.pop(0)
 
-            topAmount = self.getTopAmount(update, context, args[0])
+            topAmount = self.getTopAmount(update, context, args)
 
-            if re.match("^[Tt]\\d+$", args[0]):
-                args.pop(0)
-
-            searchQuery = ' '.join(args)
+            searchQuery = ' '.join(context.args)
 
             if mediaType == "serie":
                 media = self.sonarr_node.lookup_serie(term=searchQuery)
