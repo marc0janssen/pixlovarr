@@ -487,14 +487,13 @@ class Pixlovarr():
     def showCalenderMediaInfo(self, update, context, media):
         try:
             title = (
-                f"{media['series']['title']}({media['series']['year']}) - "
-                f"S{media['seriesId']}\n"
+                f"{media['series']['title']}({media['series']['year']})\n"
                 f"Episode: S{media['seasonNumber']}E{media['episodeNumber']}"
                 f" - {media['title']}"
             )
         except KeyError:
             try:
-                title = f"{media['title']}({media['year']}) - M{media['id']}"
+                title = f"{media['title']}({media['year']})"
             except KeyError:
                 title = "-"
 
@@ -518,18 +517,25 @@ class Pixlovarr():
 
     def listMedia(self, update, context, typeOfMedia, media):
 
-        mediaMarker = "S" if typeOfMedia == "serie" else "M"
-
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
 
-            text = (
-                f"{media.title} ({str(media.year)}) "
-                f"- {mediaMarker}{media.id}\n"
+            keyboard = []
+
+            callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
+
+            keyboard.append([InlineKeyboardButton(
+                f"{media.title}({media.year})",
+                callback_data=callbackdata)]
             )
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=text)
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            update.message.reply_text(
+                f"The following {typeOfMedia}s in the catalog:",
+                reply_markup=reply_markup
+            )
+
         else:
             media.sort(key=self.sortOnTitle)
 
@@ -1449,18 +1455,18 @@ class Pixlovarr():
                 reply_markup=reply_markup
             )
 
-    def findMedia(self, update, context, mediaType):
+    def findMedia(self, update, context, typeOfMedia):
 
         if ' '.join(context.args):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=f"Searching for {mediaType}s..."
+                text=f"Searching for {typeOfMedia}s..."
             )
 
             logging.info(
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} is searching for "
-                f"a {mediaType} with keywords '{' '.join(context.args)}'"
+                f"a {typeOfMedia} with keywords '{' '.join(context.args)}'"
             )
 
             args = ""
@@ -1473,15 +1479,14 @@ class Pixlovarr():
 
             searchQuery = ' '.join(context.args)
 
-            if mediaType == "serie":
+            if typeOfMedia == "serie":
                 media = self.sonarr_node.lookup_serie(term=searchQuery)
-                mediaMarker = "S"
             else:
                 media = self.radarr_node.lookup_movie(term=searchQuery)
-                mediaMarker = "M"
 
             if media:
                 keyboard = []
+                keyboardPresentMedia = []
 
                 if type(media) == SonarrSerieItem or \
                         type(media) == RadarrMovieItem:
@@ -1491,28 +1496,31 @@ class Pixlovarr():
 
                 maxResults = topAmount - 1
 
-                presentMedia = ""
-
                 for m in media:
                     if m.path:
-                        presentMedia += (
-                            f"{m.title}({m.year}) - "
-                            f"{mediaMarker}{m.id}\n"
+
+                        callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
+
+                        keyboardPresentMedia.append([InlineKeyboardButton(
+                            f"{m.title}({m.year})",
+                            callback_data=callbackdata)]
                         )
 
                         maxResults += 1
 
                         continue    # media is already in collection
 
-                    if mediaType == "serie":
-                        callbackdata = f"showdlsummary:{mediaType}:{m.tvdbId}"
+                    if typeOfMedia == "serie":
+                        callbackdata = (
+                            f"showdlsummary:{typeOfMedia}:{m.tvdbId}")
                         if not m.tvdbId:
 
                             maxResults += 1
 
                             continue  # serie doesn't have ID
                     else:
-                        callbackdata = f"showdlsummary:{mediaType}:{m.imdbId}"
+                        callbackdata = (
+                            f"showdlsummary:{typeOfMedia}:{m.imdbId}")
                         if not m.imdbId:
 
                             maxResults += 1
@@ -1527,15 +1535,14 @@ class Pixlovarr():
                     if media.index(m) == maxResults:
                         break
 
-#                if keyboard:
-                if presentMedia != "":
-                    presentMedia = (
-                        f"We found these in your catalog"
-                        f" already:\n{presentMedia}"
+                if keyboardPresentMedia:
+                    reply_markup_PresentMedia = \
+                        InlineKeyboardMarkup(keyboardPresentMedia)
+
+                    update.message.reply_text(
+                        f"We found these {typeOfMedia}s in your catalog:",
+                        reply_markup=reply_markup_PresentMedia
                     )
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=presentMedia)
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1561,7 +1568,7 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:remarker, 1:source of person, 2:userid
+            # 0:marker, 1:source of person, 2:userid
 
             if (data[2] in self.signups or data[2] in self.rejected):
 

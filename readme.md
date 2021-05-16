@@ -20,7 +20,6 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /sc <word> - Series calendar
         /mc <word> - Movies calendar
         /qu - List all queued items
-        /del <id> - Delete media from catalog
         /ts T<#> - Show Top series
         /ps T<#> - Show Top popular series
         /tm T<#> - Show Top movies
@@ -36,7 +35,6 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /allowed - Show all allowed members
         /denied - Show all denied members
         /history - Show command history
-        /del <id> - Delete media from disk
 
 ## Docker
 
