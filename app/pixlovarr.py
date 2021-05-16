@@ -51,7 +51,7 @@ class Pixlovarr():
         self.maxCmdHistory = 50
         self.rankingLimitMin = 3
         self.rankingLimitMax = 100
-        self.listLength = 75
+        self.listLength = 25
         self.youTubeURL = "https://www.youtube.com/watch?v="
 
         self.imdb = imdb.IMDb()
@@ -196,7 +196,9 @@ class Pixlovarr():
         self, update, context,
             numOfItems, queue, typeOfMedia):
 
-        for queueitem in queue:
+        txtQueue = ""
+
+        for count, queueitem in enumerate(queue):
 
             numOfItems += 1
 
@@ -243,9 +245,6 @@ class Pixlovarr():
                     f"ETA: {pt}"
                 )
 
-        #    txtQueue += text
-
-
 #                title = (
 #                    f"{queueitem['movie']['title']}"
 #                    f"({queueitem['movie']['year']})"
@@ -267,9 +266,26 @@ class Pixlovarr():
 #                reply_markup=reply_markup
 #            )
 
+            if count < 3:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=text
+                )
+            else:
+                txtQueue += f"{text}\n\n"
+
+                if (count % self.listLength == 0 and count != 0):
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=txtQueue
+                    )
+
+                    txtQueue = ""
+
+        if txtQueue != "":
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text=text
+                text=txtQueue
             )
 
         return numOfItems
