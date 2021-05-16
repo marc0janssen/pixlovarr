@@ -234,7 +234,12 @@ class Pixlovarr():
                     f"ETA: {pt}"
                 )
 
-#                title = f"{queueitem['episode']['title']}"
+                title = (
+                    f"{queueitem['series']['title']} "
+                    f"S{queueitem['episode']['seasonNumber']}"
+                    f"E{queueitem['episode']['episodeNumber']} - "
+                    f"'{queueitem['episode']['title']}'"
+                )
             else:
                 text = (
                     f"{queueitem['movie']['title']}"
@@ -245,32 +250,28 @@ class Pixlovarr():
                     f"ETA: {pt}"
                 )
 
-#                title = (
-#                    f"{queueitem['movie']['title']}"
-#                    f"({queueitem['movie']['year']})"
-#                )
-
-#            callbackdata = (
-#                f"deletequeueitem:{typeOfMedia}:"
-#                f"{queueitem['id']}:{title}"
-#            )
-
-#            keyboard = [[InlineKeyboardButton(
-#                f"Remove {title}",
-#                callback_data=callbackdata)]]
-
-#            reply_markup = InlineKeyboardMarkup(keyboard)
-
-#            update.message.reply_text(
-#                f"{text}",
-#                reply_markup=reply_markup
-#            )
+                title = (
+                    f"{queueitem['movie']['title']}"
+                    f"({queueitem['movie']['year']})"
+                )
 
             if count < 3:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=text
+                callbackdata = (
+                    f"deletequeueitem:{typeOfMedia}:"
+                    f"{queueitem['id']}:{title}"
                 )
+
+                keyboard = [[InlineKeyboardButton(
+                    f"Remove {title}",
+                    callback_data=callbackdata)]]
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                update.message.reply_text(
+                    f"{text}",
+                    reply_markup=reply_markup
+                )
+
             else:
                 txtQueue += f"{text}\n\n"
 
@@ -374,7 +375,7 @@ class Pixlovarr():
         except IOError:
             logging.warning(f"Can't write file {file}.")
 
-    def showMediaInfo(self, update, context, typeOfMedia, media):
+    def outputMediaInfo(self, update, context, typeOfMedia, media):
 
         txtMediaInfo = ""
 
@@ -532,15 +533,15 @@ class Pixlovarr():
         else:
             media.sort(key=self.sortOnTitle)
 
-            allMedia = ""
-            itemInList = False
             genre = ""
-
             if len(context.args) > 0:
-                if re.match("^#[A-Za-z]+$", context.args[0]):
-                    genre = context.args[0][1:]
-                    context.args.pop(0)
+                for x in range(len(context.args)):
+                    if re.match("^#[A-Za-z]+$", context.args[0]):
+                        if not genre:
+                            genre = context.args[0][1:]
+                        context.args.pop(0)
 
+            keyboard = []
             for count, m in enumerate(media):
 
                 if re.search(
@@ -550,25 +551,21 @@ class Pixlovarr():
                     if genre.lower() in (genre.lower() for genre in m.genres) \
                             or not genre:
 
-                        allMedia += (
-                            f"{m.title} ({str(m.year)}) - "
-                            f"{mediaMarker}{m.id}\n")
+                        callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
 
-                        if ((count+1) % self.listLength == 0 and count != 0):
-                            context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=allMedia
-                            )
+                        keyboard.append([InlineKeyboardButton(
+                            f"{m.title}({m.year})",
+                            callback_data=callbackdata)]
+                        )
 
-                            allMedia = ""
+            if keyboard:
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
-                        itemInList = True
-
-            if allMedia != "":
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allMedia)
-
-            if not itemInList:
+                update.message.reply_text(
+                    f"The following {typeOfMedia}s in the catalog:",
+                    reply_markup=reply_markup
+                )
+            else:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text=(
@@ -639,8 +636,32 @@ class Pixlovarr():
             update.effective_user.id
         )
 
-# Default Commands
+    def notifyDownload(self, update, context, typeOfMedia, title, year):
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"The {typeOfMedia} '{title}({year})' "
+            f"was added to the server, "
+            f"{update.effective_user.first_name}. "
+            f"Thank you and till next time.")
 
+        logging.info(
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} has added the "
+            f"{typeOfMedia} '{title}({year})' "
+            f"to the server.")
+
+    def notifyDeleteQueueItem(self, update, context, typeOfMedia, title):
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"The {typeOfMedia} {title} was deleted from the queue.")
+
+        logging.info(
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} has deleted the "
+            f"{typeOfMedia} '{title}' "
+            f"from the queue.")
+
+# Default Commands
     def start(self, update, context):
         if not self.isRejected(update):
             self.logCommand(update)
@@ -729,8 +750,6 @@ class Pixlovarr():
                     "/sc <word> - Series calendar\n"
                     "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
-                    "/del <id> - Delete media from catalog\n"
-                    "/di <id> - Display media info\n"
                     "/ts T<#> - Show Top series\n"
                     "/ps T<#> - Show Top popular series\n"
                     "/tm T<#> - Show Top movies\n"
@@ -749,7 +768,6 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/history - Show command history\n"
-                    "/del <id> - Delete media from disk\n"
                 )
 
             context.bot.send_message(
@@ -1050,83 +1068,6 @@ class Pixlovarr():
 
             self.findMedia(update, context, "movie")
 
-    def displayInfo(self, update, context):
-        if not self.isRejected(update) and \
-                self.isGranted(update):
-
-            self.logCommand(update)
-
-            command = update.effective_message.text.split(" ")
-
-            if context.args:
-
-                if re.match("^[SsMm]\\d+$", context.args[0]):
-                    typeOfMedia = "serie" if(
-                        context.args[0][:1] in ["s", "S"]) else "movie"
-                    mediaID = context.args[0][1:]
-
-                    try:
-                        if typeOfMedia == "serie":
-                            media = self.sonarr_node.get_serie(int(mediaID))
-                        else:
-                            media = self.radarr_node.get_movie(int(mediaID))
-
-                        self.showMediaInfo(update, context, typeOfMedia, media)
-
-                        if command[0] == "/del":
-                            callbackdata = (
-                                f"deletemedia:{typeOfMedia}:{mediaID}")
-                            if self.isAdmin(update, context, False):
-                                callbackdata += ":True"
-                            else:
-                                callbackdata += ":False"
-
-                            keyboard = [[InlineKeyboardButton(
-                                f"{media.title}({media.year})",
-                                callback_data=callbackdata)]]
-
-                            reply_markup = InlineKeyboardMarkup(keyboard)
-                            update.message.reply_text(
-                                "Do you want to delete this media:",
-                                reply_markup=reply_markup
-                            )
-
-                    except exceptions.CliServerError as e:
-
-                        errorResponse = json.loads(e.response)
-                        if (errorResponse["message"] == "NotFound"):
-
-                            context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=(
-                                    "This ID was not found in the "
-                                    "catalog.\nPlease check /ls"
-                                    " or /lm for IDs."
-                                )
-                            )
-
-                        else:
-                            context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=f"{errorResponse['message']}")
-
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            "This ID was not recognized.\nPlease check "
-                            "/ls or /lm for IDs."
-                        )
-                    )
-            else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        "There was no ID given.\nPlease check "
-                        "/ls or /lm for IDs."
-                    )
-                )
-
 # Admin Commands
 
     def showCmdHistory(self, update, context):
@@ -1268,6 +1209,47 @@ class Pixlovarr():
                 f"I didn't understand that command.")
 
 # HandlerCallback Commands
+
+    def showMediaInfo(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaID
+
+            try:
+                if data[1] == "serie":
+                    media = self.sonarr_node.get_serie(int(data[2]))
+                else:
+                    media = self.radarr_node.get_movie(int(data[2]))
+
+                self.outputMediaInfo(update, context, data[1], media)
+
+                callbackdata = (
+                    f"deletemedia:{data[1]}:{data[2]}")
+                if self.isAdmin(update, context, False):
+                    callbackdata += ":True"
+                else:
+                    callbackdata += ":False"
+
+                keyboard = [[InlineKeyboardButton(
+                    f"Delete '{media.title}({media.year})'",
+                    callback_data=callbackdata)]]
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                query.message.reply_text(
+                    "Actions:",
+                    reply_markup=reply_markup
+                )
+
+            except exceptions.CliServerError as e:
+
+                errorResponse = json.loads(e.response)
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"{errorResponse['message']}")
+
     def deleteQueueItem(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
 
@@ -1276,18 +1258,20 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:queueID, 3:mediaTitle
 
-            print(data[2])
+            try:
+                if data[1] == "serie":
+                    self.sonarr_node.delete_queue(int(data[2]))
+                else:
+                    self.radarr_node.delete_queue(int(data[2]))
 
-            if data[1] == "serie":
-                res = self.sonarr_node.delete_queue(int(data[2]))
-            else:
-                res = self.radarr_node.delete_queue(int(data[2]))
+                self.notifyDeleteQueueItem(update, context, data[1], data[3])
 
-            print(res)
+            except exceptions.CliServerError as e:
+                errorResponse = json.loads(e.response)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"The {data[1]} {data[3]} was removed from the queue.")
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=errorResponse["message"])
 
     def deleteMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1374,20 +1358,6 @@ class Pixlovarr():
                         chat_id=update.effective_chat.id,
                         text=f"{errorResponse[1]['errorMessage']}")
 
-    def notifyDownload(self, update, context, typeOfMedia, title, year):
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"The {typeOfMedia} '{title}({year})' "
-            f"was added to the server, "
-            f"{update.effective_user.first_name}. "
-            f"Thank you and till next time.")
-
-        logging.info(
-            f"{update.effective_user.first_name} - "
-            f"{update.effective_user.id} has added the "
-            f"{typeOfMedia} '{title}({year})' "
-            f"to the server.")
-
     def showDownloadSummary(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
 
@@ -1406,7 +1376,7 @@ class Pixlovarr():
                 callbackdata = f"selectdownload:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-            self.showMediaInfo(update, context, data[1], media)
+            self.outputMediaInfo(update, context, data[1], media)
 
             keyboard = []
             row = []
@@ -1469,13 +1439,13 @@ class Pixlovarr():
                 callbackdata = (
                     f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
                 keyboard = [[InlineKeyboardButton(
-                    f"Download {media.title}({media.year})",
+                    f"Download '{media.title}({media.year})'",
                     callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             query.message.reply_text(
-                "Please confirm your download:",
+                "Actions:",
                 reply_markup=reply_markup
             )
 
@@ -1743,9 +1713,6 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
-        self.displayInfo_handler = CommandHandler('di', self.displayInfo)
-        self.dispatcher.add_handler(self.displayInfo_handler)
-
         self.showMovieCalendar_handler = CommandHandler('mc', self.geCalendar)
         self.dispatcher.add_handler(self.showMovieCalendar_handler)
 
@@ -1782,6 +1749,10 @@ class Pixlovarr():
             self.deleteQueueItem, pattern='^deletequeueitem:')
         self.dispatcher.add_handler(kbdeleteQueueItem_handler)
 
+        kbshowMediaInfo_handler = CallbackQueryHandler(
+            self.showMediaInfo, pattern='^showMediaInfo:')
+        self.dispatcher.add_handler(kbshowMediaInfo_handler)
+
 # Admin Handlders
 
         self.new_handler = CommandHandler('new', self.new)
@@ -1797,9 +1768,6 @@ class Pixlovarr():
             'history', self.showCmdHistory
         )
         self.dispatcher.add_handler(self.cmdhistory_handler)
-
-        self.delete_handler = CommandHandler('del', self.displayInfo)
-        self.dispatcher.add_handler(self.delete_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)

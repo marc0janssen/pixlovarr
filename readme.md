@@ -21,7 +21,6 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /mc <word> - Movies calendar
         /qu - List all queued items
         /del <id> - Delete media from catalog
-        /di <id> - Display media info
         /ts T<#> - Show Top series
         /ps T<#> - Show Top popular series
         /tm T<#> - Show Top movies
