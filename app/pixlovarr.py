@@ -399,9 +399,25 @@ class Pixlovarr():
         txtMediaInfo += textoverview
 
         try:
+            dateCinema = datetime.strftime(
+                datetime.strptime(
+                    media.inCinemas, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+            txtCinema = f"In cinemas: {dateCinema}\n\n"
+            txtMediaInfo += txtCinema
+        except AttributeError:
+            try:
+                dateFirstAired = datetime.strftime(
+                    datetime.strptime(
+                        media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+                txtFirstAired = f"First aired: {dateFirstAired}\n\n"
+                txtMediaInfo += txtFirstAired
+            except AttributeError:
+                pass
+
+        try:
             if media.episodeCount > 0:
-                textEpisode = f"Episode count: {media.episodeCount}\n\n"
-                txtMediaInfo += textEpisode
+                txtEpisode = f"Episode count: {media.episodeCount}\n\n"
+                txtMediaInfo += txtEpisode
         except AttributeError:
             pass
 
@@ -801,7 +817,7 @@ class Pixlovarr():
                     "/new - Show all new signups\n"
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
-                    "/history - Show command history\n"
+                    "/ch - Show command history\n"
                 )
 
             context.bot.send_message(
@@ -1771,9 +1787,7 @@ class Pixlovarr():
         self.denied_handler = CommandHandler('denied', self.denied)
         self.dispatcher.add_handler(self.denied_handler)
 
-        self.cmdhistory_handler = CommandHandler(
-            'history', self.showCmdHistory
-        )
+        self.cmdhistory_handler = CommandHandler('ch', self.showCmdHistory)
         self.dispatcher.add_handler(self.cmdhistory_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
