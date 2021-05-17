@@ -881,8 +881,7 @@ class Pixlovarr():
                 if series.status == "upcoming":
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=f"{series.title} ({str(series.year)}) - "
-                        f"S{series.id}\n"
+                        text=f"{series.title} ({str(series.year)})\n"
                     )
                     fqCount += 1
             else:
@@ -890,7 +889,7 @@ class Pixlovarr():
                     if s.status == "upcoming":
                         fqCount += 1
                         allSeries += (
-                            f"{s.title} ({str(s.year)}) - S{s.id}\n")
+                            f"{s.title} ({str(s.year)})\n")
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allSeries)
@@ -906,8 +905,7 @@ class Pixlovarr():
                 if movies.status == "announced":
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
-                        text=f"{movies.title} ({str(movies.year)}) - "
-                        f"M{movies.id}\n"
+                        text=f"{movies.title} ({str(movies.year)})\n"
                     )
                     fqCount += 1
             else:
@@ -915,7 +913,7 @@ class Pixlovarr():
                     if m.status == "announced":
                         fqCount += 1
                         allMovies += (
-                            f"{m.title} ({str(m.year)}) - M{m.id}\n")
+                            f"{m.title} ({str(m.year)})\n")
 
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allMovies)
