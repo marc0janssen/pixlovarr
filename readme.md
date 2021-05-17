@@ -26,7 +26,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /pm T<#> - Show Top popular movies
         /ti T<#> - Show Top Indian movies
         /wm T<#> - Show Top worst movies
-        /fq - Show queued announced items
+        /fq - Show announced items in catalog
         /ds T<#> <keyword> - Download serie
         /dm T<#> <keyword> - Download movie
 
@@ -35,6 +35,56 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /allowed - Show all allowed members
         /denied - Show all denied members
         /history - Show command history
+
+## Examples
+
+        List all series in the catalog
+        /ls
+
+        List all series with title "Harry"
+        /ls Harry
+
+        List all series with genre "action" 
+        /ls #action
+
+        List all series with genre "action" and title "Harry"
+        /ls #action Harry
+
+        List all movies in the catalog
+        /lm
+
+        List all movies with title "Lord"
+        /lm Lord
+
+        List all movies with genre "Fantasy" 
+        /lm #Fantasy
+
+        List all movies with genre "Fantasy" and title "Lord"
+        /lm #fantasy Lord
+
+        Show the series calendar
+        /sc
+
+        Show the series calendar for "Grey"
+        /sc grey
+
+        Show the movies calendar
+        /mc
+
+        Show the movies calendar for "Dune"
+        /mc dune
+
+        Show top movies from IMDb
+        /tm
+
+        Show top 25 movies from IMDb
+        /tm t25
+
+        Find movies with "Jake" for download
+        /dm jake
+
+        Find top25 movies with "jake" for download
+        /dm t25 jake
 
 ## Docker
 

@@ -790,7 +790,7 @@ class Pixlovarr():
                     "/pm T<#> - Show Top popular movies\n"
                     "/ti T<#> - Show Top Indian movies\n"
                     "/wm T<#> - Show Top worst movies\n"
-                    "/fq - Show queued announced items\n"
+                    "/fq - Show announced items in catalog\n"
                     "/ds T<#> <keyword> - Download series\n"
                     "/dm T<#> <keyword> - Download movie\n"
                 )
