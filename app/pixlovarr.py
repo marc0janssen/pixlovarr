@@ -267,7 +267,8 @@ class Pixlovarr():
 
                 update.message.reply_text(
                     text,
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
 
             else:
@@ -531,7 +532,8 @@ class Pixlovarr():
 
             update.message.reply_text(
                 f"The following {typeOfMedia}s in the catalog:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                quote=False
             )
 
         else:
@@ -567,7 +569,8 @@ class Pixlovarr():
 
                 update.message.reply_text(
                     f"The following {typeOfMedia}s in the catalog:",
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
             else:
                 context.bot.send_message(
@@ -1025,7 +1028,8 @@ class Pixlovarr():
             update.message.reply_text(
                 f"IMDb top {topAmount} {adjective}{typeOfMedia}s "
                 f"at the moment:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                quote=False
             )
 
     def showQueue(self, update, context):
@@ -1166,7 +1170,8 @@ class Pixlovarr():
 
                 update.message.reply_text(
                     'These are your new signups. Please Grant or Reject:',
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
 
             else:
@@ -1198,7 +1203,8 @@ class Pixlovarr():
 
                 update.message.reply_text(
                     'These are your members. Please reject if needed:',
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
             else:
                 context.bot.send_message(
@@ -1227,7 +1233,8 @@ class Pixlovarr():
 
                 update.message.reply_text(
                     'These members are denied. Please grant if needed:',
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
             else:
                 context.bot.send_message(
@@ -1278,7 +1285,8 @@ class Pixlovarr():
             reply_markup = InlineKeyboardMarkup(keyboard)
             query.message.reply_text(
                 "Actions:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                quote=False
             )
 
     def deleteQueueItem(self, update, context):
@@ -1417,7 +1425,8 @@ class Pixlovarr():
 
             query.message.reply_text(
                 "Please select media quality:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                quote=False
             )
 
     def selectDownload(self, update, context):
@@ -1452,7 +1461,8 @@ class Pixlovarr():
 
             query.message.reply_text(
                 "Actions:",
-                reply_markup=reply_markup
+                reply_markup=reply_markup,
+                quote=False
             )
 
     def findMedia(self, update, context, typeOfMedia):
@@ -1535,14 +1545,16 @@ class Pixlovarr():
 
                     update.message.reply_text(
                         f"We found these {typeOfMedia}s in your catalog:",
-                        reply_markup=reply_markup_PresentMedia
+                        reply_markup=reply_markup_PresentMedia,
+                        quote=False
                     )
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 update.message.reply_text(
                     "We found the following media for you:",
-                    reply_markup=reply_markup
+                    reply_markup=reply_markup,
+                    quote=False
                 )
 
             else:
