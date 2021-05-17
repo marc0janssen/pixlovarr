@@ -28,10 +28,8 @@ from pycliarr.api import (
 )
 from pycliarr.api import (
     SonarrCli,
-    SonarrSerieItem,
-    exceptions
+    SonarrSerieItem
 )
-# from pycliarr.api.exceptions import CliServerError
 
 
 class Pixlovarr():
@@ -88,32 +86,14 @@ class Pixlovarr():
                     self.config['RADARR']['CALENDAR_PERIOD_DAYS_MOVIES']
 
                 if self.sonarr_enabled:
-                    try:
-                        self.sonarr_node = SonarrCli(
-                            self.sonarr_url, self.sonarr_token
-                        )
-                    except exceptions.CliServerError as e:
-                        errorResponse = json.loads(e.response)
-
-                        logging.error(
-                            f"an exception"
-                            f"in __init__ serie with message "
-                            f"'{errorResponse[1]['errorMessage']}'"
-                        )
+                    self.sonarr_node = SonarrCli(
+                        self.sonarr_url, self.sonarr_token
+                    )
 
                 if self.radarr_enabled:
-                    try:
-                        self.radarr_node = RadarrCli(
-                            self.radarr_url, self.radarr_token
-                        )
-                    except exceptions.CliServerError as e:
-                        errorResponse = json.loads(e.response)
-
-                        logging.error(
-                            f"an exception"
-                            f"in __init__ movie with message "
-                            f"'{errorResponse[1]['errorMessage']}'"
-                        )
+                    self.radarr_node = RadarrCli(
+                        self.radarr_url, self.radarr_token
+                    )
 
                 if not self.sonarr_enabled and not self.radarr_enabled:
                     logging.error(
@@ -684,8 +664,6 @@ class Pixlovarr():
 
         for queueitem in queue:
 
-            print(f"{queueItemID} -- {queueitem['id']}")
-
             if int(queueItemID) == queueitem['id']:
 
                 if typeOfMedia == "episode":
@@ -712,21 +690,6 @@ class Pixlovarr():
             f"{update.effective_user.id} has deleted the "
             f"{typeOfMedia} '{title}' "
             f"from the queue.")
-
-    def notifyException(self, update, context, errorResponse, func):
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(
-                f"There was an exception with "
-                f"{errorResponse[1]['errorMessage']} in function: {func}"
-            )
-        )
-
-        logging.error(
-            f"{update.effective_user.first_name} - "
-            f"{update.effective_user.id} had an exception"
-            f"in {func} with message '{errorResponse[1]['errorMessage']}'"
-        )
 
 # Default Commands
 
@@ -866,30 +829,18 @@ class Pixlovarr():
             startDate = date.today()
 
             if command[0] == "/sc":
-                try:
-                    endDate = startDate + timedelta(
-                        days=int(self.calendar_period_days_series))
-                    media = self.sonarr_node.get_calendar(
-                        start_date=startDate, end_date=endDate)
-                    typeOfMedia = "serie"
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse, "geCalendar - serie")
+                endDate = startDate + timedelta(
+                    days=int(self.calendar_period_days_series))
+                media = self.sonarr_node.get_calendar(
+                    start_date=startDate, end_date=endDate)
+                typeOfMedia = "serie"
 
             elif command[0] == "/mc":
-                try:
-                    endDate = startDate + timedelta(
-                        days=int(self.calendar_period_days_movies))
-                    media = self.radarr_node.get_calendar(
-                        start_date=startDate, end_date=endDate)
-                    typeOfMedia = "movie"
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse, "geCalendar - movie")
+                endDate = startDate + timedelta(
+                    days=int(self.calendar_period_days_movies))
+                media = self.radarr_node.get_calendar(
+                    start_date=startDate, end_date=endDate)
+                typeOfMedia = "movie"
 
             else:
                 context.bot.send_message(
@@ -916,72 +867,58 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            try:
-                series = self.sonarr_node.get_serie()
-                series.sort(key=self.sortOnTitle)
+            series = self.sonarr_node.get_serie()
+            series.sort(key=self.sortOnTitle)
 
-                endtext = "There is no media in the announced queue."
+            endtext = "There is no media in the announced queue."
 
-                fqCount = 0
-                allSeries = "Series\n"
-                if type(series) is SonarrSerieItem:
-                    if series.status == "upcoming":
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=f"{series.title} ({str(series.year)}) - "
-                            f"S{series.id}\n"
-                        )
-                        fqCount += 1
-                else:
-                    for s in series:
-                        if s.status == "upcoming":
-                            fqCount += 1
-                            allSeries += (
-                                f"{s.title} ({str(s.year)}) - S{s.id}\n")
-
+            fqCount = 0
+            allSeries = "Series\n"
+            if type(series) is SonarrSerieItem:
+                if series.status == "upcoming":
                     context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allSeries)
-
-                    endtext = (
-                        f"There are {fqCount} series in the announced queue.")
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse, "futureQueue - series")
-
-            try:
-                movies = self.radarr_node.get_movie()
-                movies.sort(key=self.sortOnTitle)
-
-                allMovies = "Movies\n"
-                if type(movies) is RadarrMovieItem:
-                    if movies.status == "announced":
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=f"{movies.title} ({str(movies.year)}) - "
-                            f"M{movies.id}\n"
-                        )
+                        chat_id=update.effective_chat.id,
+                        text=f"{series.title} ({str(series.year)}) - "
+                        f"S{series.id}\n"
+                    )
+                    fqCount += 1
+            else:
+                for s in series:
+                    if s.status == "upcoming":
                         fqCount += 1
-                else:
-                    for m in movies:
-                        if m.status == "announced":
-                            fqCount += 1
-                            allMovies += (
-                                f"{m.title} ({str(m.year)}) - M{m.id}\n")
+                        allSeries += (
+                            f"{s.title} ({str(s.year)}) - S{s.id}\n")
 
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allSeries)
+
+                endtext = (
+                    f"There are {fqCount} series in the announced queue.")
+
+            movies = self.radarr_node.get_movie()
+            movies.sort(key=self.sortOnTitle)
+
+            allMovies = "Movies\n"
+            if type(movies) is RadarrMovieItem:
+                if movies.status == "announced":
                     context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allMovies)
+                        chat_id=update.effective_chat.id,
+                        text=f"{movies.title} ({str(movies.year)}) - "
+                        f"M{movies.id}\n"
+                    )
+                    fqCount += 1
+            else:
+                for m in movies:
+                    if m.status == "announced":
+                        fqCount += 1
+                        allMovies += (
+                            f"{m.title} ({str(m.year)}) - M{m.id}\n")
 
-                    endtext = (
-                        f"There are {fqCount} items in the announced queue.")
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=allMovies)
 
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse, "futureQueue - movies")
+                endtext = (
+                    f"There are {fqCount} items in the announced queue.")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
@@ -1056,32 +993,25 @@ class Pixlovarr():
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
                         text=random.choice(phrass))
-                try:
-                    if typeOfMedia == "serie":
-                        foundMedia = \
-                            self.sonarr_node.lookup_serie(term=m['title'])
-                        if foundMedia is None:
-                            continue
 
-                        if type(foundMedia) != SonarrSerieItem:
-                            foundMedia = foundMedia[0]
-                        foundMediaID = foundMedia.tvdbId
-                    else:
-                        foundMedia = \
-                            self.radarr_node.lookup_movie(term=m['title'])
-                        if foundMedia is None:
-                            continue
+                if typeOfMedia == "serie":
+                    foundMedia = \
+                        self.sonarr_node.lookup_serie(term=m['title'])
+                    if foundMedia is None:
+                        continue
 
-                        if type(foundMedia) != RadarrMovieItem:
-                            foundMedia = foundMedia[0]
-                        foundMediaID = foundMedia.imdbId
+                    if type(foundMedia) != SonarrSerieItem:
+                        foundMedia = foundMedia[0]
+                    foundMediaID = foundMedia.tvdbId
+                else:
+                    foundMedia = \
+                        self.radarr_node.lookup_movie(term=m['title'])
+                    if foundMedia is None:
+                        continue
 
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse,
-                        f"showMediaInfo - {typeOfMedia}")
+                    if type(foundMedia) != RadarrMovieItem:
+                        foundMedia = foundMedia[0]
+                    foundMediaID = foundMedia.imdbId
 
                 callbackdata = f"showdlsummary:{typeOfMedia}:{foundMediaID}"
 
@@ -1106,34 +1036,19 @@ class Pixlovarr():
 
             numOfItems = 0
 
-            try:
-                if self.sonarr_enabled:
-                    queuesonarr = self.sonarr_node.get_queue()
+            if self.sonarr_enabled:
+                queuesonarr = self.sonarr_node.get_queue()
 
-                    if queuesonarr:
-                        numOfItems = self.countItemsinQueue(
-                            update, context, numOfItems,
-                            queuesonarr, "episode")
+                if queuesonarr:
+                    numOfItems = self.countItemsinQueue(
+                        update, context, numOfItems, queuesonarr, "episode")
 
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
+            if self.radarr_enabled:
+                queueradarr = self.radarr_node.get_queue()
 
-                self.notifyException(
-                    update, context, errorResponse, "showQueue - series")
-
-            try:
-                if self.radarr_enabled:
-                    queueradarr = self.radarr_node.get_queue()
-
-                    if queueradarr:
-                        numOfItems = self.countItemsinQueue(
-                            update, context, numOfItems, queueradarr, "movie")
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse, "showQueue - movies")
+                if queueradarr:
+                    numOfItems = self.countItemsinQueue(
+                        update, context, numOfItems, queueradarr, "movie")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1159,24 +1074,13 @@ class Pixlovarr():
             command = update.effective_message.text.split(" ")
 
             if command[0] == "/ls":
-                try:
-                    media = self.sonarr_node.get_serie()
-                    typeOfMedia = "serie"
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse, "list - series")
+                media = self.sonarr_node.get_serie()
+                typeOfMedia = "serie"
 
             elif command[0] == "/lm":
-                try:
-                    media = self.radarr_node.get_movie()
-                    typeOfMedia = "movie"
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
+                media = self.radarr_node.get_movie()
+                typeOfMedia = "movie"
 
-                    self.notifyException(
-                        update, context, errorResponse, "list - movies")
             else:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
@@ -1353,37 +1257,29 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaID
 
-            try:
-                if data[1] == "serie":
-                    media = self.sonarr_node.get_serie(int(data[2]))
-                else:
-                    media = self.radarr_node.get_movie(int(data[2]))
+            if data[1] == "serie":
+                media = self.sonarr_node.get_serie(int(data[2]))
+            else:
+                media = self.radarr_node.get_movie(int(data[2]))
 
-                self.outputMediaInfo(update, context, data[1], media)
+            self.outputMediaInfo(update, context, data[1], media)
 
-                callbackdata = (
-                    f"deletemedia:{data[1]}:{data[2]}")
-                if self.isAdmin(update, context, False):
-                    callbackdata += ":True"
-                else:
-                    callbackdata += ":False"
+            callbackdata = (
+                f"deletemedia:{data[1]}:{data[2]}")
+            if self.isAdmin(update, context, False):
+                callbackdata += ":True"
+            else:
+                callbackdata += ":False"
 
-                keyboard = [[InlineKeyboardButton(
-                    f"Delete '{media.title}({media.year})'",
-                    callback_data=callbackdata)]]
+            keyboard = [[InlineKeyboardButton(
+                f"Delete '{media.title}({media.year})'",
+                callback_data=callbackdata)]]
 
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                query.message.reply_text(
-                    "Actions:",
-                    reply_markup=reply_markup
-                )
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse,
-                    f"showMediaInfo - {data[1]}")
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            query.message.reply_text(
+                "Actions:",
+                reply_markup=reply_markup
+            )
 
     def deleteQueueItem(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1393,20 +1289,12 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:queueID
 
-            try:
-                if data[1] == "episode":
-                    self.sonarr_node.delete_queue(int(data[2]))
-                else:
-                    self.radarr_node.delete_queue(int(data[2]))
+            if data[1] == "episode":
+                self.sonarr_node.delete_queue(int(data[2]))
+            else:
+                self.radarr_node.delete_queue(int(data[2]))
 
-                self.notifyDeleteQueueItem(update, context, data[1], data[2])
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse,
-                    f"deleteQueueItem - {data[1]}")
+            self.notifyDeleteQueueItem(update, context, data[1], data[2])
 
     def deleteMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1416,23 +1304,16 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaID, 3:delete_files
 
-            try:
-                if data[1] == "serie":
-                    self.sonarr_node.delete_serie(
-                        serie_id=int(data[2]), delete_files=data[3])
-                else:
-                    self.radarr_node.delete_movie(
-                        movie_id=int(data[2]), delete_files=data[3])
+            if data[1] == "serie":
+                self.sonarr_node.delete_serie(
+                    serie_id=int(data[2]), delete_files=data[3])
+            else:
+                self.radarr_node.delete_movie(
+                    movie_id=int(data[2]), delete_files=data[3])
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"The {data[1]} has been deleted.")
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse, f"deleteMedia - {data[1]}")
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"The {data[1]} has been deleted.")
 
     def downloadMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1448,52 +1329,36 @@ class Pixlovarr():
                 text="Please be patient...")
 
             if data[1] == "serie":
-                try:
-                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
-                    if data[4] == "First":
-                        monitored_seasons = [1]
+                if data[4] == "First":
+                    monitored_seasons = [1]
 
-                    elif data[4] == "All":
-                        monitored_seasons = [
-                            i for i in range(1, media.seasonCount+1)]
+                elif data[4] == "All":
+                    monitored_seasons = [
+                        i for i in range(1, media.seasonCount+1)]
 
-                    elif data[4] == "New":
-                        monitored_seasons = []
+                elif data[4] == "New":
+                    monitored_seasons = []
 
-                    self.sonarr_node.add_serie(
-                        tvdb_id=data[2], quality=int(data[3]),
-                        monitored_seasons=monitored_seasons,
-                        season_folder=self.sonarr_season_folder
-                    )
+                self.sonarr_node.add_serie(
+                    tvdb_id=data[2], quality=int(data[3]),
+                    monitored_seasons=monitored_seasons,
+                    season_folder=self.sonarr_season_folder
+                )
 
-                    self.notifyDownload(
-                        update, context, data[1], media.title, media.year)
-
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse,
-                        f"downloadMedia - {data[1]}")
+                self.notifyDownload(
+                    update, context, data[1], media.title, media.year)
 
             else:
-                try:
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-                    self.radarr_node.add_movie(
-                        imdb_id=data[2], quality=int(data[3])
-                    )
+                self.radarr_node.add_movie(
+                    imdb_id=data[2], quality=int(data[3])
+                )
 
-                    self.notifyDownload(
-                        update, context, data[1], media.title, media.year)
-
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse,
-                        f"downloadMedia - {data[1]}")
+                self.notifyDownload(
+                    update, context, data[1], media.title, media.year)
 
     def showDownloadSummary(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1503,65 +1368,57 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
 
-            try:
-                if data[1] == "serie":
-                    profiles = self.sonarr_node.get_quality_profiles()
-                    callbackdata = f"selectdownload:{data[1]}:{data[2]}"
-                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+            if data[1] == "serie":
+                profiles = self.sonarr_node.get_quality_profiles()
+                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
+                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
-                else:
-                    profiles = self.radarr_node.get_quality_profiles()
-                    callbackdata = f"selectdownload:{data[1]}:{data[2]}"
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+            else:
+                profiles = self.radarr_node.get_quality_profiles()
+                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-                self.outputMediaInfo(update, context, data[1], media)
+            self.outputMediaInfo(update, context, data[1], media)
 
-                keyboard = []
-                row = []
-                num_columns = 2
+            keyboard = []
+            row = []
+            num_columns = 2
 
-                if profiles:
+            if profiles:
 
-                    profiles.sort(key=self.sortOnNameDict)
+                profiles.sort(key=self.sortOnNameDict)
 
-                    for count, p in enumerate(profiles):
-                        row.append(InlineKeyboardButton(
-                            f"{p['name']}",
-                            callback_data=f"{callbackdata}:{p['id']}")
-                        )
-
-                        if (count+1) % num_columns == 0 or \
-                                count == len(profiles)-1:
-                            keyboard.append(row)
-                            row = []
-
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            f"No profiles were found, Please set them up in"
-                            f"Sonarr and Radarr, "
-                            f"{update.effective_user.first_name}."
-                        )
+                for count, p in enumerate(profiles):
+                    row.append(InlineKeyboardButton(
+                        f"{p['name']}",
+                        callback_data=f"{callbackdata}:{p['id']}")
                     )
 
-                    return
+                    if (count+1) % num_columns == 0 or \
+                            count == len(profiles)-1:
+                        keyboard.append(row)
+                        row = []
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                query.message.reply_text(
-                    "Please select media quality:",
-                    reply_markup=reply_markup
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"No profiles were found, Please set them up in"
+                        f"Sonarr and Radarr, "
+                        f"{update.effective_user.first_name}."
+                    )
                 )
 
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
+                return
 
-                self.notifyException(
-                    update, context, errorResponse,
-                    f"showDownloadSummary - {data[1]}")
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            query.message.reply_text(
+                "Please select media quality:",
+                reply_markup=reply_markup
+            )
 
     def selectDownload(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1584,20 +1441,12 @@ class Pixlovarr():
                         callback_data=f"{callbackdata}:New")]
                 ]
             else:
-                try:
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
-                    callbackdata = (
-                        f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
-                    keyboard = [[InlineKeyboardButton(
-                        f"Download '{media.title}({media.year})'",
-                        callback_data=callbackdata)]]
-
-                except exceptions.CliServerError as e:
-                    errorResponse = json.loads(e.response)
-
-                    self.notifyException(
-                        update, context, errorResponse,
-                        f"selectDownload - {data[1]}")
+                media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                callbackdata = (
+                    f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
+                keyboard = [[InlineKeyboardButton(
+                    f"Download '{media.title}({media.year})'",
+                    callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1624,18 +1473,10 @@ class Pixlovarr():
 
             searchQuery = ' '.join(context.args)
 
-            try:
-                if typeOfMedia == "serie":
-                    media = self.sonarr_node.lookup_serie(term=searchQuery)
-                else:
-                    media = self.radarr_node.lookup_movie(term=searchQuery)
-
-            except exceptions.CliServerError as e:
-                errorResponse = json.loads(e.response)
-
-                self.notifyException(
-                    update, context, errorResponse,
-                    f"findMedia - {typeOfMedia}")
+            if typeOfMedia == "serie":
+                media = self.sonarr_node.lookup_serie(term=searchQuery)
+            else:
+                media = self.radarr_node.lookup_movie(term=searchQuery)
 
             if media:
                 keyboard = []
