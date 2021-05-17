@@ -552,6 +552,8 @@ class Pixlovarr():
                 quote=False
             )
 
+            numOfMedia = 1
+
         else:
             media.sort(key=self.sortOnTitle)
 
@@ -564,6 +566,7 @@ class Pixlovarr():
                         context.args.pop(0)
 
             keyboard = []
+            numOfMedia = 0
             for count, m in enumerate(media):
 
                 if re.search(
@@ -580,6 +583,8 @@ class Pixlovarr():
                             callback_data=callbackdata)]
                         )
 
+                        numOfMedia += 1
+
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -588,14 +593,8 @@ class Pixlovarr():
                     reply_markup=reply_markup,
                     quote=False
                 )
-            else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"There are no results found, "
-                        f"{update.effective_user.first_name}."
-                    )
-                )
+
+        return numOfMedia
 
     def listCalendar(self, update, context, media):
         if type(media) is SonarrSerieItem or \
@@ -1106,15 +1105,34 @@ class Pixlovarr():
 
                 return
 
-            endtext = f"There are no {typeOfMedia}s in the catalog."
-
             if media:
-                self.listMedia(update, context, typeOfMedia, media)
-                endtext = (
-                    f"There are {len(media)} {typeOfMedia}s in the catalog.")
-
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=endtext)
+                numofMedia = self.listMedia(
+                    update, context, typeOfMedia, media)
+                if numofMedia > 0:
+                    if numofMedia != len(media):
+                        endtext = (
+                            f"Listed {numofMedia} of {len(media)} "
+                            f"{typeOfMedia}s from the catalog."
+                        )
+                    else:
+                        endtext = (
+                            f"Listed {numofMedia} {typeOfMedia}s "
+                            f"from the catalog."
+                        )
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=endtext)
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=(
+                            f"There are no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
+                    )
+            else:
+                endtext = f"There are no {typeOfMedia}s in the catalog."
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=endtext)
 
     def downloadMovies(self, update, context):
         if not self.isRejected(update) and \
