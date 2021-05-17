@@ -256,7 +256,7 @@ class Pixlovarr():
                     f"{queueitem['series']['title']} "
                     f"S{queueitem['episode']['seasonNumber']}"
                     f"E{queueitem['episode']['episodeNumber']} - "
-                    f"'{queueitem['episode']['title']}'"
+                    f"{queueitem['episode']['title']}"
                 )
             else:
                 text = (
@@ -276,7 +276,7 @@ class Pixlovarr():
             if count < 3:
                 callbackdata = (
                     f"deletequeueitem:{typeOfMedia}:"
-                    f"{queueitem['id']}:{title}"
+                    f"{queueitem['id']}"
                 )
 
                 keyboard = [[InlineKeyboardButton(
@@ -286,7 +286,7 @@ class Pixlovarr():
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 update.message.reply_text(
-                    f"{text}",
+                    text,
                     reply_markup=reply_markup
                 )
 
@@ -674,7 +674,35 @@ class Pixlovarr():
             f"{typeOfMedia} '{title}({year})' "
             f"to the server.")
 
-    def notifyDeleteQueueItem(self, update, context, typeOfMedia, title):
+    def notifyDeleteQueueItem(
+            self, update, context, typeOfMedia, queueItemID):
+
+        if typeOfMedia == "episode":
+            queue = self.sonarr_node.get_queue()
+        else:
+            queue = self.sonarr_node.get_queue()
+
+        for queueitem in queue:
+
+            print(f"{queueItemID} -- {queueitem['id']}")
+
+            if int(queueItemID) == queueitem['id']:
+
+                if typeOfMedia == "episode":
+                    title = (
+                        f"{queueitem['series']['title']} "
+                        f"S{queueitem['episode']['seasonNumber']}"
+                        f"E{queueitem['episode']['episodeNumber']} - "
+                        f"{queueitem['episode']['title']}"
+                    )
+                else:
+                    title = (
+                        f"{queueitem['movie']['title']}"
+                        f"({queueitem['movie']['year']})"
+                    )
+
+                break
+
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"The {typeOfMedia} {title} was deleted from the queue.")
@@ -1363,7 +1391,7 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:queueID, 3:mediaTitle
+            # 0:marker, 1:type of media, 2:queueID
 
             try:
                 if data[1] == "episode":
@@ -1371,7 +1399,7 @@ class Pixlovarr():
                 else:
                     self.radarr_node.delete_queue(int(data[2]))
 
-                self.notifyDeleteQueueItem(update, context, data[1], data[3])
+                self.notifyDeleteQueueItem(update, context, data[1], data[2])
 
             except exceptions.CliServerError as e:
                 errorResponse = json.loads(e.response)
