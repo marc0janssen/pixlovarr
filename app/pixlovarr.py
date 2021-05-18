@@ -831,7 +831,7 @@ class Pixlovarr():
             )
 
 # Member Commands
-    def geCalendar(self, update, context):
+    def getCalendar(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
@@ -847,7 +847,7 @@ class Pixlovarr():
                     days=int(self.calendar_period_days_series))
                 media = self.sonarr_node.get_calendar(
                     start_date=startDate, end_date=endDate)
-                typeOfMedia = "serie"
+                typeOfMedia = "episode"
 
             elif command[0] == "/mc":
                 endDate = startDate + timedelta(
@@ -1774,10 +1774,10 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
-        self.showMovieCalendar_handler = CommandHandler('mc', self.geCalendar)
+        self.showMovieCalendar_handler = CommandHandler('mc', self.getCalendar)
         self.dispatcher.add_handler(self.showMovieCalendar_handler)
 
-        self.showSerieCalendar_handler = CommandHandler('sc', self.geCalendar)
+        self.showSerieCalendar_handler = CommandHandler('sc', self.getCalendar)
         self.dispatcher.add_handler(self.showSerieCalendar_handler)
 
 # Keyboard Handlers
