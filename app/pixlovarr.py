@@ -597,6 +597,8 @@ class Pixlovarr():
         return numOfMedia
 
     def listCalendar(self, update, context, media):
+
+        numOfCalItems = 0
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
             text = self.showCalenderMediaInfo(update, context, media)
@@ -606,10 +608,11 @@ class Pixlovarr():
                 text=text
             )
 
+            numOfCalItems = 1
+
         else:
 
             allMedia = ""
-            itemInList = False
             for count, m in enumerate(media):
 
                 try:
@@ -621,6 +624,8 @@ class Pixlovarr():
                     ' '.join(context.args).lower(), searchString.lower()) \
                         or not context.args:
 
+                    numOfCalItems += 1
+
                     allMedia += (
                         self.showCalenderMediaInfo(update, context, m))
 
@@ -630,20 +635,11 @@ class Pixlovarr():
 
                         allMedia = ""
 
-                    itemInList = True
-
             if allMedia != "":
                 context.bot.send_message(
                     chat_id=update.effective_chat.id, text=allMedia)
 
-            if not itemInList:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"There are no results found, "
-                        f"{update.effective_user.first_name}."
-                    )
-                )
+        return numOfCalItems
 
     def logCommand(self, update):
         logging.info(
@@ -870,13 +866,37 @@ class Pixlovarr():
             endtext = f"There are no {typeOfMedia}s in the calendar."
 
             if media:
-                self.listCalendar(update, context, media)
+                numOfCalItems = self.listCalendar(update, context, media)
                 endtext = (
                     f"There are {len(media)} {typeOfMedia}s "
                     f"in the calendar.")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=endtext)
+                if numOfCalItems > 0:
+                    if numOfCalItems != len(media):
+                        endtext = (
+                            f"Listed {numOfCalItems} of {len(media)} "
+                            f"scheduled {typeOfMedia}s from the calendar."
+                        )
+                    else:
+                        endtext = (
+                            f"Listed {numOfCalItems} scheduled {typeOfMedia}s "
+                            f"from the calendar."
+                        )
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=endtext)
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=(
+                            f"There are no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
+                    )
+            else:
+                endtext = (
+                    f"There are no scheduled {typeOfMedia}s in the calendar.")
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=endtext)
 
     def futureQueue(self, update, context):
         if not self.isRejected(update) and \
