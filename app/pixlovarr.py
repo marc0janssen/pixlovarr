@@ -888,7 +888,7 @@ class Pixlovarr():
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
                         text=(
-                            f"There are no results found, "
+                            f"There were no results found, "
                             f"{update.effective_user.first_name}."
                         )
                     )
@@ -1145,7 +1145,7 @@ class Pixlovarr():
                     context.bot.send_message(
                         chat_id=update.effective_chat.id,
                         text=(
-                            f"There are no results found, "
+                            f"There were no results found, "
                             f"{update.effective_user.first_name}."
                         )
                     )
