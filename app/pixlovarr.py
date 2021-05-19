@@ -404,15 +404,21 @@ class Pixlovarr():
                     media.inCinemas, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
             txtCinema = f"In cinemas: {dateCinema}\n\n"
             txtMediaInfo += txtCinema
+        except ValueError:
+            pass
         except AttributeError:
-            try:
-                dateFirstAired = datetime.strftime(
-                    datetime.strptime(
-                        media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
-                txtFirstAired = f"First aired: {dateFirstAired}\n\n"
-                txtMediaInfo += txtFirstAired
-            except AttributeError:
-                pass
+            pass
+
+        try:
+            dateFirstAired = datetime.strftime(
+                datetime.strptime(
+                    media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+            txtFirstAired = f"First aired: {dateFirstAired}\n\n"
+            txtMediaInfo += txtFirstAired
+        except ValueError:
+            pass
+        except AttributeError:
+            pass
 
         try:
             if media.episodeCount > 0:
@@ -974,32 +980,32 @@ class Pixlovarr():
                 chat_id=update.effective_chat.id,
                 text="Please be patient...")
 
-            if command[0] == "/ts":
+            if re.match("^/[Tt][Ss]$", command[0]):
                 media = self.imdb.get_top250_tv()
                 typeOfMedia = "serie"
                 adjective = ""
 
-            elif command[0] == "/ps":
+            elif re.match("^/[Pp][Ss]$", command[0]):
                 media = self.imdb.get_popular100_tv()
                 typeOfMedia = "serie"
                 adjective = "popular "
 
-            elif command[0] == "/tm":
+            elif re.match("^/[Tt][Mm]$", command[0]):
                 media = self.imdb.get_top250_movies()
                 typeOfMedia = "movie"
                 adjective = ""
 
-            elif command[0] == "/pm":
+            elif re.match("^/[Pp][Mm]$", command[0]):
                 media = self.imdb.get_popular100_movies()
                 typeOfMedia = "movie"
                 adjective = "popular "
 
-            elif command[0] == "/ti":
+            elif re.match("^/[Tt][Ii]$", command[0]):
                 media = self.imdb.get_top250_indian_movies()
                 typeOfMedia = "movie"
                 adjective = "Indian "
 
-            elif command[0] == "/wm":
+            elif re.match("^/[Ww][Mm]$", command[0]):
                 media = self.imdb.get_bottom100_movies()
                 typeOfMedia = "movie"
                 adjective = "worst "
@@ -1110,11 +1116,11 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            if command[0] == "/ls":
+            if re.match("^/[Ll][Ss]$", command[0]):
                 media = self.sonarr_node.get_serie()
                 typeOfMedia = "serie"
 
-            elif command[0] == "/lm":
+            elif re.match("^/[Ll][Mm]$", command[0]):
                 media = self.radarr_node.get_movie()
                 typeOfMedia = "movie"
 
