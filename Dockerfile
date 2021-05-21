@@ -19,6 +19,7 @@ RUN apk add --update \
 	linux-headers \
 	tzdata \
 	&& pip3 install --no-cache \
+	feedparser \
 	python-telegram-bot \
 	pycliarr \
 	requests \
