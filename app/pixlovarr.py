@@ -880,8 +880,10 @@ class Pixlovarr():
 
                 for newsitem in NewsFeed.entries[:20]:
 
+                    titleClean = newsitem.title.replace(":"," ")
+
                     callbackdata = (
-                        f"showMetaInfo:{typeOfMedia}:{newsitem.title}"[:64]
+                        f"showMetaInfo:{typeOfMedia}:{titleClean}"[:64]
                     )
 
                     keyboard.append([InlineKeyboardButton(
