@@ -881,6 +881,21 @@ class Pixlovarr():
                 for newsitem in NewsFeed.entries[:20]:
 
                     titleClean = newsitem.title.replace(":", " ")
+                    # replace : for ' '
+
+                    titleClean = re.sub(
+                        '\\([0-9]+\\)',
+                        '',
+                        titleClean
+                    )  # Remove (2019) for ''
+
+                    titleClean = re.sub(
+                        '\\([a-zA-Z\\s\\+]+\\)',
+                        '',
+                        titleClean
+                    )  # Remove (Netflix) for ''
+
+                    print(titleClean)
 
                     callbackdata = (
                         f"showMetaInfo:{typeOfMedia}:{titleClean}"[:64]
