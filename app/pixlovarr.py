@@ -1688,13 +1688,15 @@ class Pixlovarr():
                         break
 
                 if query is not None:
-                    update = query
+                    message = query.message
+                else:
+                    message = update.message
 
                 if keyboardPresentMedia:
                     reply_markup_PresentMedia = InlineKeyboardMarkup(
                         keyboardPresentMedia)
 
-                    update.message.reply_text(
+                    message.reply_text(
                         f"We found these {typeOfMedia}s in your catalog:",
                         reply_markup=reply_markup_PresentMedia,
                         quote=False
@@ -1702,7 +1704,7 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
+                message.reply_text(
                     "We found the following media for you:",
                     reply_markup=reply_markup,
                     quote=False
