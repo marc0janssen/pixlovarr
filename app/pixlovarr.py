@@ -689,7 +689,7 @@ class Pixlovarr():
         if typeOfMedia == "episode":
             queue = self.sonarr_node.get_queue()
         else:
-            queue = self.sonarr_node.get_queue()
+            queue = self.radarr_node.get_queue()
 
         for queueitem in queue:
 
