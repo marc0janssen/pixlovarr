@@ -20,6 +20,8 @@ import sys
 import re
 import imdb
 import random
+import feedparser
+import ssl
 from time import time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
@@ -51,6 +53,11 @@ class Pixlovarr():
         self.rankingLimitMax = 100
         self.listLength = 25
         self.youTubeURL = "https://www.youtube.com/watch?v="
+
+        self.newsFeedSeries = "feed:https://www.metacritic.com/rss/tv"
+        self.newsFeedMovies = "feed:https://www.metacritic.com/rss/movies"
+
+        ssl._create_default_https_context = ssl._create_unverified_context
 
         self.imdb = imdb.IMDb()
 
@@ -240,7 +247,7 @@ class Pixlovarr():
                 )
             else:
                 text = (
-                    f"{queueitem['movie']['title']}"
+                    f"{queueitem['movie']['title']} "
                     f"({queueitem['movie']['year']})\n"
                     f"Status: {queueitem['status']}\n"
                     f"Protocol: {queueitem['protocol']}\n"
@@ -249,7 +256,7 @@ class Pixlovarr():
                 )
 
                 title = (
-                    f"{queueitem['movie']['title']}"
+                    f"{queueitem['movie']['title']} "
                     f"({queueitem['movie']['year']})"
                 )
 
@@ -384,7 +391,7 @@ class Pixlovarr():
         else:
             image = self.urlNoImage
 
-        caption = f"{media.title}({media.year})"
+        caption = f"{media.title} ({media.year})"
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=image, caption=caption
@@ -399,22 +406,24 @@ class Pixlovarr():
         txtMediaInfo += textoverview
 
         try:
-            dateCinema = datetime.strftime(
-                datetime.strptime(
-                    media.inCinemas, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
-            txtCinema = f"In cinemas: {dateCinema}\n\n"
-            txtMediaInfo += txtCinema
+            if media.inCinemas:
+                dateCinema = datetime.strftime(
+                    datetime.strptime(
+                        media.inCinemas, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+                txtCinema = f"In cinemas: {dateCinema}\n\n"
+                txtMediaInfo += txtCinema
         except ValueError:
             pass
         except AttributeError:
             pass
 
         try:
-            dateFirstAired = datetime.strftime(
-                datetime.strptime(
-                    media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
-            txtFirstAired = f"First aired: {dateFirstAired}\n\n"
-            txtMediaInfo += txtFirstAired
+            if media.firstAired:
+                dateFirstAired = datetime.strftime(
+                    datetime.strptime(
+                        media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+                txtFirstAired = f"First aired: {dateFirstAired}\n\n"
+                txtMediaInfo += txtFirstAired
         except ValueError:
             pass
         except AttributeError:
@@ -508,13 +517,13 @@ class Pixlovarr():
     def showCalenderMediaInfo(self, update, context, media):
         try:
             title = (
-                f"{media['series']['title']}({media['series']['year']})\n"
+                f"{media['series']['title']} ({media['series']['year']})\n"
                 f"Episode: S{media['seasonNumber']}E{media['episodeNumber']}"
                 f" - {media['title']}"
             )
         except KeyError:
             try:
-                title = f"{media['title']}({media['year']})"
+                title = f"{media['title']} ({media['year']})"
             except KeyError:
                 title = "-"
 
@@ -546,7 +555,7 @@ class Pixlovarr():
             callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
 
             keyboard.append([InlineKeyboardButton(
-                f"{media.title}({media.year})",
+                f"{media.title} ({media.year})",
                 callback_data=callbackdata)]
             )
 
@@ -585,7 +594,7 @@ class Pixlovarr():
                         callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
 
                         keyboard.append([InlineKeyboardButton(
-                            f"{m.title}({m.year})",
+                            f"{m.title} ({m.year})",
                             callback_data=callbackdata)]
                         )
 
@@ -663,7 +672,7 @@ class Pixlovarr():
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"The {typeOfMedia} '{title}({year})' "
+            text=f"The {typeOfMedia} '{title} ({year})' "
             f"was added to the server, "
             f"{update.effective_user.first_name}. "
             f"Thank you and till next time.")
@@ -671,7 +680,7 @@ class Pixlovarr():
         logging.info(
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} has added the "
-            f"{typeOfMedia} '{title}({year})' "
+            f"{typeOfMedia} '{title} ({year})' "
             f"to the server.")
 
     def notifyDeleteQueueItem(
@@ -695,7 +704,7 @@ class Pixlovarr():
                     )
                 else:
                     title = (
-                        f"{queueitem['movie']['title']}"
+                        f"{queueitem['movie']['title']} "
                         f"({queueitem['movie']['year']})"
                     )
 
@@ -807,6 +816,8 @@ class Pixlovarr():
                     "/pm T<#> - Show Top popular movies\n"
                     "/ti T<#> - Show Top Indian movies\n"
                     "/wm T<#> - Show Top worst movies\n"
+                    "/rs - Show recently reviewed series\n"
+                    "/rm - Show recently reviewed movies\n"
                     "/fq - Show announced items in catalog\n"
                     "/ds T<#> <keyword> - Download series\n"
                     "/dm T<#> <keyword> - Download movie\n"
@@ -837,6 +848,60 @@ class Pixlovarr():
             )
 
 # Member Commands
+    def showMeta(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+
+            self.logCommand(update)
+
+            command = update.effective_message.text.split(" ")
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
+
+            if re.match("^/[Rr][Ss]$", command[0]):
+                typeOfMedia = "serie"
+                NewsFeed = feedparser.parse(self.newsFeedSeries)
+
+            elif re.match("^/[Rr][Mm]$", command[0]):
+                typeOfMedia = "movie"
+                NewsFeed = feedparser.parse(self.newsFeedMovies)
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
+
+                return
+
+            if NewsFeed:
+
+                keyboard = []
+
+                for newsitem in NewsFeed.entries[:20]:
+
+                    callbackdata = (
+                        f"showMetaInfo:{typeOfMedia}:{newsitem.title}"[:64]
+                    )
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"{newsitem.title}",
+                        callback_data=callbackdata)]
+                    )
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                update.message.reply_text(
+                    f"Top 20 recently reviewed {typeOfMedia}s:",
+                    reply_markup=reply_markup,
+                    quote=False
+                )
+            else:
+                endtext = (
+                    f"There are no {typeOfMedia}s in the newsfeed.")
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=endtext)
+
     def getCalendar(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
@@ -848,14 +913,14 @@ class Pixlovarr():
 
             startDate = date.today()
 
-            if command[0] == "/sc":
+            if re.match("^/[Ss][Cc]$", command[0]):
                 endDate = startDate + timedelta(
                     days=int(self.calendar_period_days_series))
                 media = self.sonarr_node.get_calendar(
                     start_date=startDate, end_date=endDate)
                 typeOfMedia = "episode"
 
-            elif command[0] == "/mc":
+            elif re.match("^/[Mm][Cc]$", command[0]):
                 endDate = startDate + timedelta(
                     days=int(self.calendar_period_days_movies))
                 media = self.radarr_node.get_calendar(
@@ -1058,7 +1123,7 @@ class Pixlovarr():
                 callbackdata = f"showdlsummary:{typeOfMedia}:{foundMediaID}"
 
                 keyboard.append([InlineKeyboardButton(
-                    f"{foundMedia.title}({foundMedia.year})",
+                    f"{foundMedia.title} ({foundMedia.year})",
                     callback_data=callbackdata)]
                 )
 
@@ -1105,7 +1170,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            self.findMedia(update, context, "serie")
+            self.findMedia(update, context, None, "serie", context.args)
 
     def list(self, update, context):
         if not self.isRejected(update) and \
@@ -1167,7 +1232,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            self.findMedia(update, context, "movie")
+            self.findMedia(update, context, None, "movie", context.args)
 
 # Admin Commands
 
@@ -1313,6 +1378,16 @@ class Pixlovarr():
                 f"I didn't understand that command.")
 
 # HandlerCallback Commands
+    def showMetaInfo(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:title
+
+            args = []
+            args.append(data[2])
+            self.findMedia(update, context, query, data[1], args)
 
     def showMediaInfo(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1337,7 +1412,7 @@ class Pixlovarr():
                 callbackdata += ":False"
 
             keyboard = [[InlineKeyboardButton(
-                f"Delete '{media.title}({media.year})'",
+                f"Delete '{media.title} ({media.year})'",
                 callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1512,7 +1587,7 @@ class Pixlovarr():
                 callbackdata = (
                     f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
                 keyboard = [[InlineKeyboardButton(
-                    f"Download '{media.title}({media.year})'",
+                    f"Download '{media.title} ({media.year})'",
                     callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1523,23 +1598,23 @@ class Pixlovarr():
                 quote=False
             )
 
-    def findMedia(self, update, context, typeOfMedia):
+    def findMedia(self, update, context, query, typeOfMedia, args):
 
-        if ' '.join(context.args):
+        if ' '.join(args):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Searching for {typeOfMedia}s..."
             )
 
-            args = ""
-            if len(context.args) > 0:
-                args = context.args[0]
-                if re.match("^[Tt]\\d+$", args):
+            ranking = ""
+            if len(args) > 0:
+                ranking = args[0]
+                if re.match("^[Tt]\\d+$", ranking):
                     context.args.pop(0)
 
-            topAmount = self.getTopAmount(update, context, args)
+            topAmount = self.getTopAmount(update, context, ranking)
 
-            searchQuery = ' '.join(context.args)
+            searchQuery = ' '.join(args)
 
             if typeOfMedia == "serie":
                 media = self.sonarr_node.lookup_serie(term=searchQuery)
@@ -1564,7 +1639,7 @@ class Pixlovarr():
                         callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
 
                         keyboardPresentMedia.append([InlineKeyboardButton(
-                            f"{m.title}({m.year})",
+                            f"{m.title} ({m.year})",
                             callback_data=callbackdata)]
                         )
 
@@ -1590,12 +1665,15 @@ class Pixlovarr():
                             continue  # movie doesn't have ID
 
                     keyboard.append([InlineKeyboardButton(
-                        f"{m.title}({m.year})",
+                        f"{m.title} ({m.year})",
                         callback_data=callbackdata)]
                     )
 
                     if media.index(m) == maxResults:
                         break
+
+                if query is not None:
+                    update = query
 
                 if keyboardPresentMedia:
                     reply_markup_PresentMedia = InlineKeyboardMarkup(
@@ -1786,6 +1864,12 @@ class Pixlovarr():
         self.showSerieCalendar_handler = CommandHandler('sc', self.getCalendar)
         self.dispatcher.add_handler(self.showSerieCalendar_handler)
 
+        self.meta_handler = CommandHandler('rm', self.showMeta)
+        self.dispatcher.add_handler(self.meta_handler)
+
+        self.meta_handler = CommandHandler('rs', self.showMeta)
+        self.dispatcher.add_handler(self.meta_handler)
+
 # Keyboard Handlers
 
         kbgrant_handler = CallbackQueryHandler(
@@ -1819,6 +1903,10 @@ class Pixlovarr():
         kbshowMediaInfo_handler = CallbackQueryHandler(
             self.showMediaInfo, pattern='^showMediaInfo:')
         self.dispatcher.add_handler(kbshowMediaInfo_handler)
+
+        kbshowMetaInfo_handler = CallbackQueryHandler(
+            self.showMetaInfo, pattern='^showMetaInfo:')
+        self.dispatcher.add_handler(kbshowMetaInfo_handler)
 
 # Admin Handlders
 

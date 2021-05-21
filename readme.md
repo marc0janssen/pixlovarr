@@ -26,6 +26,8 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
         /pm T<#> - Show Top popular movies
         /ti T<#> - Show Top Indian movies
         /wm T<#> - Show Top worst movies
+        /rs - Show recently reviewed series
+        /rm - Show recently reviewed movies       
         /fq - Show announced items in catalog
         /ds T<#> <keyword> - Download serie
         /dm T<#> <keyword> - Download movie
