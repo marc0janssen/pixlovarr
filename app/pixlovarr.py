@@ -880,7 +880,7 @@ class Pixlovarr():
 
                 for newsitem in NewsFeed.entries[:20]:
 
-                    titleClean = newsitem.title.replace(":"," ")
+                    titleClean = newsitem.title.replace(":", " ")
 
                     callbackdata = (
                         f"showMetaInfo:{typeOfMedia}:{titleClean}"[:64]
