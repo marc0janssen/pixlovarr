@@ -895,8 +895,6 @@ class Pixlovarr():
                         titleClean
                     )  # Remove (Netflix) for ''
 
-                    print(titleClean)
-
                     callbackdata = (
                         f"showMetaInfo:{typeOfMedia}:{titleClean}"[:64]
                     )
