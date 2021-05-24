@@ -182,6 +182,22 @@ class Pixlovarr():
     def clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)
 
+    def getDownloadPath(self, typeOfMedia, pathID, media):
+
+        if typeOfMedia == "serie":
+            root_paths = self.sonarr_node.get_root_folder()
+            subPath = str.title(media.sortTitle)
+        else:
+            root_paths = self.radarr_node.get_root_folder()
+            subPath = str.title(f"{media.sortTitle} ({media.year})")
+
+        for path in root_paths:
+
+            if path["id"] == int(pathID):
+                root_path = path
+
+        return f"{root_path['path']}{subPath}"
+
     def getGenres(self, listOfGenres):
         genresText = ""
         try:
@@ -1393,6 +1409,55 @@ class Pixlovarr():
                 f"I didn't understand that command.")
 
 # HandlerCallback Commands
+    def selectRootFolder(self, update, context):
+        if not self.isRejected(update) and self.isGranted(update):
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+
+            if data[1] == "serie":
+                root_paths = self.sonarr_node.get_root_folder()
+            else:
+                root_paths = self.radarr_node.get_root_folder()
+
+            if root_paths:
+
+                keyboard = []
+
+                for root_path in root_paths:
+
+                    callbackdata = (
+                        f"selectdownload:{data[1]}:{data[2]}:"
+                        f"{data[3]}:{root_path['id']}"
+                    )
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"{root_path['path']} "
+                        f"({root_path['freeSpace'] // (1024**3)} GB Free)",
+                        callback_data=callbackdata)]
+                    )
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                query.message.reply_text(
+                    "Please select download location:",
+                    reply_markup=reply_markup,
+                    quote=False
+                )
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=(
+                        f"No paths were found, Please set them up in"
+                        f"Sonarr and Radarr, "
+                        f"{update.effective_user.first_name}."
+                    )
+                )
+
+                return
+
     def showMetaInfo(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
             query = update.callback_query
@@ -1478,7 +1543,7 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
-            # 3:qualityid, 4: Download which seasons?
+            # 3:qualityid, 4: rootfolder, 5: Download which seasons?
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1487,20 +1552,23 @@ class Pixlovarr():
             if data[1] == "serie":
                 media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
-                if data[4] == "First":
+                if data[5] == "First":
                     monitored_seasons = [1]
 
-                elif data[4] == "All":
+                elif data[5] == "All":
                     monitored_seasons = [
                         i for i in range(1, media.seasonCount+1)]
 
-                elif data[4] == "New":
+                elif data[5] == "New":
                     monitored_seasons = []
+
+                downloadPath = self.getDownloadPath(data[1], data[4], media)
 
                 self.sonarr_node.add_serie(
                     tvdb_id=data[2], quality=int(data[3]),
                     monitored_seasons=monitored_seasons,
-                    season_folder=self.sonarr_season_folder
+                    season_folder=self.sonarr_season_folder,
+                    path=downloadPath
                 )
 
                 self.notifyDownload(
@@ -1509,8 +1577,10 @@ class Pixlovarr():
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
+                downloadPath = self.getDownloadPath(data[1], data[4], media)
+
                 self.radarr_node.add_movie(
-                    imdb_id=data[2], quality=int(data[3])
+                    imdb_id=data[2], quality=int(data[3]), path=downloadPath
                 )
 
                 self.notifyDownload(
@@ -1526,12 +1596,12 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 profiles = self.sonarr_node.get_quality_profiles()
-                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
+                callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
                 media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
             else:
                 profiles = self.radarr_node.get_quality_profiles()
-                callbackdata = f"selectdownload:{data[1]}:{data[2]}"
+                callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
             self.outputMediaInfo(update, context, data[1], media)
@@ -1554,8 +1624,6 @@ class Pixlovarr():
                             count == len(profiles)-1:
                         keyboard.append(row)
                         row = []
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
 
             else:
                 context.bot.send_message(
@@ -1582,10 +1650,12 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality, 4: RootFolder
+
+            callbackdata = (
+                f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:{data[4]}")
 
             if data[1] == "serie":
-                callbackdata = f"downloadmedia:{data[1]}:{data[2]}:{data[3]}"
                 keyboard = [
                     [InlineKeyboardButton(
                         "Download only season 1",
@@ -1599,16 +1669,14 @@ class Pixlovarr():
                 ]
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
-                callbackdata = (
-                    f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:False")
                 keyboard = [[InlineKeyboardButton(
                     f"Download '{media.title} ({media.year})'",
-                    callback_data=callbackdata)]]
+                    callback_data=f"{callbackdata}:False")]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
             query.message.reply_text(
-                "Actions:",
+                "Please confirm:",
                 reply_markup=reply_markup,
                 quote=False
             )
@@ -1924,6 +1992,10 @@ class Pixlovarr():
         kbshowMetaInfo_handler = CallbackQueryHandler(
             self.showMetaInfo, pattern='^showMetaInfo:')
         self.dispatcher.add_handler(kbshowMetaInfo_handler)
+
+        kbselectRootFolder_handler = CallbackQueryHandler(
+            self.selectRootFolder, pattern='^selectRootFolder:')
+        self.dispatcher.add_handler(kbselectRootFolder_handler)
 
 # Admin Handlders
 
