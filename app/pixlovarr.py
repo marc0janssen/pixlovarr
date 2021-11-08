@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 22021-05-13 16:09:31
+# update: 2021-05-13 16:09:31
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -69,6 +69,9 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
+                self.USERS_PERMANENT_DELETE_MEDIA = False if (
+                    self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
+                    "OFF") else True
 
                 self.default_limit_ranking = self.clamp(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
@@ -1486,7 +1489,8 @@ class Pixlovarr():
 
             callbackdata = (
                 f"deletemedia:{data[1]}:{data[2]}")
-            if self.isAdmin(update, context, False):
+            if self.isAdmin(update, context, False) or \
+                    self.USERS_PERMANENT_DELETE_MEDIA:
                 callbackdata += ":True"
             else:
                 callbackdata += ":False"
