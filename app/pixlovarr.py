@@ -317,7 +317,7 @@ class Pixlovarr():
         return numOfItems
 
     def sortOnTitle(self, e):
-        return e.title
+        return e.sortTitle
 
     def sortOnNameDict(self, e):
         return e['name']
