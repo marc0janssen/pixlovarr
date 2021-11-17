@@ -849,6 +849,7 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/ch - Show command history\n"
+                    "/lt - list tags for Radarr"
                 )
 
             context.bot.send_message(
@@ -1269,6 +1270,21 @@ class Pixlovarr():
             self.findMedia(update, context, None, "movie", context.args)
 
 # Admin Commands
+
+    def listtags(self, update, context):
+        if self.isAdmin(update, context, True):
+
+            self.logCommand(update)
+
+            tagstxt = "Tags for Radarr\n\n"
+            for member in self.members:
+                person = self.members[member]
+                tagstxt = tagstxt + f"{person['fname']} - person['id']\n"
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=tagstxt
+            )
 
     def showCmdHistory(self, update, context):
         if self.isAdmin(update, context, True):
@@ -2013,6 +2029,9 @@ class Pixlovarr():
 
         self.cmdhistory_handler = CommandHandler('ch', self.showCmdHistory)
         self.dispatcher.add_handler(self.cmdhistory_handler)
+
+        self.listtags_handler = CommandHandler('lt', self.listtags)
+        self.dispatcher.add_handler(self.listtags_handler)
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)
