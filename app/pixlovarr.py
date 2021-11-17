@@ -1279,7 +1279,9 @@ class Pixlovarr():
             tagstxt = "Tags for Radarr\n\n"
             for member in self.members:
                 person = self.members[member]
-                tagstxt = tagstxt + f"{person['fname']} - person['id']\n"
+                strippedfname = re.sub(
+                    r'[^A-Za-z0-9]+', '', person['fname'].lower())
+                tagstxt = tagstxt + f"{strippedfname}_{person['id']}\n"
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
