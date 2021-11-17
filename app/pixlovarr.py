@@ -1600,11 +1600,9 @@ class Pixlovarr():
 
                 downloadPath = self.getDownloadPath(data[1], data[4], media)
 
-                res = self.radarr_node.add_movie(
+                self.radarr_node.add_movie(
                     imdb_id=data[2], quality=int(data[3]), path=downloadPath
                 )
-
-                print(res)
 
                 self.notifyDownload(
                     update, context, data[1], media.title, media.year)
