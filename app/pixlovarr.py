@@ -22,6 +22,7 @@ import imdb
 import random
 import feedparser
 import ssl
+import requests
 from time import time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
@@ -739,6 +740,34 @@ class Pixlovarr():
             f"{typeOfMedia} '{title}' "
             f"from the queue.")
 
+    def get_data(self, url):
+        response = requests.get(url)
+        return response.json()
+
+    # Get All Tags
+    def getAllTags(self):
+        return (
+            self.get_data(
+                f"{self.radarr_url}/api/tag?apikey={self.radarr_token}"
+            )
+        )
+
+    def addTags(self, update, context):
+
+        # make striped username with only az09
+        strippedfirstname = re.sub(
+            r'[^A-Za-z0-9]+', '', update.effective_user.first_name.lower())
+        tagName = f"{strippedfirstname}_{update.effective_user.id}"
+
+        # Put all tags in a dictonairy with pair label <=> ID
+        tagnames = {}
+        for tag in self.getAllTags():
+            # Add tag to lookup by it's name
+            tagnames[tag['label']] = tag['id']
+
+        # Return the ID of the usertag if found on the serevr
+        return tagnames.get(tagName)
+
 # Default Commands
 
     def start(self, update, context):
@@ -1281,7 +1310,8 @@ class Pixlovarr():
                 person = self.members[member]
                 strippedfname = re.sub(
                     r'[^A-Za-z0-9]+', '', person['fname'].lower())
-                tagstxt = tagstxt + f"{strippedfname}_{person['id']}\n"
+                tagName = f"{strippedfname}_{person['id']}"
+                tagstxt = tagstxt + f"{tagName}\n"
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1598,10 +1628,15 @@ class Pixlovarr():
             else:
                 media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
+                # get usertag from server and to movie
+                usertag = self.addTags(update, context)
+                if usertag:
+                    media.tags.append(usertag)
+
                 downloadPath = self.getDownloadPath(data[1], data[4], media)
 
                 self.radarr_node.add_movie(
-                    imdb_id=data[2], quality=int(data[3]), path=downloadPath
+                    movie_info=media, quality=int(data[3]), path=downloadPath
                 )
 
                 self.notifyDownload(
