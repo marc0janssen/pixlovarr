@@ -1276,7 +1276,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            tagstxt = "Tags for Radarr\n\n"
+            tagstxt = "-- Tags for Radarr --\n"
             for member in self.members:
                 person = self.members[member]
                 strippedfname = re.sub(
@@ -1600,9 +1600,11 @@ class Pixlovarr():
 
                 downloadPath = self.getDownloadPath(data[1], data[4], media)
 
-                self.radarr_node.add_movie(
+                res = self.radarr_node.add_movie(
                     imdb_id=data[2], quality=int(data[3]), path=downloadPath
                 )
+
+                print(res)
 
                 self.notifyDownload(
                     update, context, data[1], media.title, media.year)
