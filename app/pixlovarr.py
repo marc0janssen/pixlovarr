@@ -884,7 +884,7 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/ch - Show command history\n"
-                    "/lt - list tags for Radarr"
+                    "/lt - list tags"
                 )
 
             context.bot.send_message(
@@ -1318,7 +1318,7 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            tagstxt = "-- Tags for Radarr --\n"
+            tagstxt = "-- Tags --\n"
             for member in self.members:
                 person = self.members[member]
                 strippedfname = re.sub(
