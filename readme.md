@@ -8,6 +8,14 @@ Pixlovarr is a compagnon written in Python for Radarr and Sonarr in the form of 
 
 The bot will guide you with an inline keyboard, this is for User commands and Admin commands.
 
+## Tags
+
+You can list the custom tags of the Pixlovarr users by the command /lt as an admin.
+These tags can be added to Sonarr or Radarr. If the tags are added to Sonarr or Radarr, anytime
+a user adds a serie of movie, their tag is added to the downloaded media in Sonarr of Radarr.
+
+You can later use the tagged media to your liking.
+
 ## Bot Commands
 
         -- User commands --
@@ -138,4 +146,4 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-11-18 22:13:39
+2021-11-18 23:20:55
