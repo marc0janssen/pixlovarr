@@ -153,10 +153,12 @@ class Pixlovarr():
     def getProfileInfo(self, profileID, mediaOfType):
 
         if mediaOfType == "serie":
-            profiles = self.sonarr_node.get_quality_profiles()
+            if self.sonarr_enabled:
+                profiles = self.sonarr_node.get_quality_profiles()
 
         else:
-            profiles = self.radarr_node.get_quality_profiles()
+            if self.radarr_enabled:
+                profiles = self.radarr_node.get_quality_profiles()
 
         if profiles:
 
@@ -189,11 +191,13 @@ class Pixlovarr():
     def getDownloadPath(self, typeOfMedia, pathID, media):
 
         if typeOfMedia == "serie":
-            root_paths = self.sonarr_node.get_root_folder()
-            subPath = str.title(media.sortTitle)
+            if self.sonarr_enabled:
+                root_paths = self.sonarr_node.get_root_folder()
+                subPath = str.title(media.sortTitle)
         else:
-            root_paths = self.radarr_node.get_root_folder()
-            subPath = str.title(f"{media.sortTitle} ({media.year})")
+            if self.radarr_enabled:
+                root_paths = self.radarr_node.get_root_folder()
+                subPath = str.title(f"{media.sortTitle} ({media.year})")
 
         for path in root_paths:
 
@@ -707,9 +711,11 @@ class Pixlovarr():
             self, update, context, typeOfMedia, queueItemID):
 
         if typeOfMedia == "episode":
-            queue = self.sonarr_node.get_queue()
+            if self.sonarr_enabled:
+                queue = self.sonarr_node.get_queue()
         else:
-            queue = self.radarr_node.get_queue()
+            if self.radarr_enabled:
+                queue = self.radarr_node.get_queue()
 
         for queueitem in queue:
 
@@ -978,18 +984,20 @@ class Pixlovarr():
             startDate = date.today()
 
             if re.match("^/[Ss][Cc]$", command[0]):
-                endDate = startDate + timedelta(
-                    days=int(self.calendar_period_days_series))
-                media = self.sonarr_node.get_calendar(
-                    start_date=startDate, end_date=endDate)
-                typeOfMedia = "episode"
+                if self.sonarr_enabled:
+                    endDate = startDate + timedelta(
+                        days=int(self.calendar_period_days_series))
+                    media = self.sonarr_node.get_calendar(
+                        start_date=startDate, end_date=endDate)
+                    typeOfMedia = "episode"
 
             elif re.match("^/[Mm][Cc]$", command[0]):
-                endDate = startDate + timedelta(
-                    days=int(self.calendar_period_days_movies))
-                media = self.radarr_node.get_calendar(
-                    start_date=startDate, end_date=endDate)
-                typeOfMedia = "movie"
+                if self.radarr_enabled:
+                    endDate = startDate + timedelta(
+                        days=int(self.calendar_period_days_movies))
+                    media = self.radarr_node.get_calendar(
+                        start_date=startDate, end_date=endDate)
+                    typeOfMedia = "movie"
 
             else:
                 context.bot.send_message(
@@ -1040,56 +1048,58 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            series = self.sonarr_node.get_serie()
-            series.sort(key=self.sortOnTitle)
+            if self.sonarr_enabled:
+                series = self.sonarr_node.get_serie()
+                series.sort(key=self.sortOnTitle)
 
-            endtext = "There is no media in the announced queue."
+                endtext = "There is no media in the announced queue."
 
-            fqCount = 0
-            allSeries = "Series\n"
-            if type(series) is SonarrSerieItem:
-                if series.status == "upcoming":
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=f"{series.title} ({str(series.year)})\n"
-                    )
-                    fqCount += 1
-            else:
-                for s in series:
-                    if s.status == "upcoming":
+                fqCount = 0
+                allSeries = "Series\n"
+                if type(series) is SonarrSerieItem:
+                    if series.status == "upcoming":
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id,
+                            text=f"{series.title} ({str(series.year)})\n"
+                        )
                         fqCount += 1
-                        allSeries += (
-                            f"{s.title} ({str(s.year)})\n")
+                else:
+                    for s in series:
+                        if s.status == "upcoming":
+                            fqCount += 1
+                            allSeries += (
+                                f"{s.title} ({str(s.year)})\n")
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allSeries)
-
-                endtext = (
-                    f"There are {fqCount} series in the announced queue.")
-
-            movies = self.radarr_node.get_movie()
-            movies.sort(key=self.sortOnTitle)
-
-            allMovies = "Movies\n"
-            if type(movies) is RadarrMovieItem:
-                if movies.status == "announced":
                     context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=f"{movies.title} ({str(movies.year)})\n"
-                    )
-                    fqCount += 1
-            else:
-                for m in movies:
-                    if m.status == "announced":
+                        chat_id=update.effective_chat.id, text=allSeries)
+
+                    endtext = (
+                        f"There are {fqCount} series in the announced queue.")
+
+            if self.radarr_enabled:
+                movies = self.radarr_node.get_movie()
+                movies.sort(key=self.sortOnTitle)
+
+                allMovies = "Movies\n"
+                if type(movies) is RadarrMovieItem:
+                    if movies.status == "announced":
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id,
+                            text=f"{movies.title} ({str(movies.year)})\n"
+                        )
                         fqCount += 1
-                        allMovies += (
-                            f"{m.title} ({str(m.year)})\n")
+                else:
+                    for m in movies:
+                        if m.status == "announced":
+                            fqCount += 1
+                            allMovies += (
+                                f"{m.title} ({str(m.year)})\n")
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allMovies)
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=allMovies)
 
-                endtext = (
-                    f"There are {fqCount} items in the announced queue.")
+                    endtext = (
+                        f"There are {fqCount} items in the announced queue.")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=endtext)
@@ -1166,23 +1176,25 @@ class Pixlovarr():
                         text=random.choice(phrass))
 
                 if typeOfMedia == "serie":
-                    foundMedia = \
-                        self.sonarr_node.lookup_serie(term=m['title'])
-                    if foundMedia is None:
-                        continue
+                    if self.sonarr_enabled:
+                        foundMedia = \
+                            self.sonarr_node.lookup_serie(term=m['title'])
+                        if foundMedia is None:
+                            continue
 
-                    if type(foundMedia) != SonarrSerieItem:
-                        foundMedia = foundMedia[0]
-                    foundMediaID = foundMedia.tvdbId
+                        if type(foundMedia) != SonarrSerieItem:
+                            foundMedia = foundMedia[0]
+                        foundMediaID = foundMedia.tvdbId
                 else:
-                    foundMedia = \
-                        self.radarr_node.lookup_movie(term=m['title'])
-                    if foundMedia is None:
-                        continue
+                    if self.radarr_enabled:
+                        foundMedia = \
+                            self.radarr_node.lookup_movie(term=m['title'])
+                        if foundMedia is None:
+                            continue
 
-                    if type(foundMedia) != RadarrMovieItem:
-                        foundMedia = foundMedia[0]
-                    foundMediaID = foundMedia.imdbId
+                        if type(foundMedia) != RadarrMovieItem:
+                            foundMedia = foundMedia[0]
+                        foundMediaID = foundMedia.imdbId
 
                 callbackdata = f"showdlsummary:{typeOfMedia}:{foundMediaID}"
 
@@ -1238,20 +1250,21 @@ class Pixlovarr():
 
     def list(self, update, context):
         if not self.isRejected(update) and \
-                self.isGranted(update) and \
-                self.radarr_enabled:
+                self.isGranted(update):
 
             self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
             if re.match("^/[Ll][Ss]$", command[0]):
-                media = self.sonarr_node.get_serie()
-                typeOfMedia = "serie"
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.get_serie()
+                    typeOfMedia = "serie"
 
             elif re.match("^/[Ll][Mm]$", command[0]):
-                media = self.radarr_node.get_movie()
-                typeOfMedia = "movie"
+                if self.radarr_enabled:
+                    media = self.radarr_node.get_movie()
+                    typeOfMedia = "movie"
 
             else:
                 context.bot.send_message(
@@ -1462,15 +1475,18 @@ class Pixlovarr():
 # HandlerCallback Commands
     def selectRootFolder(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
+
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid, 3: Quality
 
             if data[1] == "serie":
-                root_paths = self.sonarr_node.get_root_folder()
+                if self.sonarr_enabled:
+                    root_paths = self.sonarr_node.get_root_folder()
             else:
-                root_paths = self.radarr_node.get_root_folder()
+                if self.radarr_enabled:
+                    root_paths = self.radarr_node.get_root_folder()
 
             if root_paths:
 
@@ -1529,9 +1545,11 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaID
 
             if data[1] == "serie":
-                media = self.sonarr_node.get_serie(int(data[2]))
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.get_serie(int(data[2]))
             else:
-                media = self.radarr_node.get_movie(int(data[2]))
+                if self.radarr_enabled:
+                    media = self.radarr_node.get_movie(int(data[2]))
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -1562,9 +1580,11 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:queueID
 
             if data[1] == "episode":
-                self.sonarr_node.delete_queue(int(data[2]))
+                if self.sonarr_enabled:
+                    self.sonarr_node.delete_queue(int(data[2]))
             else:
-                self.radarr_node.delete_queue(int(data[2]))
+                if self.radarr_enabled:
+                    self.radarr_node.delete_queue(int(data[2]))
 
             self.notifyDeleteQueueItem(update, context, data[1], data[2])
 
@@ -1577,11 +1597,13 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaID, 3:delete_files
 
             if data[1] == "serie":
-                self.sonarr_node.delete_serie(
-                    serie_id=int(data[2]), delete_files=data[3])
+                if self.sonarr_enabled:
+                    self.sonarr_node.delete_serie(
+                        serie_id=int(data[2]), delete_files=data[3])
             else:
-                self.radarr_node.delete_movie(
-                    movie_id=int(data[2]), delete_files=data[3])
+                if self.radarr_enabled:
+                    self.radarr_node.delete_movie(
+                        movie_id=int(data[2]), delete_files=data[3])
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -1601,46 +1623,52 @@ class Pixlovarr():
                 text="Please be patient...")
 
             if data[1] == "serie":
-                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
-                if data[5] == "First":
-                    monitored_seasons = [1]
+                    if data[5] == "First":
+                        monitored_seasons = [1]
 
-                elif data[5] == "All":
-                    monitored_seasons = [
-                        i for i in range(1, media.seasonCount+1)]
+                    elif data[5] == "All":
+                        monitored_seasons = [
+                            i for i in range(1, media.seasonCount+1)]
 
-                elif data[5] == "New":
-                    monitored_seasons = []
+                    elif data[5] == "New":
+                        monitored_seasons = []
 
-                downloadPath = self.getDownloadPath(data[1], data[4], media)
+                    downloadPath = \
+                        self.getDownloadPath(data[1], data[4], media)
 
-                self.sonarr_node.add_serie(
-                    tvdb_id=data[2], quality=int(data[3]),
-                    monitored_seasons=monitored_seasons,
-                    season_folder=self.sonarr_season_folder,
-                    path=downloadPath
-                )
+                    self.sonarr_node.add_serie(
+                        tvdb_id=data[2], quality=int(data[3]),
+                        monitored_seasons=monitored_seasons,
+                        season_folder=self.sonarr_season_folder,
+                        path=downloadPath
+                    )
 
-                self.notifyDownload(
-                    update, context, data[1], media.title, media.year)
+                    self.notifyDownload(
+                        update, context, data[1], media.title, media.year)
 
             else:
-                media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                if self.radarr_enabled:
+                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-                # get usertag from server and to movie
-                usertag = self.addTags(update, context)
-                if usertag:
-                    media.tags.append(usertag)
+                    # get usertag from server and to movie
+                    usertag = self.addTags(update, context)
+                    if usertag:
+                        media.tags.append(usertag)
 
-                downloadPath = self.getDownloadPath(data[1], data[4], media)
+                    downloadPath = \
+                        self.getDownloadPath(data[1], data[4], media)
 
-                self.radarr_node.add_movie(
-                    movie_info=media, quality=int(data[3]), path=downloadPath
-                )
+                    self.radarr_node.add_movie(
+                        movie_info=media,
+                        quality=int(data[3]),
+                        path=downloadPath
+                    )
 
-                self.notifyDownload(
-                    update, context, data[1], media.title, media.year)
+                    self.notifyDownload(
+                        update, context, data[1], media.title, media.year)
 
     def showDownloadSummary(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1651,14 +1679,16 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaid
 
             if data[1] == "serie":
-                profiles = self.sonarr_node.get_quality_profiles()
-                callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
-                media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+                if self.sonarr_enabled:
+                    profiles = self.sonarr_node.get_quality_profiles()
+                    callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
+                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
             else:
-                profiles = self.radarr_node.get_quality_profiles()
-                callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
-                media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                if self.radarr_enabled:
+                    profiles = self.radarr_node.get_quality_profiles()
+                    callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
+                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -1712,22 +1742,24 @@ class Pixlovarr():
                 f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:{data[4]}")
 
             if data[1] == "serie":
-                keyboard = [
-                    [InlineKeyboardButton(
-                        "Download only season 1",
-                        callback_data=f"{callbackdata}:First")],
-                    [InlineKeyboardButton(
-                        "Download all seasons",
-                        callback_data=f"{callbackdata}:All")],
-                    [InlineKeyboardButton(
-                        "Download only new seasons",
-                        callback_data=f"{callbackdata}:New")]
-                ]
+                if self.sonarr_enabled:
+                    keyboard = [
+                        [InlineKeyboardButton(
+                            "Download only season 1",
+                            callback_data=f"{callbackdata}:First")],
+                        [InlineKeyboardButton(
+                            "Download all seasons",
+                            callback_data=f"{callbackdata}:All")],
+                        [InlineKeyboardButton(
+                            "Download only new seasons",
+                            callback_data=f"{callbackdata}:New")]
+                    ]
             else:
-                media = self.radarr_node.lookup_movie(imdb_id=data[2])
-                keyboard = [[InlineKeyboardButton(
-                    f"Download '{media.title} ({media.year})'",
-                    callback_data=f"{callbackdata}:False")]]
+                if self.radarr_enabled:
+                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                    keyboard = [[InlineKeyboardButton(
+                        f"Download '{media.title} ({media.year})'",
+                        callback_data=f"{callbackdata}:False")]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -1756,9 +1788,11 @@ class Pixlovarr():
             searchQuery = ' '.join(args)
 
             if typeOfMedia == "serie":
-                media = self.sonarr_node.lookup_serie(term=searchQuery)
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.lookup_serie(term=searchQuery)
             else:
-                media = self.radarr_node.lookup_movie(term=searchQuery)
+                if self.radarr_enabled:
+                    media = self.radarr_node.lookup_movie(term=searchQuery)
 
             if media:
                 keyboard = []
