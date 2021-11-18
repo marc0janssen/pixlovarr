@@ -12,7 +12,7 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
 
 You can list the custom tags of the Pixlovarr users by the command /lt as an admin.
 These tags can be added to Sonarr or Radarr. If the tags are added to Sonarr or Radarr, anytime
-a user adds a serie of movie, their tag is added to the downloaded media in Sonarr of Radarr.
+a user adds a serie or movie, their tag is added to the downloaded media in Sonarr of Radarr.
 
 You can later use the tagged media to your liking.
 
