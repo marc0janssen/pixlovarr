@@ -751,14 +751,23 @@ class Pixlovarr():
         return response.json()
 
     # Get All Tags
-    def getAllTags(self):
+    def getAllTags(self, typeOfMedia):
+
+        if typeOfMedia == "serie":
+            token = self.sonarr_token
+            url = self.sonarr_url
+
+        else:
+            token = self.radarr_token
+            url = self.radarr_url
+
         return (
             self.get_data(
-                f"{self.radarr_url}/api/tag?apikey={self.radarr_token}"
+                f"{url}/api/tag?apikey={token}"
             )
         )
 
-    def addTags(self, update, context):
+    def addTags(self, update, context, typeOfMedia):
 
         # make striped username with only az09
         strippedfirstname = re.sub(
@@ -767,7 +776,7 @@ class Pixlovarr():
 
         # Put all tags in a dictonairy with pair label <=> ID
         tagnames = {}
-        for tag in self.getAllTags():
+        for tag in self.getAllTags(typeOfMedia):
             # Add tag to lookup by it's name
             tagnames[tag['label']] = tag['id']
 
@@ -1256,6 +1265,8 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
+            media = []
+
             if re.match("^/[Ll][Ss]$", command[0]):
                 if self.sonarr_enabled:
                     media = self.sonarr_node.get_serie()
@@ -1626,6 +1637,11 @@ class Pixlovarr():
                 if self.sonarr_enabled:
                     media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
+                    # get usertag from server and to serie
+                    usertag = self.addTags(update, context, data[1])
+                    if usertag:
+                        media.tags.append(usertag)
+
                     if data[5] == "First":
                         monitored_seasons = [1]
 
@@ -1640,7 +1656,7 @@ class Pixlovarr():
                         self.getDownloadPath(data[1], data[4], media)
 
                     self.sonarr_node.add_serie(
-                        tvdb_id=data[2], quality=int(data[3]),
+                        serie_info=media, quality=int(data[3]),
                         monitored_seasons=monitored_seasons,
                         season_folder=self.sonarr_season_folder,
                         path=downloadPath
@@ -1654,7 +1670,7 @@ class Pixlovarr():
                     media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
                     # get usertag from server and to movie
-                    usertag = self.addTags(update, context)
+                    usertag = self.addTags(update, context, data[1])
                     if usertag:
                         media.tags.append(usertag)
 
