@@ -7,5 +7,7 @@
 
 # cmdpath=`echo $1 | sed 's/ //g' | sed 's/\//_/g'`
 
+# RUN echo '0	18	*   *   *   /app/runjob.sh "python3 /app/radarr_library_purge.py"' >> /etc/crontabs/root
+
 #write output of cronjob to dockerlog
 (printf "%s : " "$(date "+%F %T")";echo "$1";$1) &> /proc/1/fd/1
