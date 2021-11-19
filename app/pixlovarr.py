@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-18 21:56:41
+# update: 2021-11-19 10:15:24
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -915,8 +915,10 @@ class Pixlovarr():
                     "/allowed - Show all allowed members\n"
                     "/denied - Show all denied members\n"
                     "/ch - Show command history\n"
-                    "/lt - list tags"
+                    "/lt - list tags\n"
                 )
+
+            helpText = helpText + ("\nlast update: 2021-11-19 10:16:55\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
