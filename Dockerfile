@@ -39,12 +39,11 @@ RUN apk add --update \
 	&& /app/update_git.sh \
 	&& chmod +x /app/runjob.sh
 
-RUN echo '0 18	*   *   *   /app/runjob.sh "python3 /app/radarr_library_purge.py"' >> /etc/crontabs/root
+RUN echo '0	18	*   *   *   /app/runjob.sh "python3 /app/radarr_library_purge.py"' >> /etc/crontabs/root
 
 ENV TZ=Europe/Amsterdam
 
 VOLUME /config
 
 # CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
-
 CMD ["/app/start.sh"]
