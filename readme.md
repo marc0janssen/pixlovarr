@@ -3,10 +3,10 @@
 ## What is it?
 
 Pixlovarr is a compagnon written in Python for Radarr and Sonarr in the form of a Telegram bot.
-
 /help will give you all the options to control the bot for Radarr and Sonarr.
-
 The bot will guide you with an inline keyboard, this is for User commands and Admin commands.
+
+Radarr Library Purge is a compagnon written in Python for Radarr to automaticly remove and delete movies which are added by lists. All movies which are not tagged are not evaluated.
 
 ## Tags
 
@@ -113,9 +113,10 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
             --name=pixlovarr \
             --restart=always \
             -v /docker/pixlovarr/config:/config \
+            -v /docker/pixlovarr/logs:/logs \
             marc0janssen/pixlovarr:latest
 
-## Config
+## Config Pixlovarr
 
 In the directory /config the python script expects a config file called 'pixlovarr.ini' with the following content:
 
@@ -142,10 +143,31 @@ In the directory /config the python script expects a config file called 'pixlova
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 
+## Config Radarr Library Purge
+
+In the directory /config the python script expects a config file called 'radarr_library_purge.ini' with the following content:
+
+        [GENERAL]
+        TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3
+        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
+        REMOVE_MOVIES_AFTER_DAYS = 180
+        WARN_DAYS_INFRONT = 1
+        DRY_RUN = ON
+        DELETE_FILES_ON_SERVER = OFF
+
+        [RADARR]
+        URL = http://192.168.1.1:7878
+        TOKEN = RADARR_API_TOKEN
+
+        [PUSHOVER]
+        USER_KEY = xxxxxxxxxxxxxxx
+        TOKEN_API = xxxxxxxxxxxxxxx
+
 ## links
 
 [Pixlovarr Github](https://github.com/marc0janssen/pixlovarr) \
 [Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr)
+[Radarr Library Purge Github](https://github.com/marc0janssen/radarr-library-purge)
 
 ## Acknowledgement
 
