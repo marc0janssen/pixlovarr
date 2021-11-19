@@ -918,7 +918,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-19 10:16:55\n")
+            helpText = helpText + ("\nversion: 2021-11-19 18:54:53\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
