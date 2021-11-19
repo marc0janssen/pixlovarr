@@ -39,12 +39,15 @@ You can later use the tagged media to your liking.
         /fq - Show announced items in catalog
         /ds T<#> <keyword> - Download serie
         /dm T<#> <keyword> - Download movie
+        /ms - list your series
+        /mm - list your movies
 
         -- Admin commands --
         /new - Show all new signups
         /allowed - Show all allowed members
         /denied - Show all denied members
         /ch - Show command history
+        /lt - list tags
 
 ## Examples
 

@@ -569,31 +569,46 @@ class Pixlovarr():
             f"{dateText}: {dateCinema}\n\n"
         )
 
-    def listMedia(self, update, context, typeOfMedia, media):
+    def listMedia(
+            self,
+            update,
+            context,
+            typeOfMedia,
+            media,
+            usertagEnabled,
+            usertag
+    ):
+
+        keyboard = []
 
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
 
-            keyboard = []
+            if usertagEnabled:
+                usertagFound = usertag in media.tags
 
-            callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
+            if not usertagEnabled or (usertagEnabled and usertagFound):
+                callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
 
-            keyboard.append([InlineKeyboardButton(
-                f"{media.title} ({media.year})",
-                callback_data=callbackdata)]
-            )
+                keyboard.append([InlineKeyboardButton(
+                    f"{media.title} ({media.year})",
+                    callback_data=callbackdata)]
+                )
 
-            reply_markup = InlineKeyboardMarkup(keyboard)
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
-            update.message.reply_text(
-                f"The following {typeOfMedia}s in the catalog:",
-                reply_markup=reply_markup,
-                quote=False
-            )
+                update.message.reply_text(
+                    f"The following {typeOfMedia}s in the catalog:",
+                    reply_markup=reply_markup,
+                    quote=False
+                )
 
-            numOfMedia = 1
+                numOfMedia = 1
+            else:
+                numOfMedia = 0
 
         else:
+
             media.sort(key=self.sortOnTitle)
 
             genre = ""
@@ -604,25 +619,30 @@ class Pixlovarr():
                             genre = context.args[0][1:]
                         context.args.pop(0)
 
-            keyboard = []
             numOfMedia = 0
             for count, m in enumerate(media):
 
-                if re.search(
-                    ' '.join(context.args).lower(), m.title.lower()) \
-                        or not context.args:
+                if usertagEnabled:
+                    usertagFound = usertag in m.tags
 
-                    if genre.lower() in (genre.lower() for genre in m.genres) \
-                            or not genre:
+                if not usertagEnabled or (usertagEnabled and usertagFound):
+                    if re.search(
+                        ' '.join(context.args).lower(), m.title.lower()) \
+                            or not context.args:
 
-                        callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
+                        if genre.lower() in (
+                                genre.lower() for genre in m.genres) \
+                                    or not genre:
 
-                        keyboard.append([InlineKeyboardButton(
-                            f"{m.title} ({m.year})",
-                            callback_data=callbackdata)]
-                        )
+                            callbackdata = \
+                                f"showMediaInfo:{typeOfMedia}:{m.id}"
 
-                        numOfMedia += 1
+                            keyboard.append([InlineKeyboardButton(
+                                f"{m.title} ({m.year})",
+                                callback_data=callbackdata)]
+                            )
+
+                            numOfMedia += 1
 
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
@@ -767,7 +787,7 @@ class Pixlovarr():
             )
         )
 
-    def addTags(self, update, context, typeOfMedia):
+    def getUsertag(self, update, context, typeOfMedia):
 
         # make striped username with only az09
         strippedfirstname = re.sub(
@@ -870,6 +890,8 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/ls #<genre> <word> - List all series\n"
                     "/lm #<genre> <word> - List all movies\n"
+                    "/ms #<genre> <word> - list your series\n"
+                    "/mm #<genre> <word> - list your movies\n"
                     "/sc <word> - Series calendar\n"
                     "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
@@ -1257,6 +1279,68 @@ class Pixlovarr():
 
             self.findMedia(update, context, None, "serie", context.args)
 
+    def listmymedia(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update):
+
+            self.logCommand(update)
+
+            command = update.effective_message.text.split(" ")
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
+
+            media = []
+
+            if re.match("^/[Mm][Ss]$", command[0]):
+                typeOfMedia = "serie"
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.get_serie()
+
+            elif re.match("^/[Mm][Mm]$", command[0]):
+                typeOfMedia = "movie"
+                if self.radarr_enabled:
+                    media = self.radarr_node.get_movie()
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
+
+                return
+
+            if media:
+                usertag = self.getUsertag(update, context, typeOfMedia)
+
+                numofMedia = self.listMedia(
+                    update, context, typeOfMedia, media, True, usertag)
+                if numofMedia > 0:
+                    if numofMedia != len(media):
+                        endtext = (
+                            f"Listed {numofMedia} of {len(media)} "
+                            f"{typeOfMedia}s from the catalog."
+                        )
+                    else:
+                        endtext = (
+                            f"Listed {numofMedia} {typeOfMedia}s "
+                            f"from the catalog."
+                        )
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=endtext)
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=(
+                            f"There were no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
+                    )
+            else:
+                endtext = f"There are no {typeOfMedia}s in the catalog."
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=endtext)
+
     def list(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
@@ -1286,7 +1370,7 @@ class Pixlovarr():
 
             if media:
                 numofMedia = self.listMedia(
-                    update, context, typeOfMedia, media)
+                    update, context, typeOfMedia, media, False, None)
                 if numofMedia > 0:
                     if numofMedia != len(media):
                         endtext = (
@@ -1638,7 +1722,7 @@ class Pixlovarr():
                     media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
                     # get usertag from server and to serie
-                    usertag = self.addTags(update, context, data[1])
+                    usertag = self.getUsertag(update, context, data[1])
                     if usertag:
                         media.tags.append(usertag)
 
@@ -1670,7 +1754,7 @@ class Pixlovarr():
                     media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
                     # get usertag from server and to movie
-                    usertag = self.addTags(update, context, data[1])
+                    usertag = self.getUsertag(update, context, data[1])
                     if usertag:
                         media.tags.append(usertag)
 
@@ -2060,6 +2144,12 @@ class Pixlovarr():
 
         self.meta_handler = CommandHandler('rs', self.showMeta)
         self.dispatcher.add_handler(self.meta_handler)
+
+        self.listmymedia_handler = CommandHandler('mm', self.listmymedia)
+        self.dispatcher.add_handler(self.listmymedia_handler)
+
+        self.listmymedia_handler = CommandHandler('ms', self.listmymedia)
+        self.dispatcher.add_handler(self.listmymedia_handler)
 
 # Keyboard Handlers
 
