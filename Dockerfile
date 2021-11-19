@@ -24,6 +24,7 @@ RUN apk add --update \
 	pycliarr \
 	requests \
 	imdbpy \
+	chump \
 	&& apk del \
 	python3-dev \
 	build-base \
@@ -35,10 +36,14 @@ RUN apk add --update \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/* \ 
 	&& chmod +x /app/update_git.sh \
-	&& /app/update_git.sh
+	&& /app/update_git.sh \
+	&& chmod +x /app/runjob.sh
+
+RUN echo '0 18	*   *   *   /app/runjob.sh "python3 /app/radarr_library_purge.py"' >> /etc/crontabs/root
 
 ENV TZ=Europe/Amsterdam
 
 VOLUME /config
+VOLUME /logs
 
 CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
