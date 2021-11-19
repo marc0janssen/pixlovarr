@@ -890,8 +890,8 @@ class Pixlovarr():
                 helpText = helpText + (
                     "/ls #<genre> <word> - List all series\n"
                     "/lm #<genre> <word> - List all movies\n"
-                    "/ms #<genre> <word> - list your series\n"
-                    "/mm #<genre> <word> - list your movies\n"
+                    "/ms #<genre> <word> - list my series\n"
+                    "/mm #<genre> <word> - list my movies\n"
                     "/sc <word> - Series calendar\n"
                     "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
@@ -918,7 +918,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nlast update: 2021-11-19 10:16:55\n")
+            helpText = helpText + ("\nvesion: 2021-11-19 10:16:55\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)

@@ -25,6 +25,8 @@ You can later use the tagged media to your liking.
         /userid - Show your userid
         /ls #<genre> <word> - List all series
         /lm #<genre> <word> - List all movies
+        /ms #<genre> <word> - list my series
+        /mm #<genre> <word> - list my movies
         /sc <word> - Series calendar
         /mc <word> - Movies calendar
         /qu - List all queued items
