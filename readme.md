@@ -160,6 +160,7 @@ In the directory /config the python script expects a config file called 'radarr_
         TOKEN = RADARR_API_TOKEN
 
         [PUSHOVER]
+        ENABLED = OFF
         USER_KEY = xxxxxxxxxxxxxxx
         TOKEN_API = xxxxxxxxxxxxxxx
 
