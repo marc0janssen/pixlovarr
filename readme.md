@@ -166,7 +166,7 @@ In the directory /config the python script expects a config file called 'radarr_
 ## links
 
 [Pixlovarr Github](https://github.com/marc0janssen/pixlovarr) \
-[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr)
+[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr) \
 [Radarr Library Purge Github](https://github.com/marc0janssen/radarr-library-purge)
 
 ## Acknowledgement
