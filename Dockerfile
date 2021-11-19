@@ -44,6 +44,5 @@ RUN echo '0 18	*   *   *   /app/runjob.sh "python3 /app/radarr_library_purge.py"
 ENV TZ=Europe/Amsterdam
 
 VOLUME /config
-VOLUME /logs
 
 CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
