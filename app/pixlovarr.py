@@ -667,7 +667,7 @@ class Pixlovarr():
                             if (count % self.listLength == 0 and count != 0):
 
                                 if count > self.listLength:
-                                    headtxt = "next section of the catalog:"
+                                    headtxt = "Next section of the catalog:"
 
                                 reply_markup = InlineKeyboardMarkup(keyboard)
 
