@@ -251,67 +251,75 @@ class Pixlovarr():
                 pt = "-"
                 tl = "-"
 
+            movie = None
+            series = None
+
             if typeOfMedia == "episode":
-                text = (
-                    f"{queueitem['series']['title']} "
-                    f"S{queueitem['episode']['seasonNumber']}"
-                    f"E{queueitem['episode']['episodeNumber']} - "
-                    f"'{queueitem['episode']['title']}'\n"
-                    f"Status: {queueitem['status']}\n"
-                    f"Protocol: {queueitem['protocol']}\n"
-                    f"Timeleft: {tl}\n"
-                    f"ETA: {pt}"
-                )
-
-                title = (
-                    f"{queueitem['series']['title']} "
-                    f"S{queueitem['episode']['seasonNumber']}"
-                    f"E{queueitem['episode']['episodeNumber']} - "
-                    f"{queueitem['episode']['title']}"
-                )
-            else:
-                text = (
-                    f"{queueitem['movie']['title']} "
-                    f"({queueitem['movie']['year']})\n"
-                    f"Status: {queueitem['status']}\n"
-                    f"Protocol: {queueitem['protocol']}\n"
-                    f"Timeleft: {tl}\n"
-                    f"ETA: {pt}"
-                )
-
-                title = (
-                    f"{queueitem['movie']['title']} "
-                    f"({queueitem['movie']['year']})"
-                )
-
-            if count < 3:
-                callbackdata = (
-                    f"deletequeueitem:{typeOfMedia}:"
-                    f"{queueitem['id']}"
-                )
-
-                keyboard = [[InlineKeyboardButton(
-                    f"Remove {title}",
-                    callback_data=callbackdata)]]
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
-
-                update.message.reply_text(
-                    text,
-                    reply_markup=reply_markup,
-                    quote=False
-                )
-
-            else:
-                txtQueue += f"{text}\n\n"
-
-                if (count % self.listLength == 0 and count != 0):
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=txtQueue
+                series = queueitem.get("series")
+                if series:
+                    text = (
+                        f"{queueitem['series']['title']} "
+                        f"S{queueitem['episode']['seasonNumber']}"
+                        f"E{queueitem['episode']['episodeNumber']} - "
+                        f"'{queueitem['episode']['title']}'\n"
+                        f"Status: {queueitem['status']}\n"
+                        f"Protocol: {queueitem['protocol']}\n"
+                        f"Timeleft: {tl}\n"
+                        f"ETA: {pt}"
                     )
 
-                    txtQueue = ""
+                    title = (
+                        f"{queueitem['series']['title']} "
+                        f"S{queueitem['episode']['seasonNumber']}"
+                        f"E{queueitem['episode']['episodeNumber']} - "
+                        f"{queueitem['episode']['title']}"
+                    )
+            else:
+                movie = queueitem.get("movie")
+                if movie:
+                    text = (
+                        f"{queueitem['movie']['title']} "
+                        f"({queueitem['movie']['year']})\n"
+                        f"Status: {queueitem['status']}\n"
+                        f"Protocol: {queueitem['protocol']}\n"
+                        f"Timeleft: {tl}\n"
+                        f"ETA: {pt}"
+                    )
+
+                    title = (
+                        f"{queueitem['movie']['title']} "
+                        f"({queueitem['movie']['year']})"
+                    )
+
+            if movie or series:
+                if count <= 3:
+                    callbackdata = (
+                        f"deletequeueitem:{typeOfMedia}:"
+                        f"{queueitem['id']}"
+                    )
+
+                    keyboard = [[InlineKeyboardButton(
+                        f"Remove {title}",
+                        callback_data=callbackdata)]]
+
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+
+                    update.message.reply_text(
+                        text,
+                        reply_markup=reply_markup,
+                        quote=False
+                    )
+
+                else:
+                    txtQueue += f"{text}\n\n"
+
+                    if (count % self.listLength == 0 and count != 0):
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id,
+                            text=txtQueue
+                        )
+
+                        txtQueue = ""
 
         if txtQueue != "":
             context.bot.send_message(
@@ -918,7 +926,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-19 18:54:53\n")
+            helpText = helpText + ("\nversion: 2021-11-20 01:09:56\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
