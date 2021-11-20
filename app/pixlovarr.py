@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-19 10:15:24
+# update: 2021-11-20 08:04:20
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -88,6 +88,9 @@ class Pixlovarr():
                 self.sonarr_token = self.config['SONARR']['TOKEN']
                 self.calendar_period_days_series = \
                     self.config['SONARR']['CALENDAR_PERIOD_DAYS_SERIES']
+                self.sonarr_add_exclusion = True if (
+                    self.config['SONARR']
+                    ['AUTO_ADD_EXCLUSION'] == "ON") else False
 
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
@@ -95,6 +98,9 @@ class Pixlovarr():
                 self.radarr_token = self.config['RADARR']['TOKEN']
                 self.calendar_period_days_movies = \
                     self.config['RADARR']['CALENDAR_PERIOD_DAYS_MOVIES']
+                self.radarr_add_exclusion = True if (
+                    self.config['RADARR']
+                    ['AUTO_ADD_EXCLUSION'] == "ON") else False
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -639,8 +645,8 @@ class Pixlovarr():
                             or not context.args:
 
                         if genre.lower() in (
-                                genre.lower() for genre in m.genres) \
-                                    or not genre:
+                            genre.lower() for genre in m.genres) \
+                                or not genre:
 
                             callbackdata = \
                                 f"showMediaInfo:{typeOfMedia}:{m.id}"
@@ -926,7 +932,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-20 01:09:56\n")
+            helpText = helpText + ("\nversion: 2021-11-20 08:04:43\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
@@ -1704,11 +1710,17 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     self.sonarr_node.delete_serie(
-                        serie_id=int(data[2]), delete_files=data[3])
+                        serie_id=int(data[2]),
+                        delete_files=data[3],
+                        add_exclusion=self.sonarr_add_exclusion
+                    )
             else:
                 if self.radarr_enabled:
                     self.radarr_node.delete_movie(
-                        movie_id=int(data[2]), delete_files=data[3])
+                        movie_id=int(data[2]),
+                        delete_files=data[3],
+                        add_exclusion=self.radarr_add_exclusion
+                    )
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id,

@@ -134,12 +134,14 @@ In the directory /config the python script expects a config file called 'pixlova
         TOKEN = SONARR_API_TOKEN
         SEASON_FOLDER = ON
         CALENDAR_PERIOD_DAYS_SERIES = 30
+        AUTO_ADD_EXCLUSION = ON
 
         [RADARR]
         ENABLED = OFF
         URL = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
         CALENDAR_PERIOD_DAYS_MOVIES = 180
+        AUTO_ADD_EXCLUSION = ON
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 
