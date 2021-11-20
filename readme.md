@@ -155,11 +155,12 @@ In the directory /config the python script expects a config file called 'radarr_
         REMOVE_MOVIES_AFTER_DAYS = 180
         WARN_DAYS_INFRONT = 1
         DRY_RUN = ON
-        DELETE_FILES_ON_SERVER = OFF
 
         [RADARR]
         URL = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
+        DELETE_FILES_ON_SERVER = ON
+        AUTO_ADD_EXCLUSION = ON
 
         [PUSHOVER]
         ENABLED = OFF
@@ -176,4 +177,4 @@ In the directory /config the python script expects a config file called 'radarr_
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-11-18 23:20:55
+2021-11-20 08:15:51
