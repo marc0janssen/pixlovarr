@@ -296,9 +296,9 @@ class Pixlovarr():
                     )
 
             if movie or series:
-    
+
                 numOfItems += 1
-    
+
                 if count <= 3:
                     callbackdata = (
                         f"deletequeueitem:{typeOfMedia}:"
