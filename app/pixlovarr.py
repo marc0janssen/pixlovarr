@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-20 08:04:20
+# update: 2021-11-20 10:36:27
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -953,7 +953,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-20 08:04:43\n")
+            helpText = helpText + ("\nversion: 2021-11-20 10:36:45\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
