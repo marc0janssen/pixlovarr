@@ -235,8 +235,6 @@ class Pixlovarr():
 
         for count, queueitem in enumerate(queue):
 
-            numOfItems += 1
-
             try:
                 if typeOfMedia == "episode":
                     dt = (self.datetime_from_utc_to_local(
@@ -298,6 +296,9 @@ class Pixlovarr():
                     )
 
             if movie or series:
+    
+                numOfItems += 1
+    
                 if count <= 3:
                     callbackdata = (
                         f"deletequeueitem:{typeOfMedia}:"
