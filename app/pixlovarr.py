@@ -634,6 +634,11 @@ class Pixlovarr():
                             genre = context.args[0][1:]
                         context.args.pop(0)
 
+            headtxt = (
+                f"The following {typeOfMedia}s "
+                f"in the catalog:"
+            )
+
             numOfMedia = 0
             for count, m in enumerate(media):
 
@@ -659,11 +664,26 @@ class Pixlovarr():
 
                             numOfMedia += 1
 
+                            if (count % self.listLength == 0 and count != 0):
+
+                                if count > self.listLength:
+                                    headtxt = "next section of the catalog:"
+
+                                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                                update.message.reply_text(
+                                    f"{headtxt}",
+                                    reply_markup=reply_markup,
+                                    quote=False
+                                )
+
+                                keyboard = []
+
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 update.message.reply_text(
-                    f"The following {typeOfMedia}s in the catalog:",
+                    f"{headtxt}",
                     reply_markup=reply_markup,
                     quote=False
                 )
