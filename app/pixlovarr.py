@@ -979,12 +979,12 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/ls #<genre> <word> - List all series\n"
-                    "/lm #<genre> <word> - List all movies\n"
-                    "/ms #<genre> <word> - list my series\n"
-                    "/mm #<genre> <word> - list my movies\n"
-                    "/ns #<genre> <word> - list new series\n"
-                    "/nm #<genre> <word> - list new movies\n"
+                    "/ls #<genre> <key> - List all series\n"
+                    "/lm #<genre> <key> - List all movies\n"
+                    "/ms #<genre> <key> - list my series\n"
+                    "/mm #<genre> <key> - list my movies\n"
+                    "/ns #<genre> <key> - list new series\n"
+                    "/nm #<genre> <key> - list new movies\n"
                     "/sc <word> - Series calendar\n"
                     "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
@@ -997,8 +997,8 @@ class Pixlovarr():
                     "/rs - Show recently reviewed series\n"
                     "/rm - Show recently reviewed movies\n"
                     "/fq - Show announced items in catalog\n"
-                    "/ds T<#> <keyword> - Download series\n"
-                    "/dm T<#> <keyword> - Download movie\n"
+                    "/ds T<#> <key> - Download series\n"
+                    "/dm T<#> <key> - Download movie\n"
                 )
 
             if self.isAdmin(update, context, False):
