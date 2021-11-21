@@ -591,7 +591,7 @@ class Pixlovarr():
             typeOfMedia,
             media,
             usertagEnabled,
-            usertag
+            newDownloadOnly
     ):
 
         keyboard = []
@@ -600,6 +600,7 @@ class Pixlovarr():
                 type(media) is RadarrMovieItem:
 
             if usertagEnabled:
+                usertag = self.getUsertag(update, context, typeOfMedia)
                 usertagFound = usertag in media.tags
 
             if not usertagEnabled or (usertagEnabled and usertagFound):
@@ -643,6 +644,7 @@ class Pixlovarr():
             for count, m in enumerate(media):
 
                 if usertagEnabled:
+                    usertag = self.getUsertag(update, context, typeOfMedia)
                     usertagFound = usertag in m.tags
 
                 if not usertagEnabled or (usertagEnabled and usertagFound):
@@ -1316,7 +1318,67 @@ class Pixlovarr():
 
             self.findMedia(update, context, None, "serie", context.args)
 
-    def listmymedia(self, update, context):
+    def listNewMedia(self, update, context):
+        if not self.isRejected(update) and \
+                self.isGranted(update):
+
+            self.logCommand(update)
+
+            command = update.effective_message.text.split(" ")
+
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
+
+            media = []
+
+            if re.match("^/[Nn][Ss]$", command[0]):
+                typeOfMedia = "serie"
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.get_serie()
+
+            elif re.match("^/[Nn][Mm]$", command[0]):
+                typeOfMedia = "movie"
+                if self.radarr_enabled:
+                    media = self.radarr_node.get_movie()
+
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="Something went wrong...")
+
+                return
+
+            if media:
+                numofMedia = self.listMedia(
+                    update, context, typeOfMedia, media, False, True)
+                if numofMedia > 0:
+                    if numofMedia != len(media):
+                        endtext = (
+                            f"Listed {numofMedia} of {len(media)} "
+                            f"{typeOfMedia}s from the catalog."
+                        )
+                    else:
+                        endtext = (
+                            f"Listed {numofMedia} {typeOfMedia}s "
+                            f"from the catalog."
+                        )
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id, text=endtext)
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=(
+                            f"There were no results found, "
+                            f"{update.effective_user.first_name}."
+                        )
+                    )
+            else:
+                endtext = f"There are no {typeOfMedia}s in the catalog."
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=endtext)
+
+    def listMyMedia(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
@@ -1348,10 +1410,9 @@ class Pixlovarr():
                 return
 
             if media:
-                usertag = self.getUsertag(update, context, typeOfMedia)
 
                 numofMedia = self.listMedia(
-                    update, context, typeOfMedia, media, True, usertag)
+                    update, context, typeOfMedia, media, True, False)
                 if numofMedia > 0:
                     if numofMedia != len(media):
                         endtext = (
@@ -1411,7 +1472,7 @@ class Pixlovarr():
 
             if media:
                 numofMedia = self.listMedia(
-                    update, context, typeOfMedia, media, False, None)
+                    update, context, typeOfMedia, media, False, False)
                 if numofMedia > 0:
                     if numofMedia != len(media):
                         endtext = (
@@ -2192,11 +2253,11 @@ class Pixlovarr():
         self.meta_handler = CommandHandler('rs', self.showMeta)
         self.dispatcher.add_handler(self.meta_handler)
 
-        self.listmymedia_handler = CommandHandler('mm', self.listmymedia)
-        self.dispatcher.add_handler(self.listmymedia_handler)
+        self.listMyMedia_handler = CommandHandler('mm', self.listMyMedia)
+        self.dispatcher.add_handler(self.listMyMedia_handler)
 
-        self.listmymedia_handler = CommandHandler('ms', self.listmymedia)
-        self.dispatcher.add_handler(self.listmymedia_handler)
+        self.listMyMedia_handler = CommandHandler('ms', self.listMyMedia)
+        self.dispatcher.add_handler(self.listMyMedia_handler)
 
 # Keyboard Handlers
 
