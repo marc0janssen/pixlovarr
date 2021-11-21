@@ -1382,6 +1382,10 @@ class Pixlovarr():
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Please be patient...")
+
             self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
