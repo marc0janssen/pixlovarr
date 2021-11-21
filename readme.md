@@ -150,6 +150,7 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 In the directory /config the python script expects a config file called 'radarr_library_purge.ini' with the following content:
 
         [GENERAL]
+        ENABLED = ON
         TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3
         TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
         REMOVE_MOVIES_AFTER_DAYS = 180
