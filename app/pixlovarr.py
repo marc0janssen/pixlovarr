@@ -70,7 +70,7 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
-                self.USERS_PERMANENT_DELETE_MEDIA = False if (
+                self.users_permanent_delete_media = False if (
                     self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
                     "OFF") else True
 
@@ -1687,7 +1687,7 @@ class Pixlovarr():
 
             callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
             if self.isAdmin(update, context, False) or \
-                    self.USERS_PERMANENT_DELETE_MEDIA:
+                    self.users_permanent_delete_media:
                 callbackdata += ":True"
             else:
                 callbackdata += ":False"
