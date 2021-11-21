@@ -166,6 +166,7 @@ In the directory /config the python script expects a config file called 'radarr_
         ENABLED = OFF
         USER_KEY = xxxxxxxxxxxxxxx
         TOKEN_API = xxxxxxxxxxxxxxx
+        SOUND = pushover
 
 ## links
 
