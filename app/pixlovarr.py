@@ -11,6 +11,7 @@ from telegram.ext import (
     MessageHandler,
     Filters
 )
+from time import sleep
 from urllib.parse import urlparse
 import logging
 import json
@@ -331,6 +332,9 @@ class Pixlovarr():
                         )
 
                         txtQueue = ""
+
+                        # make sure no flood
+                        sleep(2)
 
         if txtQueue != "":
             context.bot.send_message(
@@ -725,6 +729,9 @@ class Pixlovarr():
 
                                 keyboard = []
 
+                                # make sure no flood
+                                sleep(2)
+
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -774,6 +781,9 @@ class Pixlovarr():
                             chat_id=update.effective_chat.id, text=allMedia)
 
                         allMedia = ""
+
+                        # make sure no flood
+                        sleep(2)
 
             if allMedia != "":
                 context.bot.send_message(
@@ -1456,7 +1466,6 @@ class Pixlovarr():
                 return
 
             if media:
-
                 numofMedia = self.listMedia(
                     update, context, typeOfMedia, media, True, False)
                 if numofMedia > 0:
