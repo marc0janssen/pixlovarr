@@ -70,9 +70,9 @@ class Pixlovarr():
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
-                self.users_permanent_delete_media = False if (
+                self.users_permanent_delete_media = True if (
                     self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
-                    "OFF") else True
+                    "ON") else False
 
                 self.default_limit_ranking = self.clamp(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
