@@ -27,6 +27,8 @@ You can later use the tagged media to your liking.
         /lm #<genre> <word> - List all movies
         /ms #<genre> <word> - list my series
         /mm #<genre> <word> - list my movies
+        /ns #<genre> <word> - new added series
+        /nm #<genre> <word> - new added movies
         /sc <word> - Series calendar
         /mc <word> - Movies calendar
         /qu - List all queued items
@@ -179,4 +181,4 @@ In the directory /config the python script expects a config file called 'radarr_
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-11-20 08:15:51
+2021-11-21 21:34:36

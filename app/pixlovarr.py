@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-20 10:36:27
+# update: 2021-11-21 21:34:53
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -91,6 +91,8 @@ class Pixlovarr():
                 self.sonarr_add_exclusion = True if (
                     self.config['SONARR']
                     ['AUTO_ADD_EXCLUSION'] == "ON") else False
+                self.sonarr_period_days_added = \
+                    int(self.config['SONARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
 
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
@@ -101,6 +103,8 @@ class Pixlovarr():
                 self.radarr_add_exclusion = True if (
                     self.config['RADARR']
                     ['AUTO_ADD_EXCLUSION'] == "ON") else False
+                self.radarr_period_days_added = \
+                    int(self.config['RADARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -603,7 +607,27 @@ class Pixlovarr():
                 usertag = self.getUsertag(update, context, typeOfMedia)
                 usertagFound = usertag in media.tags
 
-            if not usertagEnabled or (usertagEnabled and usertagFound):
+            if newDownloadOnly:
+                if typeOfMedia == "serie":
+                    dateAfterAdded = datetime.now() - \
+                        timedelta(days=self.sonarr_period_days_added)
+
+                    withinPeriod = True if datetime.strptime(
+                        media.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
+                        dateAfterAdded else False
+
+                else:
+                    dateAfterAdded = datetime.now() - \
+                        timedelta(days=self.radarr_period_days_added)
+
+                    withinPeriod = True if datetime.strptime(
+                        media.added, '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
+                        else False
+
+            if (not usertagEnabled and not newDownloadOnly) or \
+                    (usertagEnabled and usertagFound) or \
+                    (newDownloadOnly and withinPeriod):
+
                 callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
 
                 keyboard.append([InlineKeyboardButton(
@@ -647,7 +671,27 @@ class Pixlovarr():
                     usertag = self.getUsertag(update, context, typeOfMedia)
                     usertagFound = usertag in m.tags
 
-                if not usertagEnabled or (usertagEnabled and usertagFound):
+                if newDownloadOnly:
+                    if typeOfMedia == "serie":
+                        dateAfterAdded = datetime.now() - \
+                            timedelta(days=self.sonarr_period_days_added)
+
+                        withinPeriod = True if datetime.strptime(
+                            m.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
+                            dateAfterAdded else False
+
+                    else:
+                        dateAfterAdded = datetime.now() - \
+                            timedelta(days=self.radarr_period_days_added)
+
+                        withinPeriod = True if datetime.strptime(
+                            m.added, '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
+                            else False
+
+                if (not usertagEnabled and not newDownloadOnly) or \
+                        (usertagEnabled and usertagFound) or \
+                        (newDownloadOnly and withinPeriod):
+
                     if re.search(
                         ' '.join(context.args).lower(), m.title.lower()) \
                             or not context.args:
@@ -929,6 +973,8 @@ class Pixlovarr():
                     "/lm #<genre> <word> - List all movies\n"
                     "/ms #<genre> <word> - list my series\n"
                     "/mm #<genre> <word> - list my movies\n"
+                    "/ns #<genre> <word> - new added series\n"
+                    "/nm #<genre> <word> - new added movies\n"
                     "/sc <word> - Series calendar\n"
                     "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
@@ -955,7 +1001,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-20 10:36:45\n")
+            helpText = helpText + ("\nversion: 2021-11-21 21:32:32\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
@@ -2258,6 +2304,12 @@ class Pixlovarr():
 
         self.listMyMedia_handler = CommandHandler('ms', self.listMyMedia)
         self.dispatcher.add_handler(self.listMyMedia_handler)
+
+        self.listNewMedia_handler = CommandHandler('nm', self.listNewMedia)
+        self.dispatcher.add_handler(self.listNewMedia_handler)
+
+        self.listNewMedia_handler = CommandHandler('ns', self.listNewMedia)
+        self.dispatcher.add_handler(self.listNewMedia_handler)
 
 # Keyboard Handlers
 
