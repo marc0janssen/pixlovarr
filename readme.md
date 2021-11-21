@@ -27,8 +27,8 @@ You can later use the tagged media to your liking.
         /lm #<genre> <word> - List all movies
         /ms #<genre> <word> - list my series
         /mm #<genre> <word> - list my movies
-        /ns #<genre> <word> - new added series
-        /nm #<genre> <word> - new added movies
+        /ns #<genre> <word> - list new series
+        /nm #<genre> <word> - list new movies
         /sc <word> - Series calendar
         /mc <word> - Movies calendar
         /qu - List all queued items
