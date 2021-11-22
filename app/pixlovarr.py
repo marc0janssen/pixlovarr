@@ -1283,6 +1283,7 @@ class Pixlovarr():
                 return
 
             keyboard = []
+            keyboardPresentMedia = []
 
             for count, m in enumerate(media[:topAmount]):
                 if count % 12 == 0 and count != 0:
@@ -1327,23 +1328,41 @@ class Pixlovarr():
                 if foundMedia.id == 0:
                     callbackdata = \
                         f"showdlsummary:{typeOfMedia}:{foundMediaID}"
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"{foundMedia.title} ({foundMedia.year})",
+                        callback_data=callbackdata)]
+                    )
+
                 else:
                     callbackdata = \
                         f"showMediaInfo:{typeOfMedia}:{foundMedia.id}"
 
-                keyboard.append([InlineKeyboardButton(
-                    f"{foundMedia.title} ({foundMedia.year})",
-                    callback_data=callbackdata)]
+                    keyboardPresentMedia.append([InlineKeyboardButton(
+                        f"{foundMedia.title} ({foundMedia.year})",
+                        callback_data=callbackdata)]
+                    )
+
+            if keyboardPresentMedia:
+                reply_markup_PresentMedia = InlineKeyboardMarkup(
+                    keyboardPresentMedia)
+
+                update.message.reply_text(
+                    f"We found these {adjective}{typeOfMedia}s of the "
+                    f"IMDb top {topAmount} in your catalog:",
+                    reply_markup=reply_markup_PresentMedia,
+                    quote=False
                 )
 
-            reply_markup = InlineKeyboardMarkup(keyboard)
+            if keyboard:
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
-            update.message.reply_text(
-                f"IMDb top {topAmount} {adjective}{typeOfMedia}s "
-                f"at the moment:",
-                reply_markup=reply_markup,
-                quote=False
-            )
+                update.message.reply_text(
+                    f"These {adjective}{typeOfMedia}s of IMDb top {topAmount} "
+                    f"are not in your catalog at the moment:",
+                    reply_markup=reply_markup,
+                    quote=False
+                )
 
     def showQueue(self, update, context):
         if not self.isRejected(update) and \
