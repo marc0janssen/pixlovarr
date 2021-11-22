@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-22 09:15:03
+# update: 2021-11-22 13:14:50
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -1011,7 +1011,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-22 09:15:18\n")
+            helpText = helpText + ("\nversion: 2021-11-22 13:15:22\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
@@ -1190,14 +1190,26 @@ class Pixlovarr():
                         )
                         fqCount += 1
                 else:
-                    for s in series:
+                    for count, s in enumerate(series):
                         if s.status == "upcoming":
                             fqCount += 1
                             allSeries += (
                                 f"{s.title} ({str(s.year)})\n")
 
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allSeries)
+                            if (count % self.listLength == 0 and count != 0):
+                                context.bot.send_message(
+                                    chat_id=update.effective_chat.id,
+                                    text=allSeries)
+
+                                allSeries = ""
+
+                                # make sure no flood
+                                sleep(2)
+
+                    if allSeries != "":
+                        context.bot.send_message(
+                                chat_id=update.effective_chat.id,
+                                text=allSeries)
 
                     endtext = (
                         f"There are {fqCount} series in the announced queue.")
@@ -1208,21 +1220,35 @@ class Pixlovarr():
 
                 allMovies = "Movies\n"
                 if type(movies) is RadarrMovieItem:
-                    if movies.status == "announced":
+                    if not movies.hasFile:
                         context.bot.send_message(
                             chat_id=update.effective_chat.id,
                             text=f"{movies.title} ({str(movies.year)})\n"
                         )
                         fqCount += 1
                 else:
-                    for m in movies:
-                        if m.status == "announced":
+                    #  for m in movies:
+                    for count, m in enumerate(movies):
+
+                        #  if m.status == "announced":
+                        if not m.hasFile:
                             fqCount += 1
                             allMovies += (
                                 f"{m.title} ({str(m.year)})\n")
 
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=allMovies)
+                            if (count % self.listLength == 0 and count != 0):
+                                context.bot.send_message(
+                                    chat_id=update.effective_chat.id,
+                                    text=allMovies)
+
+                                allMovies = ""
+
+                                # make sure no flood
+                                sleep(2)
+
+                    if allMovies != "":
+                        context.bot.send_message(
+                            chat_id=update.effective_chat.id, text=allMovies)
 
                     endtext = (
                         f"There are {fqCount} items in the announced queue.")
