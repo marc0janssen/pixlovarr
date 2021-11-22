@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-21 21:34:53
+# update: 2021-11-22 09:15:03
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -1011,7 +1011,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-21 21:32:32\n")
+            helpText = helpText + ("\nversion: 2021-11-22 09:15:18\n")
 
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text=helpText)
@@ -1322,7 +1322,14 @@ class Pixlovarr():
                             foundMedia = foundMedia[0]
                         foundMediaID = foundMedia.imdbId
 
-                callbackdata = f"showdlsummary:{typeOfMedia}:{foundMediaID}"
+                # Is a not downloaded movie? Then show download button
+                # Otherwise show mediainfo button
+                if foundMedia.id == 0:
+                    callbackdata = \
+                        f"showdlsummary:{typeOfMedia}:{foundMediaID}"
+                else:
+                    callbackdata = \
+                        f"showMediaInfo:{typeOfMedia}:{foundMedia.id}"
 
                 keyboard.append([InlineKeyboardButton(
                     f"{foundMedia.title} ({foundMedia.year})",
@@ -2070,7 +2077,8 @@ class Pixlovarr():
                 maxResults = topAmount - 1
 
                 for m in media:
-                    if m.path:
+
+                    if m.id != 0:  # Media found in database
 
                         callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
 
