@@ -1791,9 +1791,9 @@ class Pixlovarr():
 # Admin Commands
 
     def listtags(self, update, context):
-        if self.isAdmin(update, context, True) and \
-            not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.isAdmin(update, context, True):
 
             self.logCommand(update)
 
@@ -1813,9 +1813,9 @@ class Pixlovarr():
             )
 
     def showCmdHistory(self, update, context):
-        if self.isAdmin(update, context, True) and \
-            not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.isAdmin(update, context, True):
 
             self.logCommand(update)
 
@@ -1851,9 +1851,9 @@ class Pixlovarr():
             )
 
     def new(self, update, context):
-        if self.isAdmin(update, context, True) and \
-            not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.isAdmin(update, context, True):
 
             self.logCommand(update)
 
@@ -1895,9 +1895,9 @@ class Pixlovarr():
             self.logCommand(update)
 
     def allowed(self, update, context):
-        if self.isAdmin(update, context, True) and \
-            not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.isAdmin(update, context, True):
 
             self.logCommand(update)
 
@@ -1930,9 +1930,9 @@ class Pixlovarr():
                 )
 
     def denied(self, update, context):
-        if self.isAdmin(update, context, True) and \
-            not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isRejected(update) and \
+                self.isGranted(update) and \
+                self.isAdmin(update, context, True):
 
             self.logCommand(update)
 
