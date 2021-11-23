@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-22 13:14:50
+# update: 2021-11-23 12:03:11
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -1055,7 +1055,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = helpText + ("\nversion: 2021-11-22 13:15:22\n")
+            helpText = helpText + ("\nversion: 2021-11-23 12:03:32\n")
 
             self.sendmessage(
                     update.effective_chat.id,
