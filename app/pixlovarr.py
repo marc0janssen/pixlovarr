@@ -247,7 +247,7 @@ class Pixlovarr():
 
         txtQueue = ""
 
-        for count, queueitem in enumerate(queue):
+        for queueitem in queue:
 
             try:
                 if typeOfMedia == "episode":
@@ -313,7 +313,7 @@ class Pixlovarr():
 
                 numOfItems += 1
 
-                if count <= 3:
+                if numOfItems <= 3:
                     callbackdata = (
                         f"deletequeueitem:{typeOfMedia}:"
                         f"{queueitem['id']}"
@@ -335,7 +335,7 @@ class Pixlovarr():
                 else:
                     txtQueue += f"{text}\n\n"
 
-                    if (count % self.listLength == 0 and count != 0):
+                    if (numOfItems % self.listLength == 0 and numOfItems != 0):
                         self.sendmessage(
                             update.effective_chat.id,
                             context,
@@ -690,7 +690,7 @@ class Pixlovarr():
             )
 
             numOfMedia = 0
-            for count, m in enumerate(media):
+            for m in media:
 
                 if usertagEnabled:
                     usertag = self.getUsertag(update, context, typeOfMedia)
@@ -735,9 +735,10 @@ class Pixlovarr():
 
                             numOfMedia += 1
 
-                            if (count % self.listLength == 0 and count != 0):
+                            if (numOfMedia % self.listLength == 0 and
+                                    numOfMedia != 0):
 
-                                if count > self.listLength:
+                                if numOfMedia >= self.listLength:
                                     headtxt = "Next section of the catalog:"
 
                                 reply_markup = InlineKeyboardMarkup(keyboard)
@@ -784,7 +785,7 @@ class Pixlovarr():
         else:
 
             allMedia = ""
-            for count, m in enumerate(media):
+            for m in media:
 
                 try:
                     searchString = f"{m['series']['title']} {m['title']}"
@@ -800,7 +801,9 @@ class Pixlovarr():
                     allMedia += (
                         self.showCalenderMediaInfo(update, context, m))
 
-                    if (count % self.listLength == 0 and count != 0):
+                    if (numOfCalItems % self.listLength == 0 and
+                            numOfCalItems != 0):
+
                         self.sendmessage(
                             update.effective_chat.id,
                             context,
@@ -1300,13 +1303,15 @@ class Pixlovarr():
 
                         fqCount += 1
                 else:
-                    for count, s in enumerate(series):
+                    for s in series:
                         if s.status == "upcoming":
                             fqCount += 1
                             allSeries += (
                                 f"{s.title} ({str(s.year)})\n")
 
-                            if (count % self.listLength == 0 and count != 0):
+                            if (fqCount % self.listLength == 0 and
+                                    fqCount != 0):
+
                                 self.sendmessage(
                                     update.effective_chat.id,
                                     context,
@@ -1347,7 +1352,7 @@ class Pixlovarr():
                         fqCount += 1
                 else:
                     #  for m in movies:
-                    for count, m in enumerate(movies):
+                    for m in movies:
 
                         #  if m.status == "announced":
                         if not m.hasFile:
@@ -1355,7 +1360,9 @@ class Pixlovarr():
                             allMovies += (
                                 f"{m.title} ({str(m.year)})\n")
 
-                            if (count % self.listLength == 0 and count != 0):
+                            if (fqCount % self.listLength == 0 and
+                                    fqCount != 0):
+
                                 self.sendmessage(
                                     update.effective_chat.id,
                                     context,
