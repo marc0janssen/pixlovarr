@@ -3,7 +3,11 @@
 # date: 2021-04-21 20:23:43
 # update: 2021-11-22 13:14:50
 
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    error
+)
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -39,6 +43,7 @@ from pycliarr.api import (
 class Pixlovarr():
 
     def __init__(self):
+
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
@@ -188,12 +193,14 @@ class Pixlovarr():
                 self.rankingLimitMax
             )
         else:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
-                    f"Defaulting to Top {self.default_limit_ranking}"
-                )
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Defaulting to Top {self.default_limit_ranking}"
             )
+
             return self.default_limit_ranking
 
     def clamp(self, n, minn, maxn):
@@ -326,9 +333,11 @@ class Pixlovarr():
                     txtQueue += f"{text}\n\n"
 
                     if (count % self.listLength == 0 and count != 0):
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=txtQueue
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            txtQueue
                         )
 
                         txtQueue = ""
@@ -337,9 +346,11 @@ class Pixlovarr():
                         sleep(2)
 
         if txtQueue != "":
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=txtQueue
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                txtQueue
             )
 
         return numOfItems
@@ -372,12 +383,12 @@ class Pixlovarr():
         else:
             if verbose:
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"{update.effective_user.first_name}, "
-                        f"you are not authorized for this command."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"{update.effective_user.first_name}, "
+                    f"you are not authorized for this command."
                 )
 
                 logging.warning(
@@ -546,19 +557,25 @@ class Pixlovarr():
             txtMediaInfo += txtQuality
 
         if txtMediaInfo != "":
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=txtMediaInfo
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                txtMediaInfo
             )
 
         try:
             if media.youTubeTrailerId:
-                youTubeURL = f"{self.youTubeURL}{media.youTubeTrailerId}"
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"{youTubeURL}"
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"{self.youTubeURL}{media.youTubeTrailerId}"
                 )
+
         except AttributeError:
+            # No Youtube ID found
             pass
 
     def showCalenderMediaInfo(self, update, context, media):
@@ -748,11 +765,12 @@ class Pixlovarr():
         numOfCalItems = 0
         if type(media) is SonarrSerieItem or \
                 type(media) is RadarrMovieItem:
-            text = self.showCalenderMediaInfo(update, context, media)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=text
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                self.showCalenderMediaInfo(update, context, media)
             )
 
             numOfCalItems = 1
@@ -777,8 +795,12 @@ class Pixlovarr():
                         self.showCalenderMediaInfo(update, context, m))
 
                     if (count % self.listLength == 0 and count != 0):
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id, text=allMedia)
+                        self.sendmessage(
+                                update.effective_chat.id,
+                                context,
+                                update.effective_user.first_name,
+                                allMedia
+                            )
 
                         allMedia = ""
 
@@ -786,8 +808,12 @@ class Pixlovarr():
                         sleep(2)
 
             if allMedia != "":
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=allMedia)
+                self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        allMedia
+                    )
 
         return numOfCalItems
 
@@ -805,12 +831,15 @@ class Pixlovarr():
         )
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"The {typeOfMedia} '{title} ({year})' "
-            f"was added to the server, "
-            f"{update.effective_user.first_name}. "
-            f"Thank you and till next time.")
+        self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"The {typeOfMedia} '{title} ({year})' "
+                f"was added to the server, "
+                f"{update.effective_user.first_name}. "
+                f"Thank you and till next time."
+            )
 
         logging.info(
             f"{update.effective_user.first_name} - "
@@ -847,9 +876,12 @@ class Pixlovarr():
 
                 break
 
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"The {typeOfMedia} {title} was deleted from the queue.")
+        self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"The {typeOfMedia} {title} was deleted from the queue."
+            )
 
         logging.info(
             f"{update.effective_user.first_name} - "
@@ -894,22 +926,33 @@ class Pixlovarr():
         # Return the ID of the usertag if found on the serevr
         return tagnames.get(tagName)
 
+    def sendmessage(self, chat_id, context, username, msg):
+
+        try:
+            context.bot.send_message(
+                chat_id=chat_id, text=msg)
+
+        except error.Unauthorized:
+            logging.error(
+                f"Forbidden: bot was blocked by the user "
+                f"- {username} - {chat_id}")
+
 # Default Commands
 
     def start(self, update, context):
         if not self.isRejected(update):
             self.logCommand(update)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
+            self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
                     f"Welcome {update.effective_user.first_name} "
                     f"to Pixlovarr, I'm your assistent for "
                     f"downloading series and movies. Please use /help "
                     f"for more information. But first request access "
                     f"with /signup."
                 )
-            )
 
     def signup(self, update, context):
         if not self.isRejected(update):
@@ -929,41 +972,42 @@ class Pixlovarr():
 
                     self.saveconfig(self.pixlovarr_signups_file, self.signups)
 
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
+                    self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
                             f"Thank you {update.effective_user.first_name}, "
                             f"for signing up. The admin has been notified. "
                             f"Please be patient and you will be added to "
                             f"the memberlist soon."
                         )
-                    )
 
-                    context.bot.send_message(
-                        chat_id=self.admin_user_id,
-                        text=(
+                    self.sendmessage(
+                            self.admin_user_id,
+                            context,
+                            "Admin",
                             f"Hi admin, {self.person['fname']} wants access.\n"
                             f"Use /new to list all new members.\n"
                         )
-                    )
 
                 else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
+                    self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
                             f"Please be patient "
                             f"{update.effective_user.first_name}, "
                             f"we get you hooked up as soon as possible."
                         )
-                    )
+
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
+                self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
                         f"No need to sign up twice, "
                         f"{update.effective_user.first_name}"
                     )
-                )
 
     def help(self, update, context):
         if not self.isRejected(update):
@@ -1013,19 +1057,23 @@ class Pixlovarr():
 
             helpText = helpText + ("\nversion: 2021-11-22 13:15:22\n")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=helpText)
+            self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    helpText
+                )
 
     def userid(self, update, context):
         if not self.isRejected(update):
             self.logCommand(update)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(
-                    f"Hi {update.effective_user.first_name}, "
-                    f"your userid is {update.effective_user.id}."
-                )
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Hi {update.effective_user.first_name}, "
+                f"your userid is {update.effective_user.id}."
             )
 
 # Member Commands
@@ -1036,9 +1084,12 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             if re.match("^/[Rr][Ss]$", command[0]):
                 typeOfMedia = "serie"
@@ -1049,9 +1100,12 @@ class Pixlovarr():
                 NewsFeed = feedparser.parse(self.newsFeedMovies)
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
                 return
 
@@ -1093,10 +1147,12 @@ class Pixlovarr():
                     quote=False
                 )
             else:
-                endtext = (
-                    f"There are no {typeOfMedia}s in the newsfeed.")
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=endtext)
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no {typeOfMedia}s in the newsfeed."
+                )
 
     def getCalendar(self, update, context):
         if not self.isRejected(update) and \
@@ -1126,9 +1182,12 @@ class Pixlovarr():
                     typeOfMedia = "movie"
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
                 return
 
@@ -1151,21 +1210,30 @@ class Pixlovarr():
                             f"Listed {numOfCalItems} scheduled {typeOfMedia}s "
                             f"from the calendar."
                         )
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=endtext)
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            f"There were no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
+
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        endtext
                     )
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"There were no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+
             else:
-                endtext = (
-                    f"There are no scheduled {typeOfMedia}s in the calendar.")
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=endtext)
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no scheduled {typeOfMedia}s in the calendar."
+                )
 
     def futureQueue(self, update, context):
         if not self.isRejected(update) and \
@@ -1184,10 +1252,14 @@ class Pixlovarr():
                 allSeries = "Series\n"
                 if type(series) is SonarrSerieItem:
                     if series.status == "upcoming":
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=f"{series.title} ({str(series.year)})\n"
+
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            f"{series.title} ({str(series.year)})\n"
                         )
+
                         fqCount += 1
                 else:
                     for count, s in enumerate(series):
@@ -1197,9 +1269,12 @@ class Pixlovarr():
                                 f"{s.title} ({str(s.year)})\n")
 
                             if (count % self.listLength == 0 and count != 0):
-                                context.bot.send_message(
-                                    chat_id=update.effective_chat.id,
-                                    text=allSeries)
+                                self.sendmessage(
+                                    update.effective_chat.id,
+                                    context,
+                                    update.effective_user.first_name,
+                                    allSeries
+                                )
 
                                 allSeries = ""
 
@@ -1207,9 +1282,12 @@ class Pixlovarr():
                                 sleep(2)
 
                     if allSeries != "":
-                        context.bot.send_message(
-                                chat_id=update.effective_chat.id,
-                                text=allSeries)
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            allSeries
+                        )
 
                     endtext = (
                         f"There are {fqCount} series in the announced queue.")
@@ -1221,10 +1299,13 @@ class Pixlovarr():
                 allMovies = "Movies\n"
                 if type(movies) is RadarrMovieItem:
                     if not movies.hasFile:
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id,
-                            text=f"{movies.title} ({str(movies.year)})\n"
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            f"{movies.title} ({str(movies.year)})\n"
                         )
+
                         fqCount += 1
                 else:
                     #  for m in movies:
@@ -1237,9 +1318,12 @@ class Pixlovarr():
                                 f"{m.title} ({str(m.year)})\n")
 
                             if (count % self.listLength == 0 and count != 0):
-                                context.bot.send_message(
-                                    chat_id=update.effective_chat.id,
-                                    text=allMovies)
+                                self.sendmessage(
+                                    update.effective_chat.id,
+                                    context,
+                                    update.effective_user.first_name,
+                                    allMovies
+                                )
 
                                 allMovies = ""
 
@@ -1247,14 +1331,22 @@ class Pixlovarr():
                                 sleep(2)
 
                     if allMovies != "":
-                        context.bot.send_message(
-                            chat_id=update.effective_chat.id, text=allMovies)
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            allMovies
+                        )
 
                     endtext = (
                         f"There are {fqCount} items in the announced queue.")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id, text=endtext)
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                endtext
+            )
 
     def showRankings(self, update, context):
         if not self.isRejected(update) and \
@@ -1267,9 +1359,12 @@ class Pixlovarr():
             topAmount = self.getTopAmount(
                 update, context, ' '.join(context.args))
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             if re.match("^/[Tt][Ss]$", command[0]):
                 media = self.imdb.get_top250_tv()
@@ -1302,9 +1397,12 @@ class Pixlovarr():
                 adjective = "worst "
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
                 return
 
@@ -1324,9 +1422,12 @@ class Pixlovarr():
                         "random features..."
                     ]
 
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=random.choice(phrass))
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        random.choice(phrass)
+                    )
 
                 if typeOfMedia == "serie":
                     if self.sonarr_enabled:
@@ -1412,9 +1513,11 @@ class Pixlovarr():
                     numOfItems = self.countItemsinQueue(
                         update, context, numOfItems, queueradarr, "movie")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"There are {numOfItems} items in the queue."
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"There are {numOfItems} items in the queue."
             )
 
     def downloadSeries(self, update, context):
@@ -1434,9 +1537,12 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             media = []
 
@@ -1451,9 +1557,12 @@ class Pixlovarr():
                     media = self.radarr_node.get_movie()
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
                 return
 
@@ -1471,20 +1580,30 @@ class Pixlovarr():
                             f"Listed {numofMedia} {typeOfMedia}s "
                             f"from the catalog."
                         )
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=endtext)
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            f"There were no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
+
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        endtext
                     )
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"There were no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+
             else:
-                endtext = f"There are no {typeOfMedia}s in the catalog."
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=endtext)
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no {typeOfMedia}s in the catalog."
+                )
 
     def listMyMedia(self, update, context):
         if not self.isRejected(update) and \
@@ -1494,9 +1613,12 @@ class Pixlovarr():
 
             command = update.effective_message.text.split(" ")
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             media = []
 
@@ -1511,9 +1633,12 @@ class Pixlovarr():
                     media = self.radarr_node.get_movie()
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong...."
+                )
 
                 return
 
@@ -1531,28 +1656,41 @@ class Pixlovarr():
                             f"Listed {numofMedia} {typeOfMedia}s "
                             f"from the catalog."
                         )
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=endtext)
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            f"There were no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
+
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        endtext
                     )
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"There were no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+
             else:
-                endtext = f"There are no {typeOfMedia}s in the catalog."
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=endtext)
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no {typeOfMedia}s in the catalog."
+                )
 
     def list(self, update, context):
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             self.logCommand(update)
 
@@ -1571,9 +1709,12 @@ class Pixlovarr():
                     typeOfMedia = "movie"
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="Something went wrong...")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
                 return
 
@@ -1591,20 +1732,30 @@ class Pixlovarr():
                             f"Listed {numofMedia} {typeOfMedia}s "
                             f"from the catalog."
                         )
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=endtext)
-                else:
-                    context.bot.send_message(
-                        chat_id=update.effective_chat.id,
-                        text=(
-                            f"There were no results found, "
-                            f"{update.effective_user.first_name}."
-                        )
+
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        endtext
                     )
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"There were no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
+
             else:
-                endtext = f"There are no {typeOfMedia}s in the catalog."
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=endtext)
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no {typeOfMedia}s in the catalog."
+                )
 
     def downloadMovies(self, update, context):
         if not self.isRejected(update) and \
@@ -1630,9 +1781,11 @@ class Pixlovarr():
                 tagName = f"{strippedfname}_{person['id']}"
                 tagstxt = tagstxt + f"{tagName}\n"
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=tagstxt
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                tagstxt
             )
 
     def showCmdHistory(self, update, context):
@@ -1642,28 +1795,33 @@ class Pixlovarr():
 
             endtext = "No items in the command history."
 
-            for historyItem in self.cmdHistory:
+            if self.cmdHistory:
+                for historyItem in self.cmdHistory:
 
-                text = (
-                    f"{historyItem['timestamp']} - "
-                    f"{historyItem['cmd']} - "
-                    f"{historyItem['uname']} - "
-                    f"{historyItem['uid']}"
-                )
+                    historytext = (
+                        f"{historyItem['timestamp']} - "
+                        f"{historyItem['cmd']} - "
+                        f"{historyItem['uname']} - "
+                        f"{historyItem['uid']}"
+                    )
 
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=text
-                )
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        historytext
+                    )
 
                 endtext = (
                     f"Found {len(self.cmdHistory)} items "
                     f"in command history."
                 )
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=endtext
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                endtext
             )
 
     def new(self, update, context):
@@ -1697,11 +1855,11 @@ class Pixlovarr():
                 )
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        "No new signups in the queue."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "No new signups in the queue."
                 )
 
             self.logCommand(update)
@@ -1729,11 +1887,11 @@ class Pixlovarr():
                     quote=False
                 )
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        "No members in the list."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "No members in the list."
                 )
 
     def denied(self, update, context):
@@ -1759,11 +1917,11 @@ class Pixlovarr():
                     quote=False
                 )
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        "No members in the list."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "No members in the list."
                 )
 
     def unknown(self, update, context):
@@ -1771,10 +1929,13 @@ class Pixlovarr():
 
             self.logCommand(update)
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Sorry {update.effective_user.first_name}, "
-                f"I didn't understand that command.")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Sorry {update.effective_user.first_name}, "
+                f"I didn't understand that command."
+            )
 
 # HandlerCallback Commands
     def selectRootFolder(self, update, context):
@@ -1818,13 +1979,13 @@ class Pixlovarr():
                 )
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"No paths were found, Please set them up in"
-                        f"Sonarr and Radarr, "
-                        f"{update.effective_user.first_name}."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"No paths were found, Please set them up in"
+                    f"Sonarr and Radarr, "
+                    f"{update.effective_user.first_name}."
                 )
 
                 return
@@ -1915,9 +2076,12 @@ class Pixlovarr():
                         add_exclusion=self.radarr_add_exclusion
                     )
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"The {data[1]} has been deleted.")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"The {data[1]} has been deleted."
+            )
 
     def downloadMedia(self, update, context):
         if not self.isRejected(update) and self.isGranted(update):
@@ -1928,9 +2092,12 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaid
             # 3:qualityid, 4: rootfolder, 5: Download which seasons?
 
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Please be patient...")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -2027,13 +2194,13 @@ class Pixlovarr():
                         row = []
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=(
-                        f"No profiles were found, Please set them up in"
-                        f"Sonarr and Radarr, "
-                        f"{update.effective_user.first_name}."
-                    )
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"No profiles were found, Please set them up in"
+                    f"Sonarr and Radarr, "
+                    f"{update.effective_user.first_name}."
                 )
 
                 return
@@ -2087,9 +2254,11 @@ class Pixlovarr():
     def findMedia(self, update, context, query, typeOfMedia, args):
 
         if ' '.join(args):
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Searching for {typeOfMedia}s..."
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Searching for {typeOfMedia}s..."
             )
 
             ranking = ""
@@ -2185,15 +2354,22 @@ class Pixlovarr():
                 )
 
             else:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"The specified query has no results, "
-                    f"{update.effective_user.first_name}.")
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"The specified query has no results, "
+                    f"{update.effective_user.first_name}."
+                )
+
         else:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Please specify a query, "
-                f"{update.effective_user.first_name}.")
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Please specify a query, "
+                f"{update.effective_user.first_name}."
+            )
 
     def grant(self, update, context):
         if self.isAdmin(update, context, True):
@@ -2224,22 +2400,22 @@ class Pixlovarr():
                     f" to the memberlist."
                 )
 
-                context.bot.send_message(
-                    chat_id=self.members[data[2]]['id'],
-                    text=(
-                        f"Hi {self.members[data[2]]['fname']}, "
-                        f"access was granted. For your new commands, "
-                        f"please use /help."
-                    )
+                self.sendmessage(
+                    self.members[data[2]]['id'],
+                    context,
+                    self.members[data[2]]['fname'],
+                    f"Hi {self.members[data[2]]['fname']}, "
+                    f"access was granted. For your new commands, "
+                    f"please use /help."
                 )
 
-                context.bot.send_message(
-                    chat_id=self.admin_user_id,
-                    text=(
-                        f"Hi admin, "
-                        f"{self.members[data[2]]['fname']} "
-                        f"was granted access. Message has been sent."
-                    )
+                self.sendmessage(
+                    self.admin_user_id,
+                    context,
+                    "Admin",
+                    f"Hi admin, "
+                    f"{self.members[data[2]]['fname']} "
+                    f"was granted access. Message has been sent."
                 )
 
     def reject(self, update, context):
@@ -2269,21 +2445,20 @@ class Pixlovarr():
                     f"{self.rejected[data[2]]['id']} was rejected."
                 )
 
-                context.bot.send_message(
-                    chat_id=self.rejected[data[2]]['id'],
-                    text=(
-                        f"Hi {self.rejected[data[2]]['fname']}, "
-                        f"access was rejected."
-                    )
+                self.sendmessage(
+                    self.rejected[data[2]]['id'],
+                    context,
+                    self.rejected[data[2]]['fname'],
+                    f"Hi {self.rejected[data[2]]['fname']}, "
+                    f"access was rejected."
                 )
 
-                context.bot.send_message(
-                    chat_id=self.admin_user_id,
-                    text=(
-                        f"Hi admin, "
-                        f"{self.rejected[data[2]]['fname']} "
-                        f"was rejected. Message has been sent."
-                    )
+                self.sendmessage(
+                    self.admin_user_id,
+                    context,
+                    "Admin",
+                    f"Hi admin, "
+                    f"{self.rejected[data[2]]['fname']} was rejected."
                 )
 
 # Init Handlers
@@ -2434,8 +2609,6 @@ class Pixlovarr():
 
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)
-
-# Bot
 
     def startBot(self):
         self.setHandlers()
