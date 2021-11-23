@@ -822,17 +822,25 @@ class Pixlovarr():
         return numOfCalItems
 
     def logCommand(self, update):
-        logging.info(
-            f"{update.effective_user.first_name} - "
-            f"{update.effective_user.id} "
-            f"issued {update.effective_message.text}."
-        )
 
-        self.addItemToHistory(
-            f"{update.effective_message.text}",
-            update.effective_user.first_name,
-            update.effective_user.id
-        )
+        if not self.isRejected(update):
+            logging.info(
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued {update.effective_message.text}."
+            )
+
+            self.addItemToHistory(
+                f"{update.effective_message.text}",
+                update.effective_user.first_name,
+                update.effective_user.id
+            )
+        else:
+            logging.warning(
+                f"Rejected user {update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued {update.effective_message.text}."
+            )
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         self.sendmessage(
@@ -958,9 +966,10 @@ class Pixlovarr():
 # Default Commands
 
     def start(self, update, context):
-        if not self.isRejected(update):
-            self.logCommand(update)
 
+        self.logCommand(update)
+
+        if not self.isRejected(update):
             self.sendmessage(
                 update.effective_chat.id,
                 context,
@@ -973,10 +982,10 @@ class Pixlovarr():
             )
 
     def signup(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update):
-
-            self.logCommand(update)
-
             if not self.isGranted(update):
                 if not str(update.effective_user.id) in self.signups:
 
@@ -1028,8 +1037,10 @@ class Pixlovarr():
                 )
 
     def help(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update):
-            self.logCommand(update)
 
             helpText = (
                 "-- User commands --\n"
@@ -1083,8 +1094,10 @@ class Pixlovarr():
             )
 
     def userid(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update):
-            self.logCommand(update)
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -1096,9 +1109,10 @@ class Pixlovarr():
 
 # Member Commands
     def showMeta(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
 
-            self.logCommand(update)
+        self.logCommand(update)
+
+        if not self.isRejected(update) and self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
 
@@ -1175,11 +1189,12 @@ class Pixlovarr():
                 )
 
     def getCalendar(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
-
-            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -1256,11 +1271,12 @@ class Pixlovarr():
                 )
 
     def futureQueue(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 (self.sonarr_enabled or self.radarr_enabled):
-
-            self.logCommand(update)
 
             if self.sonarr_enabled:
                 series = self.sonarr_node.get_serie()
@@ -1369,10 +1385,11 @@ class Pixlovarr():
             )
 
     def showRankings(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update):
-
-            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -1514,10 +1531,11 @@ class Pixlovarr():
                 )
 
     def showQueue(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update):
-
-            self.logCommand(update)
 
             numOfItems = 0
 
@@ -1543,19 +1561,20 @@ class Pixlovarr():
             )
 
     def downloadSeries(self, update, context):
-        if not self.isRejected(update) and \
-                self.isGranted(update) and \
-                self.sonarr_enabled:
 
-            self.logCommand(update)
+        self.logCommand(update)
+
+        if not self.isRejected(update) and \
+                self.isGranted(update):
 
             self.findMedia(update, context, None, "serie", context.args)
 
     def listNewMedia(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update):
-
-            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -1628,10 +1647,11 @@ class Pixlovarr():
                 )
 
     def listMyMedia(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update):
-
-            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -1704,6 +1724,9 @@ class Pixlovarr():
                 )
 
     def list(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update):
 
@@ -1713,8 +1736,6 @@ class Pixlovarr():
                 update.effective_user.first_name,
                 "Please be patient..."
             )
-
-            self.logCommand(update)
 
             command = update.effective_message.text.split(" ")
 
@@ -1780,22 +1801,24 @@ class Pixlovarr():
                 )
 
     def downloadMovies(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.radarr_enabled:
-
-            self.logCommand(update)
 
             self.findMedia(update, context, None, "movie", context.args)
 
 # Admin Commands
 
     def listtags(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
-
-            self.logCommand(update)
 
             tagstxt = "-- Tags --\n"
             for member in self.members:
@@ -1813,11 +1836,12 @@ class Pixlovarr():
             )
 
     def showCmdHistory(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
-
-            self.logCommand(update)
 
             endtext = "No items in the command history."
 
@@ -1851,11 +1875,12 @@ class Pixlovarr():
             )
 
     def new(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
-
-            self.logCommand(update)
 
             if self.signups:
 
@@ -1892,14 +1917,13 @@ class Pixlovarr():
                     "No new signups in the queue."
                 )
 
-            self.logCommand(update)
-
     def allowed(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
-
-            self.logCommand(update)
 
             if self.members:
 
@@ -1930,11 +1954,12 @@ class Pixlovarr():
                 )
 
     def denied(self, update, context):
+
+        self.logCommand(update)
+
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
-
-            self.logCommand(update)
 
             if self.rejected:
 
@@ -1965,9 +1990,10 @@ class Pixlovarr():
                 )
 
     def unknown(self, update, context):
-        if not self.isRejected(update):
 
-            self.logCommand(update)
+        self.logCommand(update)
+
+        if not self.isRejected(update):
 
             self.sendmessage(
                 update.effective_chat.id,
