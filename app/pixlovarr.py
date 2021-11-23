@@ -1086,7 +1086,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = f"{helpText}\nversion: {self.version_date}\n"
+            helpText = f"{helpText}\ndate: {self.version_date}\n"
 
             self.sendmessage(
                 update.effective_chat.id,
