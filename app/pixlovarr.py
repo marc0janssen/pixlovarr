@@ -1791,7 +1791,9 @@ class Pixlovarr():
 # Admin Commands
 
     def listtags(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update, context, True) and \
+            not self.isRejected(update) and \
+                self.isGranted(update):
 
             self.logCommand(update)
 
@@ -1811,7 +1813,9 @@ class Pixlovarr():
             )
 
     def showCmdHistory(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update, context, True) and \
+            not self.isRejected(update) and \
+                self.isGranted(update):
 
             self.logCommand(update)
 
@@ -1847,7 +1851,10 @@ class Pixlovarr():
             )
 
     def new(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update, context, True) and \
+            not self.isRejected(update) and \
+                self.isGranted(update):
+
             self.logCommand(update)
 
             if self.signups:
@@ -1888,7 +1895,10 @@ class Pixlovarr():
             self.logCommand(update)
 
     def allowed(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update, context, True) and \
+            not self.isRejected(update) and \
+                self.isGranted(update):
+
             self.logCommand(update)
 
             if self.members:
@@ -1920,7 +1930,10 @@ class Pixlovarr():
                 )
 
     def denied(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update, context, True) and \
+            not self.isRejected(update) and \
+                self.isGranted(update):
+
             self.logCommand(update)
 
             if self.rejected:
