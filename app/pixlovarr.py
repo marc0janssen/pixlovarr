@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-23 16:07:10
+# update: 2021-11-23 17:32:31
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version_date = "2021-11-23 16:07:01"
+        self.version_date = "2021-11-23 17:32:39"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -1282,6 +1282,13 @@ class Pixlovarr():
         if not self.isRejected(update) and \
                 self.isGranted(update) and \
                 (self.sonarr_enabled or self.radarr_enabled):
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Please be patient..."
+            )
 
             if self.sonarr_enabled:
                 series = self.sonarr_node.get_serie()
