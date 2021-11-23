@@ -323,10 +323,11 @@ class Pixlovarr():
 
                     reply_markup = InlineKeyboardMarkup(keyboard)
 
-                    update.message.reply_text(
+                    self.replytext(
+                        update,
                         text,
-                        reply_markup=reply_markup,
-                        quote=False
+                        reply_markup,
+                        False
                     )
 
                 else:
@@ -658,10 +659,11 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
+                self.replytext(
+                    update,
                     f"The following {typeOfMedia}s in the catalog:",
-                    reply_markup=reply_markup,
-                    quote=False
+                    reply_markup,
+                    False
                 )
 
                 numOfMedia = 1
@@ -738,10 +740,11 @@ class Pixlovarr():
 
                                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                                update.message.reply_text(
-                                    f"{headtxt}",
-                                    reply_markup=reply_markup,
-                                    quote=False
+                                self.replytext(
+                                    update,
+                                    headtxt,
+                                    reply_markup,
+                                    False
                                 )
 
                                 keyboard = []
@@ -752,10 +755,11 @@ class Pixlovarr():
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
-                    f"{headtxt}",
-                    reply_markup=reply_markup,
-                    quote=False
+                self.replytext(
+                    update,
+                    headtxt,
+                    reply_markup,
+                    False
                 )
 
         return numOfMedia
@@ -796,11 +800,11 @@ class Pixlovarr():
 
                     if (count % self.listLength == 0 and count != 0):
                         self.sendmessage(
-                                update.effective_chat.id,
-                                context,
-                                update.effective_user.first_name,
-                                allMedia
-                            )
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            allMedia
+                        )
 
                         allMedia = ""
 
@@ -809,11 +813,11 @@ class Pixlovarr():
 
             if allMedia != "":
                 self.sendmessage(
-                        update.effective_chat.id,
-                        context,
-                        update.effective_user.first_name,
-                        allMedia
-                    )
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    allMedia
+                )
 
         return numOfCalItems
 
@@ -832,14 +836,14 @@ class Pixlovarr():
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         self.sendmessage(
-                update.effective_chat.id,
-                context,
-                update.effective_user.first_name,
-                f"The {typeOfMedia} '{title} ({year})' "
-                f"was added to the server, "
-                f"{update.effective_user.first_name}. "
-                f"Thank you and till next time."
-            )
+            update.effective_chat.id,
+            context,
+            update.effective_user.first_name,
+            f"The {typeOfMedia} '{title} ({year})' "
+            f"was added to the server, "
+            f"{update.effective_user.first_name}. "
+            f"Thank you and till next time."
+        )
 
         logging.info(
             f"{update.effective_user.first_name} - "
@@ -877,11 +881,11 @@ class Pixlovarr():
                 break
 
         self.sendmessage(
-                update.effective_chat.id,
-                context,
-                update.effective_user.first_name,
-                f"The {typeOfMedia} {title} was deleted from the queue."
-            )
+            update.effective_chat.id,
+            context,
+            update.effective_user.first_name,
+            f"The {typeOfMedia} {title} was deleted from the queue."
+        )
 
         logging.info(
             f"{update.effective_user.first_name} - "
@@ -935,7 +939,21 @@ class Pixlovarr():
         except error.Unauthorized:
             logging.error(
                 f"Forbidden: bot was blocked by the user "
-                f"- {username} - {chat_id}")
+                f"- {username} - {chat_id}.")
+
+    def replytext(self, update, msg, reply_markup, quote):
+
+        try:
+            update.message.reply_text(
+                msg,
+                reply_markup=reply_markup,
+                quote=quote
+            )
+
+        except error.Unauthorized:
+            logging.error(
+                "Forbidden: bot was blocked by the user."
+            )
 
 # Default Commands
 
@@ -944,15 +962,15 @@ class Pixlovarr():
             self.logCommand(update)
 
             self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    f"Welcome {update.effective_user.first_name} "
-                    f"to Pixlovarr, I'm your assistent for "
-                    f"downloading series and movies. Please use /help "
-                    f"for more information. But first request access "
-                    f"with /signup."
-                )
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Welcome {update.effective_user.first_name} "
+                f"to Pixlovarr, I'm your assistent for "
+                f"downloading series and movies. Please use /help "
+                f"for more information. But first request access "
+                f"with /signup."
+            )
 
     def signup(self, update, context):
         if not self.isRejected(update):
@@ -973,41 +991,41 @@ class Pixlovarr():
                     self.saveconfig(self.pixlovarr_signups_file, self.signups)
 
                     self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"Thank you {update.effective_user.first_name}, "
-                            f"for signing up. The admin has been notified. "
-                            f"Please be patient and you will be added to "
-                            f"the memberlist soon."
-                        )
-
-                    self.sendmessage(
-                            self.admin_user_id,
-                            context,
-                            "Admin",
-                            f"Hi admin, {self.person['fname']} wants access.\n"
-                            f"Use /new to list all new members.\n"
-                        )
-
-                else:
-                    self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"Please be patient "
-                            f"{update.effective_user.first_name}, "
-                            f"we get you hooked up as soon as possible."
-                        )
-
-            else:
-                self.sendmessage(
                         update.effective_chat.id,
                         context,
                         update.effective_user.first_name,
-                        f"No need to sign up twice, "
-                        f"{update.effective_user.first_name}"
+                        f"Thank you {update.effective_user.first_name}, "
+                        f"for signing up. The admin has been notified. "
+                        f"Please be patient and you will be added to "
+                        f"the memberlist soon."
                     )
+
+                    self.sendmessage(
+                        self.admin_user_id,
+                        context,
+                        "Admin",
+                        f"Hi admin, {self.person['fname']} wants access.\n"
+                        f"Use /new to list all new members.\n"
+                    )
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"Please be patient "
+                        f"{update.effective_user.first_name}, "
+                        f"we get you hooked up as soon as possible."
+                    )
+
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"No need to sign up twice, "
+                    f"{update.effective_user.first_name}"
+                )
 
     def help(self, update, context):
         if not self.isRejected(update):
@@ -1058,11 +1076,11 @@ class Pixlovarr():
             helpText = helpText + ("\nversion: 2021-11-23 12:03:32\n")
 
             self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    helpText
-                )
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                helpText
+            )
 
     def userid(self, update, context):
         if not self.isRejected(update):
@@ -1141,11 +1159,13 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
+                self.replytext(
+                    update,
                     f"Top 20 recently reviewed {typeOfMedia}s:",
-                    reply_markup=reply_markup,
-                    quote=False
+                    reply_markup,
+                    False
                 )
+
             else:
                 self.sendmessage(
                     update.effective_chat.id,
@@ -1474,21 +1494,23 @@ class Pixlovarr():
                 reply_markup_PresentMedia = InlineKeyboardMarkup(
                     keyboardPresentMedia)
 
-                update.message.reply_text(
+                self.replytext(
+                    update,
                     f"We found these {adjective}{typeOfMedia}s of the "
-                    f"IMDb top {topAmount} in your catalog:",
-                    reply_markup=reply_markup_PresentMedia,
-                    quote=False
+                    f"IMDb top {topAmount} in the catalog:",
+                    reply_markup_PresentMedia,
+                    False
                 )
 
             if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
+                self.replytext(
+                    update,
                     f"These {adjective}{typeOfMedia}s of IMDb top {topAmount} "
-                    f"are not in your catalog at the moment:",
-                    reply_markup=reply_markup,
-                    quote=False
+                    f"are not in the catalog at the moment:",
+                    reply_markup,
+                    False
                 )
 
     def showQueue(self, update, context):
@@ -1848,10 +1870,11 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
-                    'These are your new signups. Please Grant or Reject:',
-                    reply_markup=reply_markup,
-                    quote=False
+                self.replytext(
+                    update,
+                    "These are your new signups. Please Grant or Reject:",
+                    reply_markup,
+                    False
                 )
 
             else:
@@ -1881,11 +1904,13 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
-                    'These are your members. Please reject if needed:',
-                    reply_markup=reply_markup,
-                    quote=False
+                self.replytext(
+                    update,
+                    "These are your members. Please reject if needed:",
+                    reply_markup,
+                    False
                 )
+
             else:
                 self.sendmessage(
                     update.effective_chat.id,
@@ -1911,11 +1936,13 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                update.message.reply_text(
-                    'These members are denied. Please grant if needed:',
-                    reply_markup=reply_markup,
-                    quote=False
+                self.replytext(
+                    update,
+                    "These members are denied. Please grant if needed:",
+                    reply_markup,
+                    False
                 )
+
             else:
                 self.sendmessage(
                     update.effective_chat.id,
@@ -1972,10 +1999,11 @@ class Pixlovarr():
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                query.message.reply_text(
+                self.replytext(
+                    query,
                     "Please select download location:",
-                    reply_markup=reply_markup,
-                    quote=False
+                    reply_markup,
+                    False
                 )
 
             else:
@@ -2030,10 +2058,12 @@ class Pixlovarr():
                 callback_data=callbackdata)]]
 
             reply_markup = InlineKeyboardMarkup(keyboard)
-            query.message.reply_text(
+
+            self.replytext(
+                query,
                 "Actions:",
-                reply_markup=reply_markup,
-                quote=False
+                reply_markup,
+                False
             )
 
     def deleteQueueItem(self, update, context):
@@ -2207,10 +2237,11 @@ class Pixlovarr():
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            query.message.reply_text(
+            self.replytext(
+                query,
                 "Please select media quality:",
-                reply_markup=reply_markup,
-                quote=False
+                reply_markup,
+                False
             )
 
     def selectDownload(self, update, context):
@@ -2245,10 +2276,11 @@ class Pixlovarr():
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            query.message.reply_text(
+            self.replytext(
+                query,
                 "Please confirm:",
-                reply_markup=reply_markup,
-                quote=False
+                reply_markup,
+                False
             )
 
     def findMedia(self, update, context, query, typeOfMedia, args):
@@ -2331,26 +2363,28 @@ class Pixlovarr():
                         break
 
                 if query is not None:
-                    message = query.message
+                    message = query
                 else:
-                    message = update.message
+                    message = update
 
                 if keyboardPresentMedia:
                     reply_markup_PresentMedia = InlineKeyboardMarkup(
                         keyboardPresentMedia)
 
-                    message.reply_text(
+                    self.replytext(
+                        message,
                         f"We found these {typeOfMedia}s in your catalog:",
-                        reply_markup=reply_markup_PresentMedia,
-                        quote=False
+                        reply_markup_PresentMedia,
+                        False
                     )
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                message.reply_text(
+                self.replytext(
+                    message,
                     "We found the following media for you:",
-                    reply_markup=reply_markup,
-                    quote=False
+                    reply_markup,
+                    False
                 )
 
             else:
