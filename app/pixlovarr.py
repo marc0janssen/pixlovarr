@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.184"
+        self.version = "1.5.1.234"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -80,6 +80,9 @@ class Pixlovarr():
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
                 self.users_permanent_delete_media = True if (
                     self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
+                    "ON") else False
+                self.sign_up_is_open = True if (
+                    self.config['COMMON']['SIGN_UP_IS_OPEN'] ==
                     "ON") else False
 
                 self.default_limit_ranking = self.clamp(
@@ -135,12 +138,12 @@ class Pixlovarr():
                     "./config/pixlovarr_signups.json")
                 self.pixlovarr_members_file = (
                     "./config/pixlovarr_members.json")
-                self.pixlovarr_rejected_file = (
-                    "./config/pixlovarr_rejected.json")
+                self.pixlovarr_blocked_file = (
+                    "./config/pixlovarr_blocked.json")
 
                 self.signups = self.loaddata(self.pixlovarr_signups_file)
                 self.members = self.loaddata(self.pixlovarr_members_file)
-                self.rejected = self.loaddata(self.pixlovarr_rejected_file)
+                self.blocked = self.loaddata(self.pixlovarr_blocked_file)
 
             except KeyError as e:
                 logging.error(
@@ -402,8 +405,11 @@ class Pixlovarr():
 
             return False
 
-    def isRejected(self, update):
-        return str(update.effective_user.id) in self.rejected
+    def isSignUpOpen(self):
+        return self.sign_up_is_open
+
+    def isBlocked(self, update):
+        return str(update.effective_user.id) in self.Blocked
 
     def isGranted(self, update):
         return str(update.effective_user.id) in self.members
@@ -828,9 +834,13 @@ class Pixlovarr():
 
     def logCommand(self, update):
 
-        if not self.isRejected(update):
+        if not self.isBlocked(update) and self.isSignUpOpen():
+
+            unauthorised = "Unauthorised user" if not self.isGranted(
+                update) else "User"
+
             logging.info(
-                f"{update.effective_user.first_name} - "
+                f"{unauthorised} {update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued {update.effective_message.text}."
             )
@@ -841,8 +851,13 @@ class Pixlovarr():
                 update.effective_user.id
             )
         else:
+            service = "open" if self.isSignUpOpen() else "closed"
+            typeOfUser = "Blocked user" if self.isBlocked(
+                update) else "New user"
+
             logging.warning(
-                f"Rejected user {update.effective_user.first_name} - "
+                f"Signup is {service} and {typeOfUser} "
+                f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued {update.effective_message.text}."
             )
@@ -974,7 +989,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update):
+        if not self.isBlocked(update) and self.isSignUpOpen():
             self.sendmessage(
                 update.effective_chat.id,
                 context,
@@ -990,7 +1005,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update):
+        if not self.isBlocked(update) and self.isSignUpOpen():
             if not self.isGranted(update):
                 if not str(update.effective_user.id) in self.signups:
 
@@ -1045,7 +1060,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update):
+        if not self.isBlocked(update) and self.isSignUpOpen():
 
             helpText = (
                 "-- User commands --\n"
@@ -1102,8 +1117,8 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update):
-
+        if not self.isBlocked(update) and \
+                (self.isSignUpOpen() or self.isGranted(update)):
             self.sendmessage(
                 update.effective_chat.id,
                 context,
@@ -1117,7 +1132,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
 
@@ -1197,9 +1212,8 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
-                self.isGranted(update) and \
-                self.radarr_enabled:
+        if not self.isBlocked(update) and \
+                self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
 
@@ -1279,9 +1293,8 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
-                self.isGranted(update) and \
-                (self.sonarr_enabled or self.radarr_enabled):
+        if not self.isBlocked(update) and \
+                self.isGranted(update):
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -1404,7 +1417,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
@@ -1550,7 +1563,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update):
 
             numOfItems = 0
@@ -1580,8 +1593,9 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
-                self.isGranted(update):
+        if not self.isBlocked(update) and \
+                self.isGranted(update) and \
+                self.sonarr_enabled():
 
             self.findMedia(update, context, None, "serie", context.args)
 
@@ -1589,7 +1603,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
@@ -1666,7 +1680,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update):
 
             command = update.effective_message.text.split(" ")
@@ -1743,7 +1757,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update):
 
             self.sendmessage(
@@ -1820,9 +1834,9 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
-                self.radarr_enabled:
+                self.radarr_enabled():
 
             self.findMedia(update, context, None, "movie", context.args)
 
@@ -1832,7 +1846,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
@@ -1855,7 +1869,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
@@ -1894,7 +1908,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
@@ -1937,7 +1951,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
@@ -1973,16 +1987,16 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update) and \
+        if not self.isBlocked(update) and \
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
-            if self.rejected:
+            if self.blocked:
 
                 keyboard = []
 
-                for member in self.rejected:
-                    person = self.rejected[member]
+                for member in self.blocked:
+                    person = self.blocked[member]
                     keyboard.append([InlineKeyboardButton(
                         f"-√- {person['fname']}",
                         callback_data=f"grant:denied:{person['id']}")]
@@ -2009,7 +2023,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isRejected(update):
+        if not self.isBlocked(update):
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2021,7 +2035,7 @@ class Pixlovarr():
 
 # HandlerCallback Commands
     def selectRootFolder(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2074,7 +2088,7 @@ class Pixlovarr():
                 return
 
     def showMetaInfo(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
@@ -2085,7 +2099,7 @@ class Pixlovarr():
             self.findMedia(update, context, query, data[1], args)
 
     def showMediaInfo(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2122,7 +2136,7 @@ class Pixlovarr():
             )
 
     def deleteQueueItem(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2139,7 +2153,7 @@ class Pixlovarr():
             self.notifyDeleteQueueItem(update, context, data[1], data[2])
 
     def deleteMedia(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2169,7 +2183,7 @@ class Pixlovarr():
             )
 
     def downloadMedia(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2238,7 +2252,7 @@ class Pixlovarr():
                         update, context, data[1], media.title, media.year)
 
     def showDownloadSummary(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
 
             query = update.callback_query
             query.answer()
@@ -2300,7 +2314,7 @@ class Pixlovarr():
             )
 
     def selectDownload(self, update, context):
-        if not self.isRejected(update) and self.isGranted(update):
+        if not self.isBlocked(update) and self.isGranted(update):
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
@@ -2468,20 +2482,20 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:source of person, 2:userid
 
-            if (data[2] in self.signups or data[2] in self.rejected):
+            if (data[2] in self.signups or data[2] in self.blocked):
 
                 if data[1] == "new":
                     self.members[data[2]] = self.signups[data[2]]
                     self.signups.pop(data[2], None)
 
                 if data[1] == "denied":
-                    self.members[data[2]] = self.rejected[data[2]]
-                    self.rejected.pop(data[2], None)
+                    self.members[data[2]] = self.blocked[data[2]]
+                    self.blocked.pop(data[2], None)
 
                 self.saveconfig(self.pixlovarr_members_file, self.members)
                 self.saveconfig(self.pixlovarr_signups_file, self.signups)
                 self.saveconfig(
-                    self.pixlovarr_rejected_file, self.rejected)
+                    self.pixlovarr_blocked_file, self.blocked)
 
                 logging.info(
                     f"{self.members[data[2]]['fname']} - "
@@ -2517,29 +2531,29 @@ class Pixlovarr():
             if (data[2] in self.signups or data[2] in self.members):
 
                 if data[1] == "new":
-                    self.rejected[data[2]] = self.signups[data[2]]
+                    self.blocked[data[2]] = self.signups[data[2]]
                     self.signups.pop(data[2], None)
 
                 if data[1] == "allowed":
-                    self.rejected[data[2]] = self.members[data[2]]
+                    self.blocked[data[2]] = self.members[data[2]]
                     self.members.pop(data[2], None)
 
                 self.saveconfig(self.pixlovarr_members_file, self.members)
                 self.saveconfig(self.pixlovarr_signups_file, self.signups)
                 self.saveconfig(
-                    self.pixlovarr_rejected_file, self.rejected)
+                    self.pixlovarr_blocked_file, self.blocked)
 
                 logging.info(
-                    f"User {self.rejected[data[2]]['fname']} - "
-                    f"{self.rejected[data[2]]['id']} was rejected."
+                    f"User {self.blocked[data[2]]['fname']} - "
+                    f"{self.blocked[data[2]]['id']} was blocked."
                 )
 
                 self.sendmessage(
-                    self.rejected[data[2]]['id'],
+                    self.blocked[data[2]]['id'],
                     context,
-                    self.rejected[data[2]]['fname'],
-                    f"Hi {self.rejected[data[2]]['fname']}, "
-                    f"access was rejected."
+                    self.blocked[data[2]]['fname'],
+                    f"Hi {self.blocked[data[2]]['fname']}, "
+                    f"access was blocked."
                 )
 
                 self.sendmessage(
@@ -2547,7 +2561,7 @@ class Pixlovarr():
                     context,
                     "Admin",
                     f"Hi admin, "
-                    f"{self.rejected[data[2]]['fname']} was rejected."
+                    f"{self.blocked[data[2]]['fname']} was blocked."
                 )
 
 # Init Handlers
