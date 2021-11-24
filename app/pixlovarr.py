@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-23 17:32:31
+# update: 2021-11-24 19:43:52
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version_date = "2021-11-23 17:32:39"
+        self.version = "1.5.1.183"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -180,7 +180,7 @@ class Pixlovarr():
 
         if profiles:
 
-            for count, p in enumerate(profiles):
+            for p in profiles:
 
                 if p['id'] == profileID:
                     return p['name']
@@ -1089,7 +1089,7 @@ class Pixlovarr():
                     "/lt - list tags\n"
                 )
 
-            helpText = f"{helpText}\ndate: {self.version_date}\n"
+            helpText = f"{helpText}\nversion: {self.version}\n"
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2700,6 +2700,7 @@ class Pixlovarr():
         self.dispatcher.add_handler(self.unknown_handler)
 
     def startBot(self):
+        logging.info(f"*** Starting Pixlovarr version: {self.version} ***")
         self.setHandlers()
         self.updater.start_polling()
 
