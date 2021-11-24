@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.183"
+        self.version = "1.5.1.184"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -2700,7 +2700,9 @@ class Pixlovarr():
         self.dispatcher.add_handler(self.unknown_handler)
 
     def startBot(self):
+        logging.info()
         logging.info(f"*** Starting Pixlovarr version: {self.version} ***")
+        logging.info()
         self.setHandlers()
         self.updater.start_polling()
 
