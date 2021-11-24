@@ -2700,9 +2700,9 @@ class Pixlovarr():
         self.dispatcher.add_handler(self.unknown_handler)
 
     def startBot(self):
-        logging.info()
+        logging.info("")
         logging.info(f"*** Starting Pixlovarr version: {self.version} ***")
-        logging.info()
+        logging.info("")
         self.setHandlers()
         self.updater.start_polling()
 
