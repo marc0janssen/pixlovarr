@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.7.1.361"
+        self.version = "1.7.1.364"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -181,9 +181,6 @@ class Pixlovarr():
             shutil.copyfile('./app/pixlovarr.ini.example',
                             './config/pixlovarr.ini.example')
             sys.exit()
-
-    def __del__(self):
-        self.saveconfig(self.pixlovarr_members_file, self.members)
 
     def getProfileInfo(self, profileID, mediaOfType):
 

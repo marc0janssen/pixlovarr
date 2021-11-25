@@ -6,10 +6,10 @@
 # update: 2021-11-19 18:53:39
 
 # Start the first process
-/usr/bin/python3 /app/pixlovarr.py &
+nohup /usr/bin/python3 /app/pixlovarr.py &
   
 # Start the second process
-crond -l 2 -f &
+nohup crond -l 2 -f &
   
 # Wait for any process to exit
 wait -n
