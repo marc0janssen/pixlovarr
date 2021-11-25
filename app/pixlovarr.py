@@ -44,11 +44,15 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.249"
+        self.version = "1.5.1.295"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
+
+        logging.info("")
+        logging.info(f"*** Initializing Pixlovarr version: {self.version} ***")
+        logging.info("")
 
         self.urlNoImage = (
             "https://postimg.cc/3dfySHP9"
@@ -394,7 +398,7 @@ class Pixlovarr():
                     context,
                     update.effective_user.first_name,
                     f"{update.effective_user.first_name}, "
-                    f"you are not authorized for this command."
+                    f"you are unauthorized for this command."
                 )
 
                 logging.warning(
@@ -834,13 +838,16 @@ class Pixlovarr():
 
     def logCommand(self, update):
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        service = "Open" if self.isSignUpOpen() else "Closed"
 
-            unauthorised = "Unauthorised user" if not self.isGranted(
+        if not self.isBlocked(update):
+
+            typeOfUser = "Unauthorised user" if not self.isGranted(
                 update) else "User"
 
             logging.info(
-                f"{unauthorised} {update.effective_user.first_name} - "
+                f"{service} - {typeOfUser} "
+                f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued {update.effective_message.text}."
             )
@@ -851,12 +858,9 @@ class Pixlovarr():
                 update.effective_user.id
             )
         else:
-            service = "open" if self.isSignUpOpen() else "closed"
-            typeOfUser = "Blocked user" if self.isBlocked(
-                update) else "Unauthorised user"
 
             logging.warning(
-                f"Signup is {service} and {typeOfUser} "
+                f"{service} - Blocked user "
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
                 f"issued {update.effective_message.text}."
@@ -977,9 +981,9 @@ class Pixlovarr():
                 quote=quote
             )
 
-        except error.Unauthorized:
+        except error.Unauthorized as e:
             logging.error(
-                "Forbidden: bot was blocked by the user."
+                f"{e}."
             )
 
 # Default Commands
@@ -1101,6 +1105,8 @@ class Pixlovarr():
                     "/blocked - Show all blocked members\n"
                     "/ch - Show command history\n"
                     "/lt - list tags\n"
+                    "/open - open signup\n"
+                    "/close - close signup\n"
                 )
 
             helpText = f"{helpText}\nversion: {self.version}\n"
@@ -1835,18 +1841,60 @@ class Pixlovarr():
 
         if not self.isBlocked(update) and \
                 self.isGranted(update) and \
-                self.radarr_enabled():
+                self.radarr_enabled:
 
             self.findMedia(update, context, None, "movie", context.args)
 
 # Admin Commands
+
+    def opensignup(self, update, context):
+
+        self.logCommand(update)
+
+        if not self.isBlocked(update) and \
+                self.isAdmin(update, context, True):
+
+            if not self.isSignUpOpen():
+
+                self.sign_up_is_open = True
+                msg = "Signup is now open."
+
+            else:
+                msg = "Signup was already open."
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                msg
+            )
+
+    def closesignup(self, update, context):
+
+        self.logCommand(update)
+
+        if not self.isBlocked(update) and \
+                self.isAdmin(update, context, True):
+
+            if self.isSignUpOpen():
+                self.sign_up_is_open = False
+                msg = "Signup is now closed."
+
+            else:
+                msg = "Signup was already closed."
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                msg
+            )
 
     def listtags(self, update, context):
 
         self.logCommand(update)
 
         if not self.isBlocked(update) and \
-                self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
             tagstxt = "-- Tags --\n"
@@ -1869,7 +1917,6 @@ class Pixlovarr():
         self.logCommand(update)
 
         if not self.isBlocked(update) and \
-                self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
             endtext = "No items in the command history."
@@ -1908,7 +1955,6 @@ class Pixlovarr():
         self.logCommand(update)
 
         if not self.isBlocked(update) and \
-                self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
             if self.signups:
@@ -1951,7 +1997,6 @@ class Pixlovarr():
         self.logCommand(update)
 
         if not self.isBlocked(update) and \
-                self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
             if self.members:
@@ -1987,7 +2032,6 @@ class Pixlovarr():
         self.logCommand(update)
 
         if not self.isBlocked(update) and \
-                self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
             if self.blockedusers:
@@ -2709,13 +2753,16 @@ class Pixlovarr():
         self.listtags_handler = CommandHandler('lt', self.listtags)
         self.dispatcher.add_handler(self.listtags_handler)
 
+        self.opensignup_handler = CommandHandler('open', self.opensignup)
+        self.dispatcher.add_handler(self.opensignup_handler)
+
+        self.closesignup_handler = CommandHandler('close', self.closesignup)
+        self.dispatcher.add_handler(self.closesignup_handler)
+
         self.unknown_handler = MessageHandler(Filters.command, self.unknown)
         self.dispatcher.add_handler(self.unknown_handler)
 
     def startBot(self):
-        logging.info("")
-        logging.info(f"*** Starting Pixlovarr version: {self.version} ***")
-        logging.info("")
         self.setHandlers()
         self.updater.start_polling()
 
