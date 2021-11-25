@@ -45,6 +45,7 @@ You can later use the tagged media to your liking.
         /dm T<#> <keyword> - Download movie
         /ms - list your series
         /mm - list your movies
+        /sts - Service status info
 
         -- Admin commands --
         /new - Show all new signups
@@ -52,6 +53,8 @@ You can later use the tagged media to your liking.
         /denied - Show all denied members
         /ch - Show command history
         /lt - list tags
+        /open - open signup
+        /close - close signup 
 
 ## Examples
 
