@@ -185,4 +185,4 @@ In the directory /config the python script expects a config file called 'radarr_
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-11-21 21:34:36
+2021-11-25 20:47:51
