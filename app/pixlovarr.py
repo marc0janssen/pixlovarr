@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.7.1.365"
+        self.version = "1.7.1.385"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -153,8 +153,11 @@ class Pixlovarr():
                 self.blockedusers = self.loaddata(self.pixlovarr_blocked_file)
                 self.pixlovarrdata = self.loaddata(self.pixlovarr_data_file)
 
-                self.last_movie = "<not yet available>"
-                self.last_serie = "<not yet available>"
+                if not self.pixlovarrdata:
+                    self.pixlovarrdata["uname"] = "<unknown>"
+                    self.pixlovarrdata["stitle"] = "<not available yet>"
+                    self.pixlovarrdata["mtitle"] = "<not available yet>"
+                    self.pixlovarrdata["cmdcount"] = 0
 
             except KeyError as e:
                 logging.error(
@@ -181,9 +184,6 @@ class Pixlovarr():
             shutil.copyfile('./app/pixlovarr.ini.example',
                             './config/pixlovarr.ini.example')
             sys.exit()
-
-    def __del__(self):
-        self.saveconfig(self.pixlovarr_members_file, self.members)
 
     def getProfileInfo(self, profileID, mediaOfType):
 
@@ -396,6 +396,11 @@ class Pixlovarr():
 
         if len(self.cmdHistory) > self.maxCmdHistory:
             self.cmdHistory.pop(0)
+
+        self.pixlovarrdata["uname"] = uname
+        self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
+        self.pixlovarrdata["timestamp"] = dt_string
+        self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
 
     def isAdmin(self, update):
         return True \
@@ -1166,22 +1171,20 @@ class Pixlovarr():
 
         if not self.isBlocked(update) and self.isGranted(update):
 
-            print(self.pixlovarrdata)
-
             stsText = (
                 f"Status\n"
-                f"Uptime service: {str(datetime.now() - self.startTime).split('.')[0]}\n"
-                f"Last active member: {str(self.cmdHistory[len(self.cmdHistory)-2]['uname'])}\n"
-                f"Last added serie: {self.last_serie}\n"
-                f"Last added movie: {self.last_movie}\n"
-                f"Commands issued: {str(len(self.cmdHistory))}\n"
+                f"Uptime service: "
+                f"{str(datetime.now() - self.startTime).split('.')[0]}\n"
+                f"Last active member: {str(self.pixlovarrdata['uname'])}\n"
+                f"last timestamp: {str(self.pixlovarrdata['timestamp'])}\n"
+                f"Last serie: {str(self.pixlovarrdata['stitle'])}\n"
+                f"Last movie: {str(self.pixlovarrdata['mtitle'])}\n"
+                f"Commands issued: {str(self.pixlovarrdata['cmdcount'])}\n"
                 f"Service version: {self.version}\n"
             )
 
             if self.isAdmin(update):
                 stsText += (
-                    # f"Last Command: {str(self.cmdHistory[len(self.cmdHistory)-2]['cmd'])}\n"
-                    # f"Last Timestamp: {str(self.cmdHistory[len(self.cmdHistory)-2]['timestamp'])}\n"
                     ""
                 )
 
@@ -2297,7 +2300,9 @@ class Pixlovarr():
                 if self.sonarr_enabled:
                     media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
-                    self.last_serie = media.title
+                    self.pixlovarrdata["stitle"] = media.title
+                    self.saveconfig(
+                        self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to serie
                     usertag = self.getUsertag(update, context, data[1])
@@ -2331,7 +2336,9 @@ class Pixlovarr():
                 if self.radarr_enabled:
                     media = self.radarr_node.lookup_movie(imdb_id=data[2])
 
-                    self.last_movie = media.title
+                    self.pixlovarrdata["mtitle"] = media.title
+                    self.saveconfig(
+                        self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
                     usertag = self.getUsertag(update, context, data[1])
