@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.309"
+        self.version = "1.6.1.327"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -818,34 +818,53 @@ class Pixlovarr():
 
         return numOfCalItems
 
-    def logCommand(self, update):
+    def logAdminCommand(self, update):
 
         service = "Open" if self.isSignUpOpen() else "Closed"
+        typeOfUser = "Blocked member" if self.isBlocked(update) else \
+            "Non member" if not self.isGranted(update) else \
+            "Member" if not self.isAdmin(update) else "Admin"
 
-        if not self.isBlocked(update):
+        self.logCommand(update)
 
-            typeOfUser = "Unauthorised user" if not self.isGranted(
-                update) else "User"
-
-            logging.info(
+        if not self.isAdmin(update):
+            logging.warning(
                 f"{service} - {typeOfUser} "
                 f"{update.effective_user.first_name} - "
                 f"{update.effective_user.id} "
-                f"issued {update.effective_message.text}."
+                f"was unauthorized for previous command "
+                f"{update.effective_message.text}. "
+                f"Command was not executed."
             )
+
+    def logCommand(self, update):
+
+        service = "Open" if self.isSignUpOpen() else "Closed"
+        typeOfUser = "Blocked member" if self.isBlocked(update) else \
+            "Non member" if not self.isGranted(update) else \
+            "Member" if not self.isAdmin(update) else "Admin"
+
+        msg = (
+            f"{service} - {typeOfUser} "
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} "
+            f"issued {update.effective_message.text}."
+        )
+
+        if not self.isBlocked(update):
+
+            logging.info(msg)
 
             self.addItemToHistory(
                 f"{update.effective_message.text}",
                 update.effective_user.first_name,
                 update.effective_user.id
             )
-        else:
 
+        else:
             logging.warning(
-                f"{service} - Blocked user "
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued {update.effective_message.text}."
+                f"{msg} "
+                f"No command was executed."
             )
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
@@ -1061,7 +1080,7 @@ class Pixlovarr():
                 self.isGranted(update) or self.isAdmin(update):
 
             helpText = (
-                "-- User commands --\n"
+                "-- Commands --\n"
                 "/start - Start this bot\n"
                 "/help - Show this text\n"
                 "/signup - Request access\n"
@@ -1845,7 +1864,7 @@ class Pixlovarr():
 
     def opensignup(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2576,7 +2595,7 @@ class Pixlovarr():
                     self.pixlovarr_blocked_file, self.blockedusers)
 
                 logging.info(
-                    f"User {self.blockedusers[data[2]]['fname']} - "
+                    f"Member {self.blockedusers[data[2]]['fname']} - "
                     f"{self.blockedusers[data[2]]['id']} was blocked."
                 )
 
