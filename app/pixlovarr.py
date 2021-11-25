@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.295"
+        self.version = "1.5.1.303"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -993,16 +993,24 @@ class Pixlovarr():
         self.logCommand(update)
 
         if not self.isBlocked(update) and self.isSignUpOpen():
-            self.sendmessage(
-                update.effective_chat.id,
-                context,
-                update.effective_user.first_name,
-                f"Welcome {update.effective_user.first_name} "
-                f"to Pixlovarr, I'm your assistent for "
-                f"downloading series and movies. Please use /help "
-                f"for more information. But first request access "
-                f"with /signup."
-            )
+            if not self.isGranted(update):
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"Welcome {update.effective_user.first_name} "
+                    f"to Pixlovarr, I'm your assistent for "
+                    f"downloading series and movies. Please use /help "
+                    f"for more information. But first request access "
+                    f"with /signup."
+                )
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "You are still granted for the service."
+                )
 
     def signup(self, update, context):
 
@@ -1122,8 +1130,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                (self.isSignUpOpen() or self.isGranted(update)):
+        if not self.isBlocked(update) and self.isSignUpOpen():
             self.sendmessage(
                 update.effective_chat.id,
                 context,
