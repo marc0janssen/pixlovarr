@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.8.1.450"
+        self.version = "1.8.1.454"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -2026,7 +2026,7 @@ class Pixlovarr():
                 endtext
             )
 
-    def new(self, update, context):
+    def showSignups(self, update, context):
 
         self.logCommand(update)
 
@@ -2045,7 +2045,7 @@ class Pixlovarr():
                     )
                     row.append(InlineKeyboardButton(
                         f"-X- {person['fname']}",
-                        callback_data=f"reject:new:{person['id']}")
+                        callback_data=f"block:new:{person['id']}")
                     )
 
                     keyboard.append(row)
@@ -2054,7 +2054,7 @@ class Pixlovarr():
 
                 self.replytext(
                     update,
-                    "These are your new signups. Please Grant or Reject:",
+                    "These are your new signups. Please Grant or Block:",
                     reply_markup,
                     False
                 )
@@ -2067,7 +2067,7 @@ class Pixlovarr():
                     "No new signups in the queue."
                 )
 
-    def allowed(self, update, context):
+    def showAllowed(self, update, context):
 
         self.logCommand(update)
 
@@ -2081,14 +2081,14 @@ class Pixlovarr():
                     person = self.members[member]
                     keyboard.append([InlineKeyboardButton(
                         f"-X- {person['fname']}",
-                        callback_data=f"reject:allowed:{person['id']}")]
+                        callback_data=f"block:allowed:{person['id']}")]
                     )
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 self.replytext(
                     update,
-                    "These are your members. Please reject if needed:",
+                    "These are your members. Please block if needed:",
                     reply_markup,
                     False
                 )
@@ -2101,7 +2101,7 @@ class Pixlovarr():
                     "No members in the list."
                 )
 
-    def blocked(self, update, context):
+    def showBlocked(self, update, context):
 
         self.logCommand(update)
 
@@ -2598,7 +2598,7 @@ class Pixlovarr():
                 f"{update.effective_user.first_name}."
             )
 
-    def grant(self, update, context):
+    def grantMember(self, update, context):
         if self.isAdmin(update):
 
             query = update.callback_query
@@ -2645,12 +2645,13 @@ class Pixlovarr():
                     f"was granted access. Message has been sent."
                 )
 
-    def reject(self, update, context):
+    def blockMember(self, update, context):
         if self.isAdmin(update):
 
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
+            # 0:marker, 1:source of person, 2:userid
 
             if (data[2] in self.signups or data[2] in self.members):
 
@@ -2781,12 +2782,12 @@ class Pixlovarr():
 # Keyboard Handlers
 
         kbgrant_handler = CallbackQueryHandler(
-            self.grant, pattern='^grant:')
+            self.grantMember, pattern='^grant:')
         self.dispatcher.add_handler(kbgrant_handler)
 
-        kbreject_handler = CallbackQueryHandler(
-            self.reject, pattern='^reject:')
-        self.dispatcher.add_handler(kbreject_handler)
+        kbblock_handler = CallbackQueryHandler(
+            self.blockMember, pattern='^block:')
+        self.dispatcher.add_handler(kbblock_handler)
 
         kbselectDownload_handler = CallbackQueryHandler(
             self.selectDownload, pattern='^selectdownload:')
@@ -2822,14 +2823,14 @@ class Pixlovarr():
 
 # Admin Handlders
 
-        self.new_handler = CommandHandler('new', self.new)
-        self.dispatcher.add_handler(self.new_handler)
+        self.showsignups_handler = CommandHandler('new', self.showSignups)
+        self.dispatcher.add_handler(self.showsignups_handler)
 
-        self.allowed_handler = CommandHandler('allowed', self.allowed)
-        self.dispatcher.add_handler(self.allowed_handler)
+        self.showallowed_handler = CommandHandler('allowed', self.showAllowed)
+        self.dispatcher.add_handler(self.showallowed_handler)
 
-        self.blocked_handler = CommandHandler('blocked', self.blocked)
-        self.dispatcher.add_handler(self.blocked_handler)
+        self.showblocked_handler = CommandHandler('blocked', self.showBlocked)
+        self.dispatcher.add_handler(self.showblocked_handler)
 
         self.cmdhistory_handler = CommandHandler('ch', self.showCmdHistory)
         self.dispatcher.add_handler(self.cmdhistory_handler)
