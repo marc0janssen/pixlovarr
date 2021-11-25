@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.8.1.459"
+        self.version = "1.8.1.461"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1996,17 +1996,32 @@ class Pixlovarr():
         if self.isAdmin(update):
 
             endtext = "No items in the command history."
+            historytext = ""
 
             if self.cmdHistory:
-                for historyItem in self.cmdHistory:
+                for count, historyItem in enumerate(self.cmdHistory):
 
-                    historytext = (
+                    historytext += (
                         f"{historyItem['timestamp']} - "
                         f"{historyItem['cmd']} - "
                         f"{historyItem['uname']} - "
-                        f"{historyItem['uid']}"
+                        f"{historyItem['uid']}\n"
                     )
 
+                    if (count % self.listLength == 0 and count != 0):
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            historytext
+                        )
+
+                        historytext = ""
+
+                        # make sure no flood
+                        sleep(2)
+
+                if historytext != "":
                     self.sendmessage(
                         update.effective_chat.id,
                         context,
