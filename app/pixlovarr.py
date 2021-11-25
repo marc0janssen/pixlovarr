@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.234"
+        self.version = "1.5.1.246"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -143,7 +143,7 @@ class Pixlovarr():
 
                 self.signups = self.loaddata(self.pixlovarr_signups_file)
                 self.members = self.loaddata(self.pixlovarr_members_file)
-                self.blocked = self.loaddata(self.pixlovarr_blocked_file)
+                self.blockedusers = self.loaddata(self.pixlovarr_blocked_file)
 
             except KeyError as e:
                 logging.error(
@@ -409,7 +409,7 @@ class Pixlovarr():
         return self.sign_up_is_open
 
     def isBlocked(self, update):
-        return str(update.effective_user.id) in self.Blocked
+        return str(update.effective_user.id) in self.blockedusers
 
     def isGranted(self, update):
         return str(update.effective_user.id) in self.members
@@ -853,7 +853,7 @@ class Pixlovarr():
         else:
             service = "open" if self.isSignUpOpen() else "closed"
             typeOfUser = "Blocked user" if self.isBlocked(
-                update) else "New user"
+                update) else "Unauthorised user"
 
             logging.warning(
                 f"Signup is {service} and {typeOfUser} "
@@ -964,10 +964,9 @@ class Pixlovarr():
             context.bot.send_message(
                 chat_id=chat_id, text=msg)
 
-        except error.Unauthorized:
+        except error.Unauthorized as e:
             logging.error(
-                f"Forbidden: bot was blocked by the user "
-                f"- {username} - {chat_id}.")
+                f"{e} - {username} - {chat_id}.")
 
     def replytext(self, update, msg, reply_markup, quote):
 
@@ -1991,12 +1990,12 @@ class Pixlovarr():
                 self.isGranted(update) and \
                 self.isAdmin(update, context, True):
 
-            if self.blocked:
+            if self.blockedusers:
 
                 keyboard = []
 
-                for member in self.blocked:
-                    person = self.blocked[member]
+                for member in self.blockedusers:
+                    person = self.blockedusers[member]
                     keyboard.append([InlineKeyboardButton(
                         f"-√- {person['fname']}",
                         callback_data=f"grant:denied:{person['id']}")]
@@ -2023,7 +2022,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update):
+        if not self.isBlocked(update) and self.isSignUpOpen():
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2482,20 +2481,20 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:source of person, 2:userid
 
-            if (data[2] in self.signups or data[2] in self.blocked):
+            if (data[2] in self.signups or data[2] in self.blockedusers):
 
                 if data[1] == "new":
                     self.members[data[2]] = self.signups[data[2]]
                     self.signups.pop(data[2], None)
 
                 if data[1] == "denied":
-                    self.members[data[2]] = self.blocked[data[2]]
-                    self.blocked.pop(data[2], None)
+                    self.members[data[2]] = self.blockedusers[data[2]]
+                    self.blockedusers.pop(data[2], None)
 
                 self.saveconfig(self.pixlovarr_members_file, self.members)
                 self.saveconfig(self.pixlovarr_signups_file, self.signups)
                 self.saveconfig(
-                    self.pixlovarr_blocked_file, self.blocked)
+                    self.pixlovarr_blocked_file, self.blockedusers)
 
                 logging.info(
                     f"{self.members[data[2]]['fname']} - "
@@ -2531,28 +2530,28 @@ class Pixlovarr():
             if (data[2] in self.signups or data[2] in self.members):
 
                 if data[1] == "new":
-                    self.blocked[data[2]] = self.signups[data[2]]
+                    self.blockedusers[data[2]] = self.signups[data[2]]
                     self.signups.pop(data[2], None)
 
                 if data[1] == "allowed":
-                    self.blocked[data[2]] = self.members[data[2]]
+                    self.blockedusers[data[2]] = self.members[data[2]]
                     self.members.pop(data[2], None)
 
                 self.saveconfig(self.pixlovarr_members_file, self.members)
                 self.saveconfig(self.pixlovarr_signups_file, self.signups)
                 self.saveconfig(
-                    self.pixlovarr_blocked_file, self.blocked)
+                    self.pixlovarr_blocked_file, self.blockedusers)
 
                 logging.info(
-                    f"User {self.blocked[data[2]]['fname']} - "
-                    f"{self.blocked[data[2]]['id']} was blocked."
+                    f"User {self.blockedusers[data[2]]['fname']} - "
+                    f"{self.blockedusers[data[2]]['id']} was blocked."
                 )
 
                 self.sendmessage(
-                    self.blocked[data[2]]['id'],
+                    self.blockedusers[data[2]]['id'],
                     context,
-                    self.blocked[data[2]]['fname'],
-                    f"Hi {self.blocked[data[2]]['fname']}, "
+                    self.blockedusers[data[2]]['fname'],
+                    f"Hi {self.blockedusers[data[2]]['fname']}, "
                     f"access was blocked."
                 )
 
@@ -2561,7 +2560,7 @@ class Pixlovarr():
                     context,
                     "Admin",
                     f"Hi admin, "
-                    f"{self.blocked[data[2]]['fname']} was blocked."
+                    f"{self.blockedusers[data[2]]['fname']} was blocked."
                 )
 
 # Init Handlers
