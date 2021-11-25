@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.246"
+        self.version = "1.5.1.249"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -1098,7 +1098,7 @@ class Pixlovarr():
                     "\n-- Admin commands --\n"
                     "/new - Show all new signups\n"
                     "/allowed - Show all allowed members\n"
-                    "/denied - Show all denied members\n"
+                    "/blocked - Show all blocked members\n"
                     "/ch - Show command history\n"
                     "/lt - list tags\n"
                 )
@@ -1982,7 +1982,7 @@ class Pixlovarr():
                     "No members in the list."
                 )
 
-    def denied(self, update, context):
+    def blocked(self, update, context):
 
         self.logCommand(update)
 
@@ -1998,14 +1998,14 @@ class Pixlovarr():
                     person = self.blockedusers[member]
                     keyboard.append([InlineKeyboardButton(
                         f"-√- {person['fname']}",
-                        callback_data=f"grant:denied:{person['id']}")]
+                        callback_data=f"grant:blocked:{person['id']}")]
                     )
 
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 self.replytext(
                     update,
-                    "These members are denied. Please grant if needed:",
+                    "These members are blocked. Please grant if needed:",
                     reply_markup,
                     False
                 )
@@ -2487,7 +2487,7 @@ class Pixlovarr():
                     self.members[data[2]] = self.signups[data[2]]
                     self.signups.pop(data[2], None)
 
-                if data[1] == "denied":
+                if data[1] == "blocked":
                     self.members[data[2]] = self.blockedusers[data[2]]
                     self.blockedusers.pop(data[2], None)
 
@@ -2700,8 +2700,8 @@ class Pixlovarr():
         self.allowed_handler = CommandHandler('allowed', self.allowed)
         self.dispatcher.add_handler(self.allowed_handler)
 
-        self.denied_handler = CommandHandler('denied', self.denied)
-        self.dispatcher.add_handler(self.denied_handler)
+        self.blocked_handler = CommandHandler('blocked', self.blocked)
+        self.dispatcher.add_handler(self.blocked_handler)
 
         self.cmdhistory_handler = CommandHandler('ch', self.showCmdHistory)
         self.dispatcher.add_handler(self.cmdhistory_handler)
