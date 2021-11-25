@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.1.303"
+        self.version = "1.5.1.308"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -387,27 +387,9 @@ class Pixlovarr():
         if len(self.cmdHistory) > self.maxCmdHistory:
             self.cmdHistory.pop(0)
 
-    def isAdmin(self, update, context, verbose):
-        if str(update.effective_user.id) == self.admin_user_id:
-            return True
-        else:
-            if verbose:
-
-                self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    f"{update.effective_user.first_name}, "
-                    f"you are unauthorized for this command."
-                )
-
-                logging.warning(
-                    f"{update.effective_user.first_name} - "
-                    f"{update.effective_user.id} "
-                    f"entered an unauthorized command."
-                )
-
-            return False
+    def isAdmin(self, update):
+        return True \
+            if str(update.effective_user.id) == self.admin_user_id else False
 
     def isSignUpOpen(self):
         return self.sign_up_is_open
@@ -992,7 +974,9 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        if (not self.isBlocked(update) and self.isSignUpOpen()) or \
+                self.isGranted(update) or self.isAdmin(update):
+
             if not self.isGranted(update):
                 self.sendmessage(
                     update.effective_chat.id,
@@ -1016,7 +1000,9 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        if (not self.isBlocked(update) and self.isSignUpOpen()) or \
+                self.isGranted(update) or self.isAdmin(update):
+
             if not self.isGranted(update):
                 if not str(update.effective_user.id) in self.signups:
 
@@ -1071,7 +1057,8 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        if (not self.isBlocked(update) and self.isSignUpOpen()) or \
+                self.isGranted(update) or self.isAdmin(update):
 
             helpText = (
                 "-- User commands --\n"
@@ -1105,7 +1092,7 @@ class Pixlovarr():
                     "/dm T<#> <key> - Download movie\n"
                 )
 
-            if self.isAdmin(update, context, False):
+            if self.isAdmin(update):
                 helpText = helpText + (
                     "\n-- Admin commands --\n"
                     "/new - Show all new signups\n"
@@ -1130,7 +1117,9 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        if (not self.isBlocked(update) and self.isSignUpOpen()) or \
+                self.isGranted(update) or self.isAdmin(update):
+
             self.sendmessage(
                 update.effective_chat.id,
                 context,
@@ -1858,8 +1847,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             if not self.isSignUpOpen():
 
@@ -1880,8 +1868,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             if self.isSignUpOpen():
                 self.sign_up_is_open = False
@@ -1901,8 +1888,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             tagstxt = "-- Tags --\n"
             for member in self.members:
@@ -1923,8 +1909,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             endtext = "No items in the command history."
 
@@ -1961,8 +1946,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             if self.signups:
 
@@ -2003,8 +1987,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             if self.members:
 
@@ -2038,8 +2021,7 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             if self.blockedusers:
 
@@ -2166,7 +2148,7 @@ class Pixlovarr():
             self.outputMediaInfo(update, context, data[1], media)
 
             callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
-            if self.isAdmin(update, context, False) or \
+            if self.isAdmin(update) or \
                     self.users_permanent_delete_media:
                 callbackdata += ":True"
             else:
@@ -2525,7 +2507,7 @@ class Pixlovarr():
             )
 
     def grant(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             query = update.callback_query
             query.answer()
@@ -2572,7 +2554,7 @@ class Pixlovarr():
                 )
 
     def reject(self, update, context):
-        if self.isAdmin(update, context, True):
+        if self.isAdmin(update):
 
             query = update.callback_query
             query.answer()
