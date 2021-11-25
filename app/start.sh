@@ -3,7 +3,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-11-19 18:53:35
-# update: 2021-11-19 18:53:39
+# update: 2021-11-25 21:31:52
 
 # Start the first process
 nohup /usr/bin/python3 /app/pixlovarr.py &
