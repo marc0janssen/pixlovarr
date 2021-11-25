@@ -49,8 +49,8 @@ You can later use the tagged media to your liking.
 
         -- Admin commands --
         /new - Show all new signups
-        /allowed - Show all allowed members
-        /denied - Show all denied members
+        /am - Show all allowed members
+        /bm - Show all blocked members
         /ch - Show command history
         /lt - list tags
         /open - open signup
@@ -185,4 +185,4 @@ In the directory /config the python script expects a config file called 'radarr_
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
 
-2021-11-25 20:47:51
+2021-11-25 21:36:48

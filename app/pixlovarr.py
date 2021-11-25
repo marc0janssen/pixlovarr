@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-25 20:48:11
+# update: 2021-11-25 21:36:39
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.8.1.455"
+        self.version = "1.8.1.459"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1137,8 +1137,8 @@ class Pixlovarr():
                 helpText = helpText + (
                     "\n-- Admin commands --\n"
                     "/new - Show all new signups\n"
-                    "/allowed - Show all allowed members\n"
-                    "/blocked - Show all blocked members\n"
+                    "/am - Show all allowed members\n"
+                    "/bm - Show all blocked members\n"
                     "/ch - Show command history\n"
                     "/lt - list tags\n"
                     "/open - open signup\n"
@@ -2826,10 +2826,10 @@ class Pixlovarr():
         self.showsignups_handler = CommandHandler('new', self.showSignups)
         self.dispatcher.add_handler(self.showsignups_handler)
 
-        self.showallowed_handler = CommandHandler('allowed', self.showAllowed)
+        self.showallowed_handler = CommandHandler('am', self.showAllowed)
         self.dispatcher.add_handler(self.showallowed_handler)
 
-        self.showblocked_handler = CommandHandler('blocked', self.showBlocked)
+        self.showblocked_handler = CommandHandler('bm', self.showBlocked)
         self.dispatcher.add_handler(self.showblocked_handler)
 
         self.cmdhistory_handler = CommandHandler('ch', self.showCmdHistory)
