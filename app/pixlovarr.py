@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.7.1.388"
+        self.version = "1.8.1.448"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -396,11 +396,6 @@ class Pixlovarr():
 
         if len(self.cmdHistory) > self.maxCmdHistory:
             self.cmdHistory.pop(0)
-
-        self.pixlovarrdata["uname"] = uname
-        self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
-        self.pixlovarrdata["timestamp"] = dt_string
-        self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
 
     def isAdmin(self, update):
         return True \
@@ -868,6 +863,14 @@ class Pixlovarr():
 
         if not self.isBlocked(update):
 
+            self.pixlovarrdata["uname"] = str(self.cmdHistory[-1]["uname"]) \
+                if len(self.cmdHistory) != 0 else \
+                update.effective_user.first_name
+            self.pixlovarrdata["timestamp"] = \
+                str(self.cmdHistory[-1]["timestamp"]) \
+                if len(self.cmdHistory) != 0 else \
+                datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
             logging.info(msg)
 
             self.addItemToHistory(
@@ -875,6 +878,9 @@ class Pixlovarr():
                 update.effective_user.first_name,
                 update.effective_user.id
             )
+
+            self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
+            self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
 
         else:
             logging.warning(
@@ -1171,15 +1177,27 @@ class Pixlovarr():
 
         if not self.isBlocked(update) and self.isGranted(update):
 
+            numOfQueueItems = len(self.sonarr_node.get_queue()) + \
+                len(self.radarr_node.get_queue())
+
+            service = "Open" if self.isSignUpOpen() else "Closed"
+
             stsText = (
-                f"Status\n"
+                f"-- Status --\n"
                 f"Uptime service: "
                 f"{str(datetime.now() - self.startTime).split('.')[0]}\n"
                 f"Last active member: {str(self.pixlovarrdata['uname'])}\n"
-                f"last timestamp: {str(self.pixlovarrdata['timestamp'])}\n"
+                f"Last timestamp: {str(self.pixlovarrdata['timestamp'])}\n"
                 f"Last serie: {str(self.pixlovarrdata['stitle'])}\n"
                 f"Last movie: {str(self.pixlovarrdata['mtitle'])}\n"
+                f"series: {len(self.sonarr_node.get_serie())}\n"
+                f"movies: {len(self.radarr_node.get_movie())}\n"
+                f"Items in queue: {str(numOfQueueItems)}\n"
                 f"Commands issued: {str(self.pixlovarrdata['cmdcount'])}\n"
+                f"Granted members: {len(self.members)}\n"
+                f"Blocked members: {len(self.blockedusers)}\n"
+                f"New signups: {len(self.signups)}\n"
+                f"Signup: {service}\n"
                 f"Service version: {self.version}\n"
             )
 
