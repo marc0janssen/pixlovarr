@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-24 19:43:52
+# update: 2021-11-25 15:04:13
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,8 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.6.1.327"
+        self.version = "1.7.1.361"
+        self.startTime = datetime.now()
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -144,10 +145,16 @@ class Pixlovarr():
                     "./config/pixlovarr_members.json")
                 self.pixlovarr_blocked_file = (
                     "./config/pixlovarr_blocked.json")
+                self.pixlovarr_data_file = (
+                    "./config/pixlovarr_data.json")
 
                 self.signups = self.loaddata(self.pixlovarr_signups_file)
                 self.members = self.loaddata(self.pixlovarr_members_file)
                 self.blockedusers = self.loaddata(self.pixlovarr_blocked_file)
+                self.pixlovarrdata = self.loaddata(self.pixlovarr_data_file)
+
+                self.last_movie = "<not yet available>"
+                self.last_serie = "<not yet available>"
 
             except KeyError as e:
                 logging.error(
@@ -174,6 +181,9 @@ class Pixlovarr():
             shutil.copyfile('./app/pixlovarr.ini.example',
                             './config/pixlovarr.ini.example')
             sys.exit()
+
+    def __del__(self):
+        self.saveconfig(self.pixlovarr_members_file, self.members)
 
     def getProfileInfo(self, profileID, mediaOfType):
 
@@ -1109,6 +1119,7 @@ class Pixlovarr():
                     "/fq - Show announced items in catalog\n"
                     "/ds T<#> <key> - Download series\n"
                     "/dm T<#> <key> - Download movie\n"
+                    "/sts - Service status info\n"
                 )
 
             if self.isAdmin(update):
@@ -1148,6 +1159,39 @@ class Pixlovarr():
             )
 
 # Member Commands
+
+    def serviceStatus(self, update, context):
+
+        self.logCommand(update)
+
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            print(self.pixlovarrdata)
+
+            stsText = (
+                f"Status\n"
+                f"Uptime service: {str(datetime.now() - self.startTime).split('.')[0]}\n"
+                f"Last active member: {str(self.cmdHistory[len(self.cmdHistory)-2]['uname'])}\n"
+                f"Last added serie: {self.last_serie}\n"
+                f"Last added movie: {self.last_movie}\n"
+                f"Commands issued: {str(len(self.cmdHistory))}\n"
+                f"Service version: {self.version}\n"
+            )
+
+            if self.isAdmin(update):
+                stsText += (
+                    # f"Last Command: {str(self.cmdHistory[len(self.cmdHistory)-2]['cmd'])}\n"
+                    # f"Last Timestamp: {str(self.cmdHistory[len(self.cmdHistory)-2]['timestamp'])}\n"
+                    ""
+                )
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                stsText
+            )
+
     def showMeta(self, update, context):
 
         self.logCommand(update)
@@ -2253,6 +2297,8 @@ class Pixlovarr():
                 if self.sonarr_enabled:
                     media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
 
+                    self.last_serie = media.title
+
                     # get usertag from server and to serie
                     usertag = self.getUsertag(update, context, data[1])
                     if usertag:
@@ -2284,6 +2330,8 @@ class Pixlovarr():
             else:
                 if self.radarr_enabled:
                     media = self.radarr_node.lookup_movie(imdb_id=data[2])
+
+                    self.last_movie = media.title
 
                     # get usertag from server and to movie
                     usertag = self.getUsertag(update, context, data[1])
@@ -2701,6 +2749,9 @@ class Pixlovarr():
 
         self.listNewMedia_handler = CommandHandler('ns', self.listNewMedia)
         self.dispatcher.add_handler(self.listNewMedia_handler)
+
+        self.servicestatus_handler = CommandHandler('sts', self.serviceStatus)
+        self.dispatcher.add_handler(self.servicestatus_handler)
 
 # Keyboard Handlers
 
