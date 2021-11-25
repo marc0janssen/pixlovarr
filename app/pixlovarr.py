@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.7.1.364"
+        self.version = "1.7.1.365"
         self.startTime = datetime.now()
 
         logging.basicConfig(
