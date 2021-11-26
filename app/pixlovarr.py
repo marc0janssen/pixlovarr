@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.1.500"
+        self.version = "1.10.1.519"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1145,16 +1145,6 @@ class Pixlovarr():
 
 # Member Commands
 
-    def mediaPerTag(self, update, context):
-
-        self.logCommand(update)
-
-        if not self.isBlocked(update) and self.isGranted(update):
-
-            tags = self.radarr_node.get_tag()
-
-            print(tags)
-
     def serviceStatus(self, update, context):
 
         self.logCommand(update)
@@ -1573,7 +1563,7 @@ class Pixlovarr():
 
                         if type(foundMedia) != SonarrSerieItem:
                             foundMedia = foundMedia[0]
-                        foundMediaID = foundMedia.tvdbId
+                        MediaID = foundMedia.tvdbId
                 else:
                     if self.radarr_enabled:
                         foundMedia = \
@@ -1583,13 +1573,13 @@ class Pixlovarr():
 
                         if type(foundMedia) != RadarrMovieItem:
                             foundMedia = foundMedia[0]
-                        foundMediaID = foundMedia.imdbId
+                        MediaID = foundMedia.imdbId
 
                 # Is a not downloaded movie? Then show download button
                 # Otherwise show mediainfo button
                 if foundMedia.id == 0:
                     callbackdata = \
-                        f"showdlsummary:{typeOfMedia}:{foundMediaID}"
+                        f"showdlsummary:{typeOfMedia}:{MediaID}"
 
                     keyboard.append([InlineKeyboardButton(
                         f"{foundMedia.title} ({foundMedia.year})",
@@ -2777,9 +2767,6 @@ class Pixlovarr():
 
         self.servicestatus_handler = CommandHandler('sts', self.serviceStatus)
         self.dispatcher.add_handler(self.servicestatus_handler)
-
-        self.mediapertag_handler = CommandHandler('tag', self.mediaPerTag)
-        self.dispatcher.add_handler(self.mediapertag_handler)
 
 # Keyboard Handlers
 
