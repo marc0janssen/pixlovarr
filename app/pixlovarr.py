@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.1.496"
+        self.version = "1.10.1.500"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1144,6 +1144,16 @@ class Pixlovarr():
             )
 
 # Member Commands
+
+    def mediaPerTag(self, update, context):
+
+        self.logCommand(update)
+
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            tags = self.radarr_node.get_tag()
+
+            print(tags)
 
     def serviceStatus(self, update, context):
 
@@ -2767,6 +2777,9 @@ class Pixlovarr():
 
         self.servicestatus_handler = CommandHandler('sts', self.serviceStatus)
         self.dispatcher.add_handler(self.servicestatus_handler)
+
+        self.mediapertag_handler = CommandHandler('tag', self.mediaPerTag)
+        self.dispatcher.add_handler(self.mediapertag_handler)
 
 # Keyboard Handlers
 
