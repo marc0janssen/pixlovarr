@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.8.1.461"
+        self.version = "1.8.1.462"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1680,7 +1680,7 @@ class Pixlovarr():
 
         if not self.isBlocked(update) and \
                 self.isGranted(update) and \
-                self.sonarr_enabled():
+                self.sonarr_enabled:
 
             self.findMedia(update, context, None, "serie", context.args)
 
