@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-26 15:23:11
+# update: 2021-11-26 17:47:48
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.9.1.466"
+        self.version = "1.10.1.496"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -264,7 +264,7 @@ class Pixlovarr():
 
         txtQueue = ""
 
-        for queueitem in queue:
+        for queueitem in queue["records"]:
 
             try:
                 if typeOfMedia == "episode":
@@ -286,84 +286,54 @@ class Pixlovarr():
                 pt = "-"
                 tl = "-"
 
-            movie = None
-            series = None
+            text = (
+                f"{queueitem['title']}\n"
+                f"Status: {queueitem['status']}\n"
+                f"Protocol: {queueitem['protocol']}\n"
+                f"Timeleft: {tl}\n"
+                f"ETA: {pt}"
+            )
 
-            if typeOfMedia == "episode":
-                series = queueitem.get("series")
-                if series:
-                    text = (
-                        f"{queueitem['series']['title']} "
-                        f"S{queueitem['episode']['seasonNumber']}"
-                        f"E{queueitem['episode']['episodeNumber']} - "
-                        f"'{queueitem['episode']['title']}'\n"
-                        f"Status: {queueitem['status']}\n"
-                        f"Protocol: {queueitem['protocol']}\n"
-                        f"Timeleft: {tl}\n"
-                        f"ETA: {pt}"
-                    )
+            title = (
+                f"{queueitem['title']} "
+            )
 
-                    title = (
-                        f"{queueitem['series']['title']} "
-                        f"S{queueitem['episode']['seasonNumber']}"
-                        f"E{queueitem['episode']['episodeNumber']} - "
-                        f"{queueitem['episode']['title']}"
-                    )
+            numOfItems += 1
+
+            if numOfItems <= 3:
+                callbackdata = (
+                    f"deletequeueitem:{typeOfMedia}:"
+                    f"{queueitem['id']}"
+                )
+
+                keyboard = [[InlineKeyboardButton(
+                    f"Remove {title}",
+                    callback_data=callbackdata)]]
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                self.replytext(
+                    update,
+                    text,
+                    reply_markup,
+                    False
+                )
+
             else:
-                movie = queueitem.get("movie")
-                if movie:
-                    text = (
-                        f"{queueitem['movie']['title']} "
-                        f"({queueitem['movie']['year']})\n"
-                        f"Status: {queueitem['status']}\n"
-                        f"Protocol: {queueitem['protocol']}\n"
-                        f"Timeleft: {tl}\n"
-                        f"ETA: {pt}"
+                txtQueue += f"{text}\n\n"
+
+                if (numOfItems % self.listLength == 0 and numOfItems != 0):
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        txtQueue
                     )
 
-                    title = (
-                        f"{queueitem['movie']['title']} "
-                        f"({queueitem['movie']['year']})"
-                    )
+                    txtQueue = ""
 
-            if movie or series:
-
-                numOfItems += 1
-
-                if numOfItems <= 3:
-                    callbackdata = (
-                        f"deletequeueitem:{typeOfMedia}:"
-                        f"{queueitem['id']}"
-                    )
-
-                    keyboard = [[InlineKeyboardButton(
-                        f"Remove {title}",
-                        callback_data=callbackdata)]]
-
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-
-                    self.replytext(
-                        update,
-                        text,
-                        reply_markup,
-                        False
-                    )
-
-                else:
-                    txtQueue += f"{text}\n\n"
-
-                    if (numOfItems % self.listLength == 0 and numOfItems != 0):
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            txtQueue
-                        )
-
-                        txtQueue = ""
-
-                        # make sure no flood
-                        sleep(2)
+                    # make sure no flood
+                    sleep(2)
 
         if txtQueue != "":
             self.sendmessage(
@@ -991,6 +961,10 @@ class Pixlovarr():
                 chat_id=chat_id, text=msg)
 
         except error.Unauthorized as e:
+            logging.error(
+                f"{e} - {username} - {chat_id}.")
+
+        except error.NetworkError as e:
             logging.error(
                 f"{e} - {username} - {chat_id}.")
 
@@ -1656,14 +1630,14 @@ class Pixlovarr():
             if self.sonarr_enabled:
                 queuesonarr = self.sonarr_node.get_queue()
 
-                if queuesonarr:
+                if queuesonarr["totalRecords"] != 0:
                     numOfItems = self.countItemsinQueue(
                         update, context, numOfItems, queuesonarr, "episode")
 
             if self.radarr_enabled:
                 queueradarr = self.radarr_node.get_queue()
 
-                if queueradarr:
+                if queueradarr["totalRecords"] != 0:
                     numOfItems = self.countItemsinQueue(
                         update, context, numOfItems, queueradarr, "movie")
 
