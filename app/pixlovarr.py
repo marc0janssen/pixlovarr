@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.1.519"
+        self.version = "1.10.1.532"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -257,6 +257,21 @@ class Pixlovarr():
 
     def is_http_or_https(self, url):
         return urlparse(url).scheme in {'http', 'https'}
+
+    def getForMedia(self, tagIDs, typeOfMedia):
+
+        if typeOfMedia == "serie":
+            tags = self.sonarr_node.get_tag()
+        else:
+            tags = self.radarr_node.get_tag()
+
+        txtTags = ""
+
+        for tag in tags:
+            if tag["id"] in tagIDs:
+                txtTags += f"{tag['label']}, "
+
+        return txtTags[:-2]
 
     def countItemsinQueue(
         self, update, context,
@@ -526,10 +541,11 @@ class Pixlovarr():
         qualityText = self.getProfileInfo(media.qualityProfileId, typeOfMedia)
         if qualityText != "":
 
-            txtQuality = (
-                f"Quality: {qualityText}\n\n"
-            )
-            txtMediaInfo += txtQuality
+            txtMediaInfo += f"Quality: {qualityText}\n\n"
+
+        if media.tags:
+            txtMediaInfo += \
+                f"Tags: {self.getForMedia(media.tags, typeOfMedia)}\n\n"
 
         if txtMediaInfo != "":
 
