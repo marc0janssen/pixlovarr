@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.2.532"
+        self.version = "1.10.2.540"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -241,7 +241,7 @@ class Pixlovarr():
             if path["id"] == int(pathID):
                 root_path = path
 
-        return f"{root_path['path']}{subPath}"
+        return f"{root_path['path']}/{subPath}"
 
     def getGenres(self, listOfGenres):
         genresText = ""
