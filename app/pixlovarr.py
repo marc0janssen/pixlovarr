@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-26 17:47:48
+# update: 2021-11-27 23:24:51
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.2.540"
+        self.version = "1.10.2.542"
         self.startTime = datetime.now()
 
         logging.basicConfig(
