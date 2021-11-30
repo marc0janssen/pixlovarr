@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-11-27 23:24:51
+# update: 2021-11-30 08:42:31
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.2.542"
+        self.version = "1.10.3.562"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -224,24 +224,6 @@ class Pixlovarr():
 
     def clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)
-
-    def getDownloadPath(self, typeOfMedia, pathID, media):
-
-        if typeOfMedia == "serie":
-            if self.sonarr_enabled:
-                root_paths = self.sonarr_node.get_root_folder()
-                subPath = str.title(media.sortTitle)
-        else:
-            if self.radarr_enabled:
-                root_paths = self.radarr_node.get_root_folder()
-                subPath = str.title(f"{media.sortTitle} ({media.year})")
-
-        for path in root_paths:
-
-            if path["id"] == int(pathID):
-                root_path = path
-
-        return f"{root_path['path']}/{subPath}"
 
     def getGenres(self, listOfGenres):
         genresText = ""
@@ -2343,7 +2325,7 @@ class Pixlovarr():
                         monitored_seasons = []
 
                     downloadPath = \
-                        self.getDownloadPath(data[1], data[4], media)
+                        str(self.sonarr_node.build_serie_path(media, data[4]))
 
                     self.sonarr_node.add_serie(
                         serie_info=media, quality=int(data[3]),
@@ -2369,7 +2351,7 @@ class Pixlovarr():
                         media.tags.append(usertag)
 
                     downloadPath = \
-                        self.getDownloadPath(data[1], data[4], media)
+                        str(self.radarr_node.build_movie_path(media, data[4]))
 
                     self.radarr_node.add_movie(
                         movie_info=media,
