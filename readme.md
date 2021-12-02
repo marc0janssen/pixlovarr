@@ -129,6 +129,7 @@ In the directory /config the python script expects a config file called 'pixlova
         BOT_TOKEN = BOTTOKEN
         ADMIN_USER_ID = ID_NUMBER
         USERS_PERMANENT_DELETE_MEDIA = OFF
+        USERS_CAN_ONLY_DELETE_OWN_MEDIA = ON
         SIGN_UP_IS_OPEN = ON
 
         [IMDB]

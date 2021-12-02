@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.3.564"
+        self.version = "1.10.3.581"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -85,6 +85,9 @@ class Pixlovarr():
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
                 self.users_permanent_delete_media = True if (
                     self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
+                    "ON") else False
+                self.users_can_only_delete_own_media = True if (
+                    self.config['COMMON']['USERS_CAN_ONLY_DELETE_OWN_MEDIA'] ==
                     "ON") else False
                 self.sign_up_is_open = True if (
                     self.config['COMMON']['SIGN_UP_IS_OPEN'] ==
@@ -949,7 +952,7 @@ class Pixlovarr():
             # Add tag to lookup by it's name
             tagnames[tag['label']] = tag['id']
 
-        # Return the ID of the usertag if found on the serevr
+        # Return the ID of the usertag if found on the server
         return tagnames.get(tagName)
 
     def sendmessage(self, chat_id, context, username, msg):
@@ -2218,25 +2221,34 @@ class Pixlovarr():
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
-            if self.isAdmin(update) or \
-                    self.users_permanent_delete_media:
-                callbackdata += ":True"
-            else:
-                callbackdata += ":False"
+            # Eanble delete if
+            #   - It is your own media
+            #   - it is allowed to delete others media
+            #   - you're an Admin
+            if (self.users_can_only_delete_own_media and
+                self.getUsertag(update, context, data[1]) in media.tags) or \
+                    not self.users_can_only_delete_own_media or \
+                    self.isAdmin(update):
 
-            keyboard = [[InlineKeyboardButton(
-                f"Delete '{media.title} ({media.year})'",
-                callback_data=callbackdata)]]
+                callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
+                if self.isAdmin(update) or \
+                        self.users_permanent_delete_media:
+                    callbackdata += ":True"
+                else:
+                    callbackdata += ":False"
 
-            reply_markup = InlineKeyboardMarkup(keyboard)
+                keyboard = [[InlineKeyboardButton(
+                    f"Delete '{media.title} ({media.year})'",
+                    callback_data=callbackdata)]]
 
-            self.replytext(
-                query,
-                "Actions:",
-                reply_markup,
-                False
-            )
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                self.replytext(
+                    query,
+                    "Actions:",
+                    reply_markup,
+                    False
+                )
 
     def deleteQueueItem(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
