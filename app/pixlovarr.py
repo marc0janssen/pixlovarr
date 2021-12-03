@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.653"
+        self.version = "1.11.3.657"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1170,8 +1170,15 @@ class Pixlovarr():
 
         if not self.isBlocked(update) and self.isGranted(update):
 
-            numOfQueueItems = len(self.sonarr_node.get_queue()) + \
-                len(self.radarr_node.get_queue())
+            numOfQueueItems = 0
+
+            if self.sonarr_enabled:
+                queuesonarr = self.sonarr_node.get_queue()
+                numOfQueueItems = int(queuesonarr["totalRecords"])
+
+            if self.radarr_enabled:
+                queueradarr = self.radarr_node.get_queue()
+                numOfQueueItems += int(queueradarr["totalRecords"])
 
             service = "Open" if self.isSignUpOpen() else "Closed"
 
@@ -1193,11 +1200,6 @@ class Pixlovarr():
                 f"Signup: {service}\n"
                 f"Service version: {self.version}\n"
             )
-
-            if self.isAdmin(update):
-                stsText += (
-                    ""
-                )
 
             self.sendmessage(
                 update.effective_chat.id,
