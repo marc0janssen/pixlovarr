@@ -49,6 +49,7 @@ You can later use the tagged media to your liking.
         /ms - list your series
         /mm - list your movies
         /sts - Service status info
+        /coffee - Buy me a coffee
 
         -- Admin commands --
         /new - Show all new signups
