@@ -44,10 +44,10 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.740"
+        self.version = "1.12.4.751"
         self.startTime = datetime.now()
-        config_dir = "./config"
-        app_dir = "./app"
+        config_dir = "/config"
+        app_dir = "/app"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

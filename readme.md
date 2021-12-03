@@ -1,6 +1,8 @@
 
 # Pixlovarr
 
+2021-12-03 20:35:46
+
 ## What is it?
 
 Pixlovarr is a compagnon written in Python for Radarr and Sonarr in the form of a Telegram bot.
@@ -10,6 +12,14 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
 Radarr Library Purge is a compagnon written in Python for Radarr to automaticly remove and delete movies which are added by lists. All movies which are not tagged are not evaluated.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y078U1V)
+
+## Changelog
+
+version 1.12.4.750
+        Bugfix: Number of items in the queue for /sts is now correctly displayed.
+        New: Buy me a coffee option /coffee add to the commands.
+        New: /rss triggers the RSS events on Sonarr and Radarr.
+        New: A search button is added to mediainfo (/lm) for movies that have not been downloaded yet.
 
 ## Tags
 
@@ -190,5 +200,3 @@ In the directory /config the python script expects a config file called 'radarr_
 ## Acknowledgement
 
 The project was coded and setup by myself. But I have to give credit where credit is due. The API for Sonarr and Radarr are coded by Vivien Chene in a project called [pycliarr](https://github.com/vche/pycliarr).
-
-2021-12-02 21:42:48
