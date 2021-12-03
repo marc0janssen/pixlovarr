@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.777"
+        self.version = "1.12.4.779"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2425,10 +2425,18 @@ class Pixlovarr():
                     self.saveconfig(
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
-                    # get usertag from server and to serie
-                    usertag = self.getUsertag(update, data[1])
-                    if usertag:
-                        media.tags.append(usertag)
+                    # get usertag from server and to movie
+                    usertagID = self.getUsertag(update, data[1])
+                    if not usertagID:
+                        tagName = self.createTagName(
+                            update.effective_user.first_name,
+                            update.effective_user.id
+                        )
+
+                        newTag = self.sonarr_node.create_tag(tagName)
+                        usertagID = newTag["id"]
+
+                    media.tags.append(usertagID)
 
                     if data[5] == "First":
                         monitored_seasons = [1]
@@ -2442,8 +2450,6 @@ class Pixlovarr():
 
                     downloadPath = \
                         str(self.sonarr_node.build_serie_path(media, data[4]))
-
-                    print(downloadPath)
 
                     self.sonarr_node.add_serie(
                         serie_info=media, quality=int(data[3]),
