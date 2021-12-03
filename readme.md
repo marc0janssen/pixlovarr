@@ -15,7 +15,8 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
-version 1.12.4.754
+version 1.12.4.755
+
 * Bugfix: Number of items in the queue for /sts is now correctly displayed.
 * New: Buy me a coffee option /coffee add to the commands.
 * New: /rss triggers the RSS events on Sonarr and Radarr.
