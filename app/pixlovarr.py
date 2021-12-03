@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.651"
+        self.version = "1.11.3.652"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1150,6 +1150,8 @@ class Pixlovarr():
     def buymeacoffee(self, update, context):
 
         if not self.isBlocked(update) and self.isGranted(update):
+
+            self.logCommand(update)
 
             self.sendmessage(
                 update.effective_chat.id,
