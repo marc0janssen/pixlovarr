@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.10.3.642"
+        self.version = "1.11.3.651"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1106,6 +1106,7 @@ class Pixlovarr():
                     "/ds T<#> <key> - Download series\n"
                     "/dm T<#> <key> - Download movie\n"
                     "/sts - Service status info\n"
+                    "/coffee - Buy me a coffee\n"
                 )
 
             if self.isAdmin(update):
@@ -1120,7 +1121,7 @@ class Pixlovarr():
                     "/close - close signup\n"
                 )
 
-            helpText = f"{helpText}\nversion: {self.version}\n"
+            helpText += f"\nversion: {self.version}\n"
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -1145,6 +1146,21 @@ class Pixlovarr():
             )
 
 # Member Commands
+
+    def buymeacoffee(self, update, context):
+
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "Thank you for considering a donation.\n"
+                "I love converting coffee into code.\n"
+                "Hope you enjoy these zeros and ones.\n"
+                "Thanks for donating, it is appreciated.\n\n"
+                "https://ko-fi.com/marc0janssen"
+            )
 
     def serviceStatus(self, update, context):
 
@@ -2777,6 +2793,9 @@ class Pixlovarr():
 
         self.servicestatus_handler = CommandHandler('sts', self.serviceStatus)
         self.dispatcher.add_handler(self.servicestatus_handler)
+
+        self.buymeacoffee_handler = CommandHandler('coffee', self.buymeacoffee)
+        self.dispatcher.add_handler(self.buymeacoffee_handler)
 
 # Keyboard Handlers
 
