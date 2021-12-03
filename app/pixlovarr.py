@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.676"
+        self.version = "1.11.3.677"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -2533,23 +2533,23 @@ class Pixlovarr():
 
     def findMedia(self, update, context, query, typeOfMedia, args):
 
+        ranking = ""
+        if len(args) > 0:
+            ranking = args[0]
+            if re.match("^[Tt]\\d+$", ranking):
+                context.args.pop(0)
+
+        topAmount = self.getTopAmount(update, context, ranking)
+
         if ' '.join(args):
+
+            searchQuery = ' '.join(args)
             self.sendmessage(
                 update.effective_chat.id,
                 context,
                 update.effective_user.first_name,
                 f"Searching for {typeOfMedia}s..."
             )
-
-            ranking = ""
-            if len(args) > 0:
-                ranking = args[0]
-                if re.match("^[Tt]\\d+$", ranking):
-                    context.args.pop(0)
-
-            topAmount = self.getTopAmount(update, context, ranking)
-
-            searchQuery = ' '.join(args)
 
             if typeOfMedia == "serie":
                 if self.sonarr_enabled:
