@@ -1,3 +1,4 @@
+
 # Pixlovarr
 
 ## What is it?
@@ -7,6 +8,8 @@ Pixlovarr is a compagnon written in Python for Radarr and Sonarr in the form of 
 The bot will guide you with an inline keyboard, this is for User commands and Admin commands.
 
 Radarr Library Purge is a compagnon written in Python for Radarr to automaticly remove and delete movies which are added by lists. All movies which are not tagged are not evaluated.
+
+[![Buy Me a Coffee at ko-fi.com](https://cdn.ko-fi.com/cdn/kofi2.png?v=3)](https://ko-fi.com/Y8Y078U1V)
 
 ## Tags
 
