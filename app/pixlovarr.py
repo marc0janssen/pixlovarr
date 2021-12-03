@@ -44,10 +44,10 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.755"
+        self.version = "1.12.4.777"
         self.startTime = datetime.now()
-        config_dir = "/config"
-        app_dir = "/app"
+        config_dir = "./config"
+        app_dir = "./app"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -610,7 +610,7 @@ class Pixlovarr():
                 type(media) is RadarrMovieItem:
 
             if usertagEnabled:
-                usertag = self.getUsertag(update, context, typeOfMedia)
+                usertag = self.getUsertag(update, typeOfMedia)
                 usertagFound = usertag in media.tags
 
             if newDownloadOnly:
@@ -675,7 +675,7 @@ class Pixlovarr():
             for m in media:
 
                 if usertagEnabled:
-                    usertag = self.getUsertag(update, context, typeOfMedia)
+                    usertag = self.getUsertag(update, typeOfMedia)
                     usertagFound = usertag in m.tags
 
                 if newDownloadOnly:
@@ -948,12 +948,17 @@ class Pixlovarr():
             )
         )
 
-    def getUsertag(self, update, context, typeOfMedia):
+    def createTagName(self, username, userid):
 
         # make striped username with only az09
         strippedfirstname = re.sub(
-            r'[^A-Za-z0-9]+', '', update.effective_user.first_name.lower())
-        tagName = f"{strippedfirstname}_{update.effective_user.id}"
+            r'[^A-Za-z0-9]+', '', username.lower())
+        return f"{strippedfirstname}_{userid}"
+
+    def getUsertag(self, update, typeOfMedia):
+
+        tagName = self.createTagName(
+            update.effective_user.first_name, update.effective_user.id)
 
         # Put all tags in a dictonairy with pair label <=> ID
         tagnames = {}
@@ -2194,7 +2199,8 @@ class Pixlovarr():
 
         self.logCommand(update)
 
-        if not self.isBlocked(update) and self.isSignUpOpen():
+        if (not self.isBlocked(update) and self.isSignUpOpen()) or \
+                self.isGranted(update) or self.isAdmin(update):
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2314,7 +2320,7 @@ class Pixlovarr():
             keyboard = []
 
             if (self.users_can_only_delete_own_media and
-                self.getUsertag(update, context, data[1]) in media.tags) or \
+                self.getUsertag(update, data[1]) in media.tags) or \
                     not self.users_can_only_delete_own_media or \
                     self.isAdmin(update):
 
@@ -2420,7 +2426,7 @@ class Pixlovarr():
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to serie
-                    usertag = self.getUsertag(update, context, data[1])
+                    usertag = self.getUsertag(update, data[1])
                     if usertag:
                         media.tags.append(usertag)
 
@@ -2436,6 +2442,8 @@ class Pixlovarr():
 
                     downloadPath = \
                         str(self.sonarr_node.build_serie_path(media, data[4]))
+
+                    print(downloadPath)
 
                     self.sonarr_node.add_serie(
                         serie_info=media, quality=int(data[3]),
@@ -2456,9 +2464,17 @@ class Pixlovarr():
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
-                    usertag = self.getUsertag(update, context, data[1])
-                    if usertag:
-                        media.tags.append(usertag)
+                    usertagID = self.getUsertag(update, data[1])
+                    if not usertagID:
+                        tagName = self.createTagName(
+                            update.effective_user.first_name,
+                            update.effective_user.id
+                        )
+
+                        newTag = self.radarr_node.create_tag(tagName)
+                        usertagID = newTag["id"]
+
+                    media.tags.append(usertagID)
 
                     downloadPath = \
                         str(self.radarr_node.build_movie_path(media, data[4]))
