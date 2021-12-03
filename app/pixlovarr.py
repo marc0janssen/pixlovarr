@@ -44,8 +44,10 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.706"
+        self.version = "1.11.3.740"
         self.startTime = datetime.now()
+        config_dir = "./config"
+        app_dir = "./app"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -59,7 +61,7 @@ class Pixlovarr():
             "https://postimg.cc/3dfySHP9"
         )
 
-        self.config_file = "./config/pixlovarr.ini"
+        self.config_file = f"{config_dir}/pixlovarr.ini"
 
         self.cmdHistory = []
         self.maxCmdHistory = 50
@@ -143,13 +145,13 @@ class Pixlovarr():
                     sys.exit()
 
                 self.pixlovarr_signups_file = (
-                    "./config/pixlovarr_signups.json")
+                    f"{config_dir}/pixlovarr_signups.json")
                 self.pixlovarr_members_file = (
-                    "./config/pixlovarr_members.json")
+                    f"{config_dir}/pixlovarr_members.json")
                 self.pixlovarr_blocked_file = (
-                    "./config/pixlovarr_blocked.json")
+                    f"{config_dir}/pixlovarr_blocked.json")
                 self.pixlovarr_data_file = (
-                    "./config/pixlovarr_data.json")
+                    f"{config_dir}/pixlovarr_data.json")
 
                 self.signups = self.loaddata(self.pixlovarr_signups_file)
                 self.members = self.loaddata(self.pixlovarr_members_file)
@@ -184,9 +186,16 @@ class Pixlovarr():
                 f"creating example INI file."
             )
 
-            shutil.copyfile('./app/pixlovarr.ini.example',
-                            './config/pixlovarr.ini.example')
+            shutil.copyfile(f"{app_dir}/pixlovarr.ini.example",
+                            f"{config_dir}/pixlovarr.ini.example")
             sys.exit()
+
+    def MissingMoviesSearch(self):
+        """Perform an Missing missing movie search.
+        Returns:
+            json response
+        """
+        return self.radarr_node._sendCommand({"name": "MissingMoviesSearch"})
 
     def getProfileInfo(self, profileID, mediaOfType):
 
@@ -1150,9 +1159,9 @@ class Pixlovarr():
 
     def performRSS(self, update, context):
 
-        if not self.isBlocked(update) and self.isGranted(update):
+        self.logCommand(update)
 
-            self.logCommand(update)
+        if not self.isBlocked(update) and self.isGranted(update):
 
             txtRSSsync = (
                 "-- RSS Sync triggerd --\n"
@@ -1185,9 +1194,9 @@ class Pixlovarr():
 
     def buymeacoffee(self, update, context):
 
-        if not self.isBlocked(update) and self.isGranted(update):
+        self.logCommand(update)
 
-            self.logCommand(update)
+        if not self.isBlocked(update) and self.isGranted(update):
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2196,6 +2205,26 @@ class Pixlovarr():
             )
 
 # HandlerCallback Commands
+
+    def searchMissingMovies(self, update, context):
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media
+
+            self.MissingMoviesSearch()
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Searching for all missing {data[1]}s. "
+                f"If you have more missing {data[1]}s, "
+                f"they are all being searched at the moment as well."
+            )
+
     def selectRootFolder(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
 
@@ -2281,6 +2310,9 @@ class Pixlovarr():
             #   - It is your own media
             #   - it is allowed to delete others media
             #   - you're an Admin
+
+            keyboard = []
+
             if (self.users_can_only_delete_own_media and
                 self.getUsertag(update, context, data[1]) in media.tags) or \
                     not self.users_can_only_delete_own_media or \
@@ -2293,10 +2325,20 @@ class Pixlovarr():
                 else:
                     callbackdata += ":False"
 
-                keyboard = [[InlineKeyboardButton(
+                keyboard.append([InlineKeyboardButton(
                     f"Delete '{media.title} ({media.year})'",
-                    callback_data=callbackdata)]]
+                    callback_data=callbackdata)]
+                )
 
+            if not media.hasFile and data[1] == "movie":
+                callbackdata = (f"searchmedia:{data[1]}")
+
+                keyboard.append([InlineKeyboardButton(
+                    f"Search '{media.title} ({media.year})'",
+                    callback_data=callbackdata)]
+                )
+
+            if keyboard:
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 self.replytext(
@@ -2881,6 +2923,10 @@ class Pixlovarr():
         kbselectRootFolder_handler = CallbackQueryHandler(
             self.selectRootFolder, pattern='^selectRootFolder:')
         self.dispatcher.add_handler(kbselectRootFolder_handler)
+
+        kbselectSearchMissingMovies_handler = CallbackQueryHandler(
+            self.searchMissingMovies, pattern='^searchmedia:')
+        self.dispatcher.add_handler(kbselectSearchMissingMovies_handler)
 
 # Admin Handlders
 
