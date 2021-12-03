@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.677"
+        self.version = "1.11.3.680"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -2539,9 +2539,9 @@ class Pixlovarr():
             if re.match("^[Tt]\\d+$", ranking):
                 context.args.pop(0)
 
-        topAmount = self.getTopAmount(update, context, ranking)
-
         if ' '.join(args):
+
+            topAmount = self.getTopAmount(update, context, ranking)
 
             searchQuery = ' '.join(args)
             self.sendmessage(
