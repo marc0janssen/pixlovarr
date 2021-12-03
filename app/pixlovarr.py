@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.673"
+        self.version = "1.11.3.676"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1085,6 +1085,7 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
+                    "/coffee - Buy me a coffee\n"
                     "/ls #<genre> <key> - List all series\n"
                     "/lm #<genre> <key> - List all movies\n"
                     "/ms #<genre> <key> - list my series\n"
@@ -1103,10 +1104,10 @@ class Pixlovarr():
                     "/rs - Show recently reviewed series\n"
                     "/rm - Show recently reviewed movies\n"
                     "/fq - Show announced items in catalog\n"
+                    "/sts - Service status info\n"
+                    "/rss - Trigger RSS fetching\n"
                     "/ds T<#> <key> - Download series\n"
                     "/dm T<#> <key> - Download movie\n"
-                    "/sts - Service status info\n"
-                    "/coffee - Buy me a coffee\n"
                 )
 
             if self.isAdmin(update):
