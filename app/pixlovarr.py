@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.658"
+        self.version = "1.11.3.673"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1146,6 +1146,41 @@ class Pixlovarr():
             )
 
 # Member Commands
+
+    def performRSS(self, update, context):
+
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            self.logCommand(update)
+
+            txtRSSsync = (
+                "-- RSS Sync triggerd --\n"
+                "RSS request sent. Latest media posts are being fetched. "
+                "If any new media is available, the download clients are "
+                "triggered.\n\n"
+            )
+
+            if self.sonarr_enabled:
+                respSonarr = self.sonarr_node.sync_rss()
+                txtRSSsync += (
+                    f"Sonarr message: "
+                    f"{respSonarr['body']['completionMessage']}\n"
+                    f"Sonarr priority: {respSonarr['priority']}\n\n"
+                )
+            if self.radarr_enabled:
+                respRadarr = self.radarr_node.sync_rss()
+                txtRSSsync += (
+                    f"Radarr message: "
+                    f"{respRadarr['body']['completionMessage']}\n"
+                    f"Radarr priority: {respRadarr['priority']}\n"
+                )
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                txtRSSsync
+            )
 
     def buymeacoffee(self, update, context):
 
@@ -2800,6 +2835,9 @@ class Pixlovarr():
 
         self.buymeacoffee_handler = CommandHandler('coffee', self.buymeacoffee)
         self.dispatcher.add_handler(self.buymeacoffee_handler)
+
+        self.performRSS_handler = CommandHandler('rss', self.performRSS)
+        self.dispatcher.add_handler(self.performRSS_handler)
 
 # Keyboard Handlers
 
