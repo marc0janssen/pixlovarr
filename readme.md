@@ -15,7 +15,7 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
-version x
+version 1.12.4.780
 
 * bugfix: Unknown was not handled if signup was closed
 * Changed: Usertag for new user is automaticly add when add first serie of movie
