@@ -26,6 +26,7 @@ You can later use the tagged media to your liking.
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
+        /coffee - Buy me a coffee
         /ls #<genre> <word> - List all series
         /lm #<genre> <word> - List all movies
         /ms #<genre> <word> - list my series
@@ -44,12 +45,12 @@ You can later use the tagged media to your liking.
         /rs - Show recently reviewed series
         /rm - Show recently reviewed movies       
         /fq - Show announced items in catalog
-        /ds T<#> <keyword> - Download serie
-        /dm T<#> <keyword> - Download movie
         /ms - list your series
         /mm - list your movies
         /sts - Service status info
-        /coffee - Buy me a coffee
+        /rss - trigger RSS fetching
+        /ds T<#> <keyword> - Download serie
+        /dm T<#> <keyword> - Download movie
 
         -- Admin commands --
         /new - Show all new signups
