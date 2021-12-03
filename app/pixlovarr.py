@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.11.3.657"
+        self.version = "1.11.3.658"
         self.startTime = datetime.now()
 
         logging.basicConfig(
@@ -1157,10 +1157,10 @@ class Pixlovarr():
                 update.effective_chat.id,
                 context,
                 update.effective_user.first_name,
-                "Thank you for considering a donation.\n"
+                "Thank you for considering a tip.\n"
                 "I love converting coffee into code.\n"
                 "Hope you enjoy these zeros and ones.\n"
-                "Thanks for donating, it is appreciated.\n\n"
+                "Thanks for tipping me, it is appreciated.\n\n"
                 "https://ko-fi.com/marc0janssen"
             )
 
