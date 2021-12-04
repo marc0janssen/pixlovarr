@@ -45,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.5.839"
+        self.version = "1.12.5.840"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -1263,7 +1263,7 @@ class Pixlovarr():
                 update.effective_user.first_name,
                 "You can tip me on Bitcoin too.\n"
                 "Thanks for tipping me, it is appreciated.\n\n"
-                "http://www.mjanssen.nl/bitcoin/bitcoin.html"
+                "https://marc0janssen.github.io/bitcoin.html"
             )
 
     def serviceStatus(self, update, context):
