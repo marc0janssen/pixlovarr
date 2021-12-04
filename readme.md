@@ -17,9 +17,16 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
+Version 1.12.5.838
+
+* Changed: Buy Me a Coffee link lower in the menu, plus a bitcoin option added
+* Changed: Logging format changed
+* Changed: Seriespath has (year) added to the path. Methods from API copied to main.
+* Fixed: Series Calender info formatted better. Title had changed in v3 API Sonarr
+
 version 1.12.4.780
 
-* bugfix: Unknown comand was not handled if signup was closed
+* Bugfix: Unknown comand was not handled if signup was closed
 * Changed: Usertag for new user is automaticly added when adding their first serie or movie
 
 version 1.12.4.755
