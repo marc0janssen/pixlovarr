@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.787"
+        self.version = "1.12.4.794"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -879,8 +879,13 @@ class Pixlovarr():
             f"Thank you and till next time."
         )
 
+        service = "Open" if self.isSignUpOpen() else "Closed"
+        typeOfUser = "Blocked member" if self.isBlocked(update) else \
+            "Non member" if not self.isGranted(update) else \
+            "Member" if not self.isAdmin(update) else "Admin"
+
         logging.info(
-            f"{update.effective_user.first_name} - "
+            f"{service} - {typeOfUser} {update.effective_user.first_name} - "
             f"{update.effective_user.id} has added the "
             f"{typeOfMedia} '{title} ({year})' "
             f"to the server.")
