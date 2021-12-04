@@ -51,7 +51,6 @@ You can later use the tagged media to your liking.
         /help - Show this text
         /signup - Request access
         /userid - Show your userid
-        /coffee - Buy me a coffee
         /ls #<genre> <word> - List all series
         /lm #<genre> <word> - List all movies
         /ms #<genre> <word> - list my series
@@ -76,6 +75,8 @@ You can later use the tagged media to your liking.
         /rss - trigger RSS fetching
         /ds T<#> <keyword> - Download serie
         /dm T<#> <keyword> - Download movie
+
+        /coffee - Buy me a coffee
 
         -- Admin commands --
         /new - Show all new signups
