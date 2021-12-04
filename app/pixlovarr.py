@@ -28,6 +28,7 @@ import random
 import feedparser
 import ssl
 import requests
+from pathlib import Path
 from time import time
 from datetime import datetime, date, timedelta
 from pycliarr.api import (
@@ -44,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.795"
+        self.version = "1.12.4.826"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -189,6 +190,44 @@ class Pixlovarr():
             shutil.copyfile(f"{app_dir}/pixlovarr.ini.example",
                             f"{config_dir}/pixlovarr.ini.example")
             sys.exit()
+
+    def build_serie_path(
+            self,
+            serie_info: SonarrSerieItem,
+            root_folder_id: int = 0) -> Path:
+        """Build a movie folder path using the root folder specified.
+        Args:
+            serie_info (SonarrSerieItem) Item for which to build the path
+            root_folder_id (int): Id of the root folder (can be retrieved with
+            get_root_folder())
+            If the id is not found or not specified, the first root folder
+             in the list is used.
+        Returns: Full path of the serie in the format
+        <root path>/<movie name> (<movie year>)
+        """
+        return self.sonarr_node.build_item_path(serie_info.title + (
+            f" ({serie_info.year})" if serie_info.year else ""),
+            root_folder_id
+            )
+
+    def build_movie_path(
+            self,
+            movie_info: RadarrMovieItem,
+            root_folder_id: int = 0) -> Path:
+        """Build a movie folder path using the root folder specified.
+        Args:
+            serie_info (SonarrSerieItem) Item for which to build the path
+            root_folder_id (int): Id of the root folder (can be retrieved with
+            get_root_folder())
+            If the id is not found or not specified, the first root folder in
+            the list is used.
+        Returns: Full path of the serie in the format
+        <root path>/<movie name> (<movie year>)
+        """
+        return self.radarr_node.build_item_path(movie_info.title + (
+            f" ({movie_info.year})" if movie_info.year else ""),
+            root_folder_id
+            )
 
     def MissingMoviesSearch(self):
         """Perform an Missing missing movie search.
@@ -2463,8 +2502,7 @@ class Pixlovarr():
                     elif data[5] == "New":
                         monitored_seasons = []
 
-                    downloadPath = \
-                        str(self.sonarr_node.build_serie_path(media, data[4]))
+                    downloadPath = str(self.build_serie_path(media, data[4]))
 
                     self.sonarr_node.add_serie(
                         serie_info=media, quality=int(data[3]),
@@ -2497,8 +2535,7 @@ class Pixlovarr():
 
                     media.tags.append(usertagID)
 
-                    downloadPath = \
-                        str(self.radarr_node.build_movie_path(media, data[4]))
+                    downloadPath = str(self.build_movie_path(media, data[4]))
 
                     self.radarr_node.add_movie(
                         movie_info=media,
