@@ -45,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.826"
+        self.version = "1.12.4.834"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -602,18 +602,16 @@ class Pixlovarr():
             # No Youtube ID found
             pass
 
-    def showCalenderMediaInfo(self, update, context, media):
+    def showCalenderMediaInfo(self, media):
+
         try:
-            title = (
-                f"{media['series']['title']} ({media['series']['year']})\n"
-                f"Episode: S{media['seasonNumber']}E{media['episodeNumber']}"
-                f" - {media['title']}"
-            )
+            serie = self.sonarr_node.get_serie(media["seriesId"])
+            title = f"{serie.title}\n{media['title']}"
         except KeyError:
             try:
                 title = f"{media['title']} ({media['year']})"
             except KeyError:
-                title = "-"
+                title = "<Title unknown>"
 
         try:
             dateCinema = datetime.strftime(
@@ -798,7 +796,7 @@ class Pixlovarr():
                 update.effective_chat.id,
                 context,
                 update.effective_user.first_name,
-                self.showCalenderMediaInfo(update, context, media)
+                self.showCalenderMediaInfo(media)
             )
 
             numOfCalItems = 1
@@ -820,7 +818,7 @@ class Pixlovarr():
                     numOfCalItems += 1
 
                     allMedia += (
-                        self.showCalenderMediaInfo(update, context, m))
+                        self.showCalenderMediaInfo(m))
 
                     if (numOfCalItems % self.listLength == 0 and
                             numOfCalItems != 0):
