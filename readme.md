@@ -13,7 +13,7 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y078U1V)
 
-[![Bitcoin](http://www.mjanssen.nl/bitcoin/bitcoin_logo.png)](http://www.mjanssen.nl/bitcoin/bitcoin.html)
+[![Bitcoin](https://marc0janssen.github.io/bitcoin_logo.png)](https://marc0janssen.github.io/bitcoin.html)
 
 ## Changelog
 
