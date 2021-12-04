@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.4.794"
+        self.version = "1.12.4.795"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -1104,7 +1104,6 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "/coffee - Buy me a coffee\n"
                     "/ls #<genre> <key> - List all series\n"
                     "/lm #<genre> <key> - List all movies\n"
                     "/ms #<genre> <key> - list my series\n"
@@ -1126,7 +1125,9 @@ class Pixlovarr():
                     "/sts - Service status info\n"
                     "/rss - Trigger RSS fetching\n"
                     "/ds T<#> <key> - Download series\n"
-                    "/dm T<#> <key> - Download movie\n"
+                    "/dm T<#> <key> - Download movie\n\n"
+                    "/coffee - Buy me a coffee\n"
+
                 )
 
             if self.isAdmin(update):
@@ -1217,6 +1218,15 @@ class Pixlovarr():
                 "Hope you enjoy these zeros and ones.\n"
                 "Thanks for tipping me, it is appreciated.\n\n"
                 "https://ko-fi.com/marc0janssen"
+            )
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                "You can tip me on Bitcoin too.\n"
+                "Thanks for tipping me, it is appreciated.\n\n"
+                "http://www.mjanssen.nl/bitcoin/bitcoin.html"
             )
 
     def serviceStatus(self, update, context):
