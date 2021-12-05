@@ -1,7 +1,7 @@
 
 # Pixlovarr
 
-2021-12-03 20:35:46
+2021-12-05 21:56:23
 
 ## What is it?
 
@@ -16,6 +16,10 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 [![Bitcoin](https://marc0janssen.github.io/bitcoin_logo.png)](https://marc0janssen.github.io/bitcoin.html)
 
 ## Changelog
+
+Version 1.14.5.900
+
+* New: Media with a "Keep tag" can not be deleted
 
 Version 1.12.5.838
 

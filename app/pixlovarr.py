@@ -1,7 +1,7 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-12-02 21:42:40
+# update: 2021-12-05 21:56:12
 
 from telegram import (
     InlineKeyboardMarkup,
@@ -17,17 +17,6 @@ from telegram.ext import (
 )
 from time import sleep
 from urllib.parse import urlparse
-import logging
-import json
-import configparser
-import shutil
-import sys
-import re
-import imdb
-import random
-import feedparser
-import ssl
-import requests
 from pathlib import Path
 from time import time
 from datetime import datetime, date, timedelta
@@ -39,13 +28,24 @@ from pycliarr.api import (
     SonarrCli,
     SonarrSerieItem
 )
+import logging
+import json
+import configparser
+import shutil
+import sys
+import re
+import imdb
+import random
+import feedparser
+import ssl
+import requests
 
 
 class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.12.5.842"
+        self.version = "1.14.5.900"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -115,6 +115,10 @@ class Pixlovarr():
                     ['AUTO_ADD_EXCLUSION'] == "ON") else False
                 self.sonarr_period_days_added = \
                     int(self.config['SONARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
+                self.tags_to_keep_sonarr = list(
+                    self.config['SONARR']
+                    ['TAGS_KEEP_MOVIES_ANYWAY'].split(",")
+                )
 
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
@@ -127,6 +131,10 @@ class Pixlovarr():
                     ['AUTO_ADD_EXCLUSION'] == "ON") else False
                 self.radarr_period_days_added = \
                     int(self.config['RADARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
+                self.tags_to_keep_radarr = list(
+                    self.config['RADARR']
+                    ['TAGS_KEEP_MOVIES_ANYWAY'].split(",")
+                )
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -2358,9 +2366,11 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     media = self.sonarr_node.get_serie(int(data[2]))
+                    tags_to_keep = self.tags_to_keep_sonarr
             else:
                 if self.radarr_enabled:
                     media = self.radarr_node.get_movie(int(data[2]))
+                    tags_to_keep = self.tags_to_keep_radarr
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -2371,22 +2381,47 @@ class Pixlovarr():
 
             keyboard = []
 
-            if (self.users_can_only_delete_own_media and
-                self.getUsertag(update, data[1]) in media.tags) or \
-                    not self.users_can_only_delete_own_media or \
+            # Convert tags to a dictionary
+            tagnames = {}
+            for tag in self.getAllTags(data[1]):
+                # Add tag to lookup by it's name
+                tagnames[tag['label']] = tag['id']
+
+            # Get ID's for keeping movies anyway
+            tagsIDs_to_keep = []
+            for tag_to_keep in tags_to_keep:
+                tagID_to_keep = tagnames.get(tag_to_keep)
+                if tagID_to_keep:
+                    tagsIDs_to_keep.append(tagID_to_keep)
+
+            # IF in the media there are not "KEEP" tags,
+            # then show delete button
+            if not set(media.tags) & set(tagsIDs_to_keep) or \
                     self.isAdmin(update):
 
-                callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
-                if self.isAdmin(update) or \
-                        self.users_permanent_delete_media:
-                    callbackdata += ":True"
-                else:
-                    callbackdata += ":False"
+                # Show button if:
+                #   - If "only users can delete own media" is enabled
+                #           and it is their own media
+                #   - If "only users can delete own media" is disabled
+                #   -  User is an Admin
 
-                keyboard.append([InlineKeyboardButton(
-                    f"Delete '{media.title} ({media.year})'",
-                    callback_data=callbackdata)]
-                )
+                if (self.users_can_only_delete_own_media and
+                        self.getUsertag(update, data[1]) in media.tags) or \
+                        not self.users_can_only_delete_own_media or \
+                        self.isAdmin(update):
+
+                    callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
+
+                    if self.isAdmin(update) or \
+                            self.users_permanent_delete_media:
+                        callbackdata += ":True"
+                    else:
+                        callbackdata += ":False"
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"Delete '{media.title} ({media.year})'",
+                        callback_data=callbackdata)]
+                    )
 
             if not media.hasFile and data[1] == "movie":
                 callbackdata = (f"searchmedia:{data[1]}")
