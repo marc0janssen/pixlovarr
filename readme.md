@@ -177,6 +177,7 @@ In the directory /config the python script expects a config file called 'pixlova
         SEASON_FOLDER = ON
         CALENDAR_PERIOD_DAYS_SERIES = 30
         AUTO_ADD_EXCLUSION = ON
+        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
 
         [RADARR]
         ENABLED = OFF
@@ -184,6 +185,7 @@ In the directory /config the python script expects a config file called 'pixlova
         TOKEN = RADARR_API_TOKEN
         CALENDAR_PERIOD_DAYS_MOVIES = 180
         AUTO_ADD_EXCLUSION = ON
+        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 
