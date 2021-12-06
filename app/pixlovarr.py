@@ -45,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.934"
+        self.version = "1.14.5.973"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -94,6 +94,10 @@ class Pixlovarr():
                     "ON") else False
                 self.sign_up_is_open = True if (
                     self.config['COMMON']['SIGN_UP_IS_OPEN'] ==
+                    "ON") else False
+                self.path_largest_space = True if (
+                    self.config['COMMON']
+                    ['ONLY_SHOW_PATH_LARGEST_FREE_SPACE'] ==
                     "ON") else False
 
                 self.default_limit_ranking = self.clamp(
@@ -905,7 +909,7 @@ class Pixlovarr():
             f"{service} - {typeOfUser} "
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} "
-            f"issued {update.effective_message.text}."
+            f"issued {update.effective_message.text}"
         )
 
         if not self.isBlocked(update):
@@ -2335,15 +2339,27 @@ class Pixlovarr():
             if root_paths:
 
                 keyboard = []
+                freespace = 0
 
                 for root_path in root_paths:
+
+                    # if check for largest and not an Admin
+                    if self.path_largest_space and not self.isAdmin(update):
+
+                        # If stored space value is less the current space
+                        if freespace < root_path['freeSpace']:
+
+                            # store the larger valve and clear "keyboard"
+                            freespace = root_path['freeSpace']
+                            keyboard = []
+
+                        else:
+                            continue
 
                     callbackdata = (
                         f"selectdownload:{data[1]}:{data[2]}:"
                         f"{data[3]}:{root_path['id']}"
                     )
-
-                    print(root_path['id'])
 
                     keyboard.append([InlineKeyboardButton(
                         f"{root_path['path']} "
