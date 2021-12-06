@@ -206,6 +206,7 @@ In the directory /config the python script expects a config file called 'radarr_
         TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
         REMOVE_MOVIES_AFTER_DAYS = 180
         WARN_DAYS_INFRONT = 1
+        SHOW_KEPT_MESSAGE = ON
         DRY_RUN = ON
 
         [RADARR]
