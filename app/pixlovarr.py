@@ -45,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.977"
+        self.version = "1.14.5.978"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2467,7 +2467,7 @@ class Pixlovarr():
                         callback_data=callbackdata)]
                     )
 
-            if not media.hasFile and data[1] == "movie":
+            if data[1] == "movie" and not media.hasFile:
                 callbackdata = (f"searchmedia:{data[1]}")
 
                 keyboard.append([InlineKeyboardButton(
