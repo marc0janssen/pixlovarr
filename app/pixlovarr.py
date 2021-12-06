@@ -45,7 +45,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.902"
+        self.version = "1.14.5.934"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -199,6 +199,28 @@ class Pixlovarr():
                             f"{config_dir}/pixlovarr.ini.example")
             sys.exit()
 
+    def build_item_path(self, title: str, root_folder_id: int = 0) -> Path:
+        """Build an item folder path using the root folder specified.
+        Args:
+            title (str): Title to add to root path. All invalid
+            characters are removed
+            root_folder_id (int): Id of the root folder (can be
+            retrieved with get_root_folder())
+                If the id is not found or not specified, the first root
+                folder in the list is used.
+        Returns: Full path of the serie in the format <root path>/<serie name>
+        """
+        root_paths = self.sonarr_node.get_root_folder()
+
+        root_path = root_paths[0]
+
+        for path in root_paths:
+            if path["id"] == int(root_folder_id):
+
+                root_path = path
+
+        return Path(root_path["path"]) / self.sonarr_node.to_path(title)
+
     def build_serie_path(
             self,
             serie_info: SonarrSerieItem,
@@ -213,7 +235,7 @@ class Pixlovarr():
         Returns: Full path of the serie in the format
         <root path>/<movie name> (<movie year>)
         """
-        return self.sonarr_node.build_item_path(serie_info.title + (
+        return self.build_item_path(serie_info.title + (
             f" ({serie_info.year})" if serie_info.year else ""),
             root_folder_id
             )
@@ -1666,6 +1688,7 @@ class Pixlovarr():
             keyboardPresentMedia = []
 
             for count, m in enumerate(media[:topAmount]):
+
                 if count % 12 == 0 and count != 0:
                     phrass = [
                         "rm -rf /homes/* ... just kidding...",
@@ -1686,9 +1709,12 @@ class Pixlovarr():
                     )
 
                 if typeOfMedia == "serie":
+
                     if self.sonarr_enabled:
+
                         foundMedia = \
                             self.sonarr_node.lookup_serie(term=m['title'])
+
                         if foundMedia is None:
                             continue
 
@@ -2316,6 +2342,8 @@ class Pixlovarr():
                         f"selectdownload:{data[1]}:{data[2]}:"
                         f"{data[3]}:{root_path['id']}"
                     )
+
+                    print(root_path['id'])
 
                     keyboard.append([InlineKeyboardButton(
                         f"{root_path['path']} "
