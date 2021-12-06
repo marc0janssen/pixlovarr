@@ -17,10 +17,11 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
-version 1.14.5.976
+version 1.14.5.979
 
 * Fixed: API v3 had bug in build_item_path, temporarily fixed in the __main__
 * New: Setting added. Show only largest available drive when downloading. This helps to even fill the drives.
+* Bugfix: Check for movie to show "search button" failed.
 
 Version 1.14.5.900
 
