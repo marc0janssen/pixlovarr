@@ -1,7 +1,7 @@
 
 # Pixlovarr
 
-2021-12-05 21:56:23
+2021-12-06 18:38:20
 
 ## What is it?
 
@@ -166,6 +166,7 @@ In the directory /config the python script expects a config file called 'pixlova
         USERS_PERMANENT_DELETE_MEDIA = OFF
         USERS_CAN_ONLY_DELETE_OWN_MEDIA = ON
         SIGN_UP_IS_OPEN = ON
+        ONLY_SHOW_PATH_LARGEST_FREE_SPACE = NO
 
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
