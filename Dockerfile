@@ -39,7 +39,7 @@ RUN apk add --update \
 	&& /app/update_git.sh \
 	&& chmod +x /app/runjob.sh
 
-RUN echo '0	18	*   *   *   python3 /app/radarr_library_purge.py &> /proc/1/fd/1' >> /etc/crontabs/root
+RUN echo '0	4	*   *   *   python3 /app/radarr_library_purge.py &> /proc/1/fd/1' >> /etc/crontabs/root
 
 ENV TZ=Europe/Amsterdam
 
