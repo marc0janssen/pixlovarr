@@ -38,14 +38,13 @@ import imdb
 import random
 import feedparser
 import ssl
-import requests
 
 
 class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1041"
+        self.version = "1.14.5.1203"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -123,6 +122,9 @@ class Pixlovarr():
                     self.config['SONARR']
                     ['TAGS_KEEP_MOVIES_ANYWAY'].split(",")
                 )
+                self.tags_to_extend_sonarr = list(
+                    self.config['SONARR']
+                    ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
 
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
@@ -139,6 +141,9 @@ class Pixlovarr():
                     self.config['RADARR']
                     ['TAGS_KEEP_MOVIES_ANYWAY'].split(",")
                 )
+                self.tags_to_extend_radarr = list(
+                    self.config['RADARR']
+                    ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -203,6 +208,7 @@ class Pixlovarr():
                             f"{config_dir}/pixlovarr.ini.example")
             sys.exit()
 
+# -----
     def build_item_path(self, title: str, root_folder_id: int = 0) -> Path:
         """Build an item folder path using the root folder specified.
         Args:
@@ -269,6 +275,8 @@ class Pixlovarr():
             json response
         """
         return self.radarr_node._sendCommand({"name": "MissingMoviesSearch"})
+
+# -----
 
     def getProfileInfo(self, profileID, mediaOfType):
 
@@ -681,8 +689,8 @@ class Pixlovarr():
                 type(media) is RadarrMovieItem:
 
             if usertagEnabled:
-                usertag = self.getUsertag(update, typeOfMedia)
-                usertagFound = usertag in media.tags
+                usertagID = self.getUsertagID(update, typeOfMedia)
+                usertagFound = usertagID in media.tags
 
             if newDownloadOnly:
                 if typeOfMedia == "serie":
@@ -746,8 +754,8 @@ class Pixlovarr():
             for m in media:
 
                 if usertagEnabled:
-                    usertag = self.getUsertag(update, typeOfMedia)
-                    usertagFound = usertag in m.tags
+                    usertagID = self.getUsertagID(update, typeOfMedia)
+                    usertagFound = usertagID in m.tags
 
                 if newDownloadOnly:
                     if typeOfMedia == "serie":
@@ -1003,47 +1011,49 @@ class Pixlovarr():
             f"{typeOfMedia} '{title}' "
             f"from the queue.")
 
-    def get_data(self, url):
-        response = requests.get(url)
-        return response.json()
-
-    # Get All Tags
-    def getAllTags(self, typeOfMedia):
-
-        if typeOfMedia == "serie":
-            token = self.sonarr_token
-            url = self.sonarr_url
-
-        else:
-            token = self.radarr_token
-            url = self.radarr_url
-
-        return (
-            self.get_data(
-                f"{url}/api/tag?apikey={token}"
-            )
-        )
-
     def createTagName(self, username, userid):
-
         # make striped username with only az09
         strippedfirstname = re.sub(
             r'[^A-Za-z0-9]+', '', username.lower())
         return f"{strippedfirstname}_{userid}"
 
-    def getUsertag(self, update, typeOfMedia):
+    def getUsertagID(self, update, typeOfMedia):
 
         tagName = self.createTagName(
             update.effective_user.first_name, update.effective_user.id)
 
-        # Put all tags in a dictonairy with pair label <=> ID
-        tagnames = {}
-        for tag in self.getAllTags(typeOfMedia):
-            # Add tag to lookup by it's name
-            tagnames[tag['label']] = tag['id']
+        tagnames = self.getTagLabeltoID(typeOfMedia)
 
         # Return the ID of the usertag if found on the server
         return tagnames.get(tagName)
+
+    def getTagLabeltoID(self, typeOfMedia):
+        # Put all tags in a dictonairy with pair label <=> ID
+
+        TagLabeltoID = {}
+        if typeOfMedia == "serie":
+            for tag in self.sonarr_node.get_tag():
+                # Add tag to lookup by it's name
+                TagLabeltoID[tag['label']] = tag['id']
+        else:
+            for tag in self.radarr_node.get_tag():
+                # Add tag to lookup by it's name
+                TagLabeltoID[tag['label']] = tag['id']
+
+        return TagLabeltoID
+
+    def getIDsforTagLabels(self, typeOfmedia, tagLabels):
+
+        TagLabeltoID = self.getTagLabeltoID(typeOfmedia)
+
+        # Get ID's for extending media
+        tagsIDs = []
+        for taglabel in tagLabels:
+            tagID = TagLabeltoID.get(taglabel)
+            if tagID:
+                tagsIDs.append(tagID)
+
+        return tagsIDs
 
     def sendmessage(self, chat_id, context, username, msg):
 
@@ -2302,6 +2312,46 @@ class Pixlovarr():
 
 # HandlerCallback Commands
 
+    def extendPeriodMedia(self, update, context):
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaid
+
+            if data[1] == "serie":
+                if self.sonarr_enabled:
+                    media = self.sonarr_node.get_serie(int(data[2]))
+                    tagLabels_to_extend = self.tags_to_extend_sonarr
+            else:
+                if self.radarr_enabled:
+                    media = self.radarr_node.get_movie(int(data[2]))
+                    tagLabels_to_extend = self.tags_to_extend_radarr
+
+            tagIDs_To_Extend = self.getIDsforTagLabels(
+                data[1], tagLabels_to_extend)
+
+            # If there not IDs yet, then create them for the first time
+            if not tagIDs_To_Extend:
+                if data[1] == "serie":
+                    if self.sonarr_enabled:
+                        tag = self.sonarr_node.create_tag(
+                            tagLabels_to_extend[0])
+
+                else:
+                    if self.radarr_enabled:
+                        tag = self.radarr_node.create_tag(
+                            tagLabels_to_extend[0])
+
+                tagIDs_To_Extend = [tag["id"]]
+
+            # IF in the media there are not "KEEP" tags,
+            # then show delete button
+            if not set(media.tags) & set(tagIDs_To_Extend):
+
+                pass
+
     def searchMissingMovies(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
 
@@ -2410,33 +2460,19 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     media = self.sonarr_node.get_serie(int(data[2]))
-                    tags_to_keep = self.tags_to_keep_sonarr
+                    tagLabels_to_keep = self.tags_to_keep_sonarr
             else:
                 if self.radarr_enabled:
                     media = self.radarr_node.get_movie(int(data[2]))
-                    tags_to_keep = self.tags_to_keep_radarr
+                    tagLabels_to_keep = self.tags_to_keep_radarr
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            # Eanble delete if
-            #   - It is your own media
-            #   - it is allowed to delete others media
-            #   - you're an Admin
-
             keyboard = []
 
-            # Convert tags to a dictionary
-            tagnames = {}
-            for tag in self.getAllTags(data[1]):
-                # Add tag to lookup by it's name
-                tagnames[tag['label']] = tag['id']
-
             # Get ID's for keeping movies anyway
-            tagsIDs_to_keep = []
-            for tag_to_keep in tags_to_keep:
-                tagID_to_keep = tagnames.get(tag_to_keep)
-                if tagID_to_keep:
-                    tagsIDs_to_keep.append(tagID_to_keep)
+            tagsIDs_to_keep = self.getIDsforTagLabels(
+                data[1], tagLabels_to_keep)
 
             # IF in the media there are not "KEEP" tags,
             # then show delete button
@@ -2448,9 +2484,8 @@ class Pixlovarr():
                 #           and it is their own media
                 #   - If "only users can delete own media" is disabled
                 #   -  User is an Admin
-
                 if (self.users_can_only_delete_own_media and
-                        self.getUsertag(update, data[1]) in media.tags) or \
+                        self.getUsertagID(update, data[1]) in media.tags) or \
                         not self.users_can_only_delete_own_media or \
                         self.isAdmin(update):
 
@@ -2466,6 +2501,15 @@ class Pixlovarr():
                         f"Delete '{media.title} ({media.year})'",
                         callback_data=callbackdata)]
                     )
+
+                    """
+                    callbackdata = (f"extendperiod:{data[1]}:{data[2]}")
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"Extend '{media.title} ({media.year})'",
+                        callback_data=callbackdata)]
+                    )
+                    """
 
             if data[1] == "movie" and not media.hasFile:
                 callbackdata = (f"searchmedia:{data[1]}")
@@ -2557,7 +2601,7 @@ class Pixlovarr():
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
-                    usertagID = self.getUsertag(update, data[1])
+                    usertagID = self.getUsertagID(update, data[1])
                     if not usertagID:
                         tagName = self.createTagName(
                             update.effective_user.first_name,
@@ -2600,7 +2644,7 @@ class Pixlovarr():
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
-                    usertagID = self.getUsertag(update, data[1])
+                    usertagID = self.getUsertagID(update, data[1])
                     if not usertagID:
                         tagName = self.createTagName(
                             update.effective_user.first_name,
@@ -3078,6 +3122,10 @@ class Pixlovarr():
         kbselectSearchMissingMovies_handler = CallbackQueryHandler(
             self.searchMissingMovies, pattern='^searchmedia:')
         self.dispatcher.add_handler(kbselectSearchMissingMovies_handler)
+
+        kbselectExtendPeriodMedia_handler = CallbackQueryHandler(
+            self.extendPeriodMedia, pattern='^extendperiod:')
+        self.dispatcher.add_handler(kbselectExtendPeriodMedia_handler)
 
 # Admin Handlders
 

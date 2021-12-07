@@ -1,7 +1,7 @@
 
 # Pixlovarr
 
-2021-12-06 18:38:20
+2021-12-07 17:11:30
 
 ## What is it?
 
@@ -202,12 +202,14 @@ In the directory /config the python script expects a config file called 'radarr_
 
         [GENERAL]
         ENABLED = ON
+        DRY_RUN = ON
         TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3
         TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
-        REMOVE_MOVIES_AFTER_DAYS = 180
+        REMOVE_MOVIES_AFTER_DAYS = 30
         WARN_DAYS_INFRONT = 1
         SHOW_KEPT_MESSAGE = ON
-        DRY_RUN = ON
+        TAGS_TO_EXTEND_BEFORE_REMOVAL = tag6,tag7
+        EXTEND_BY_DAYS = 30
 
         [RADARR]
         URL = http://192.168.1.1:7878
