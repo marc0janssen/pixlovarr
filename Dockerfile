@@ -41,7 +41,7 @@ RUN apk add --update \
 
 RUN echo '0	4	*   *   *   python3 /app/radarr_library_purge.py &> /proc/1/fd/1' >> /etc/crontabs/root
 
-RUN ln -s /config /root/config
+RUN ln -s /config /root/config && ln -s /app /root/app
 
 ENV TZ=Europe/Amsterdam
 
