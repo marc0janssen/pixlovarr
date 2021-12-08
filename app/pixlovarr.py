@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1243"
+        self.version = "1.14.5.1247"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -189,6 +189,9 @@ class Pixlovarr():
                     self.pixlovarrdata["stitle"] = "<not available yet>"
                     self.pixlovarrdata["mtitle"] = "<not available yet>"
                     self.pixlovarrdata["cmdcount"] = 0
+
+                    self.saveconfig(
+                        self.pixlovarr_data_file, self.pixlovarrdata)
 
             except KeyError as e:
                 logging.error(
