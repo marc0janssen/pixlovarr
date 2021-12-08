@@ -173,7 +173,8 @@ In the directory /config the python script expects a config file called 'pixlova
         USERS_CAN_ONLY_DELETE_OWN_MEDIA = ON
         SIGN_UP_IS_OPEN = ON
         ONLY_SHOW_PATH_LARGEST_FREE_SPACE = NO
-
+        EXCLUDE_ADMIN_FROM_LOGGING = OFF
+        
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
 
@@ -210,7 +211,7 @@ In the directory /config the python script expects a config file called 'radarr_
         SHOW_KEPT_MESSAGE = ON
         TAGS_TO_EXTEND_BEFORE_REMOVAL = tag6,tag7
         EXTEND_BY_DAYS = 30
-
+        
         [RADARR]
         URL = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
