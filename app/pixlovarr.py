@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1241"
+        self.version = "1.14.5.1243"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -184,7 +184,8 @@ class Pixlovarr():
 
                 if not self.pixlovarrdata:
                     self.pixlovarrdata["uname"] = "<unknown>"
-                    self.pixlovarrdata["timestamp"] = datetime.now()
+                    self.pixlovarrdata["timestamp"] = \
+                        datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
                     self.pixlovarrdata["stitle"] = "<not available yet>"
                     self.pixlovarrdata["mtitle"] = "<not available yet>"
                     self.pixlovarrdata["cmdcount"] = 0
