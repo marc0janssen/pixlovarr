@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1203"
+        self.version = "1.14.5.1235"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -97,6 +97,10 @@ class Pixlovarr():
                 self.path_largest_space = True if (
                     self.config['COMMON']
                     ['ONLY_SHOW_PATH_LARGEST_FREE_SPACE'] ==
+                    "ON") else False
+                self.exclude_admin = True if (
+                    self.config['COMMON']
+                    ['EXCLUDE_ADMIN_FROM_LOGGING'] ==
                     "ON") else False
 
                 self.default_limit_ranking = self.clamp(
@@ -190,10 +194,11 @@ class Pixlovarr():
 
                 sys.exit()
 
-            except ValueError:
+            except ValueError as e:
                 logging.error(
-                    "Seems a value(s) is invalid in INI file. "
-                    "Please check for mistakes. Exiting."
+                    f"Seems a invalid value in INI file. "
+                    f"Please check for mistakes. Exiting. "
+                    f"MSG: {e}"
                 )
 
                 sys.exit()
@@ -441,21 +446,25 @@ class Pixlovarr():
     def sortOnNameDict(self, e):
         return e['name']
 
-    def addItemToHistory(self, cmd, uname, uid):
-        historyItem = {}
+    def addItemToHistory(self, update, cmd, uname, uid):
 
-        now = datetime.now()
-        dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+        if self.isAdmin(update) and not self.exclude_admin \
+                or not self.isAdmin(update):
 
-        historyItem["timestamp"] = dt_string
-        historyItem["cmd"] = cmd
-        historyItem["uname"] = uname
-        historyItem["uid"] = uid
+            historyItem = {}
 
-        self.cmdHistory.append(historyItem)
+            now = datetime.now()
+            dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        if len(self.cmdHistory) > self.maxCmdHistory:
-            self.cmdHistory.pop(0)
+            historyItem["timestamp"] = dt_string
+            historyItem["cmd"] = cmd
+            historyItem["uname"] = uname
+            historyItem["uid"] = uid
+
+            self.cmdHistory.append(historyItem)
+
+            if len(self.cmdHistory) > self.maxCmdHistory:
+                self.cmdHistory.pop(0)
 
     def isAdmin(self, update):
         return True \
@@ -908,44 +917,50 @@ class Pixlovarr():
 
     def logCommand(self, update):
 
-        service = "Open" if self.isSignUpOpen() else "Closed"
-        typeOfUser = "Blocked member" if self.isBlocked(update) else \
-            "Non member" if not self.isGranted(update) else \
-            "Member" if not self.isAdmin(update) else "Admin"
+        if self.isAdmin(update) and not self.exclude_admin \
+                or not self.isAdmin(update):
 
-        msg = (
-            f"{service} - {typeOfUser} "
-            f"{update.effective_user.first_name} - "
-            f"{update.effective_user.id} "
-            f"issued {update.effective_message.text}"
-        )
+            service = "Open" if self.isSignUpOpen() else "Closed"
+            typeOfUser = "Blocked member" if self.isBlocked(update) else \
+                "Non member" if not self.isGranted(update) else \
+                "Member" if not self.isAdmin(update) else "Admin"
 
-        if not self.isBlocked(update):
-
-            self.pixlovarrdata["uname"] = str(self.cmdHistory[-1]["uname"]) \
-                if len(self.cmdHistory) != 0 else \
-                update.effective_user.first_name
-            self.pixlovarrdata["timestamp"] = \
-                str(self.cmdHistory[-1]["timestamp"]) \
-                if len(self.cmdHistory) != 0 else \
-                datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
-
-            logging.info(msg)
-
-            self.addItemToHistory(
-                f"{update.effective_message.text}",
-                update.effective_user.first_name,
-                update.effective_user.id
+            msg = (
+                f"{service} - {typeOfUser} "
+                f"{update.effective_user.first_name} - "
+                f"{update.effective_user.id} "
+                f"issued {update.effective_message.text}"
             )
 
-            self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
-            self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
+            if not self.isBlocked(update):
 
-        else:
-            logging.warning(
-                f"{msg} "
-                f"No command was executed."
-            )
+                self.pixlovarrdata["uname"] = \
+                    str(self.cmdHistory[-1]["uname"]) \
+                    if len(self.cmdHistory) != 0 else \
+                    update.effective_user.first_name
+
+                self.pixlovarrdata["timestamp"] = \
+                    str(self.cmdHistory[-1]["timestamp"]) \
+                    if len(self.cmdHistory) != 0 else \
+                    datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+                logging.info(msg)
+
+                self.addItemToHistory(
+                    update,
+                    f"{update.effective_message.text}",
+                    update.effective_user.first_name,
+                    update.effective_user.id
+                )
+
+                self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
+                self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
+
+            else:
+                logging.warning(
+                    f"{msg} "
+                    f"No command was executed."
+                )
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         self.sendmessage(
@@ -2095,7 +2110,7 @@ class Pixlovarr():
 
     def closesignup(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2115,7 +2130,7 @@ class Pixlovarr():
 
     def listtags(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2136,7 +2151,7 @@ class Pixlovarr():
 
     def showCmdHistory(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2188,7 +2203,7 @@ class Pixlovarr():
 
     def showSignups(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2229,7 +2244,7 @@ class Pixlovarr():
 
     def showAllowed(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
@@ -2263,7 +2278,7 @@ class Pixlovarr():
 
     def showBlocked(self, update, context):
 
-        self.logCommand(update)
+        self.logAdminCommand(update)
 
         if self.isAdmin(update):
 
