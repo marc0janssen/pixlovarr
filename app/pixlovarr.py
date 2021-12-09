@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1275"
+        self.version = "1.14.5.1285"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -100,7 +100,7 @@ class Pixlovarr():
                     "ON") else False
                 self.exclude_admin = True if (
                     self.config['COMMON']
-                    ['EXCLUDE_ADMIN_FROM_LOGGING'] ==
+                    ['EXCLUDE_ADMIN_FROM_HISTORY'] ==
                     "ON") else False
 
                 self.default_limit_ranking = self.clamp(
@@ -924,50 +924,47 @@ class Pixlovarr():
 
     def logCommand(self, update):
 
-        if self.isAdmin(update) and not self.exclude_admin \
-                or not self.isAdmin(update):
+        service = "Open" if self.isSignUpOpen() else "Closed"
+        typeOfUser = "Blocked member" if self.isBlocked(update) else \
+            "Non member" if not self.isGranted(update) else \
+            "Member" if not self.isAdmin(update) else "Admin"
 
-            service = "Open" if self.isSignUpOpen() else "Closed"
-            typeOfUser = "Blocked member" if self.isBlocked(update) else \
-                "Non member" if not self.isGranted(update) else \
-                "Member" if not self.isAdmin(update) else "Admin"
+        msg = (
+            f"{service} - {typeOfUser} "
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} "
+            f"issued {update.effective_message.text}"
+        )
 
-            msg = (
-                f"{service} - {typeOfUser} "
-                f"{update.effective_user.first_name} - "
-                f"{update.effective_user.id} "
-                f"issued {update.effective_message.text}"
+        if not self.isBlocked(update):
+
+            self.pixlovarrdata["uname"] = \
+                str(self.cmdHistory[-1]["uname"]) \
+                if len(self.cmdHistory) != 0 else \
+                update.effective_user.first_name
+
+            self.pixlovarrdata["timestamp"] = \
+                str(self.cmdHistory[-1]["timestamp"]) \
+                if len(self.cmdHistory) != 0 else \
+                datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+            logging.info(msg)
+
+            self.addItemToHistory(
+                update,
+                f"{update.effective_message.text}",
+                update.effective_user.first_name,
+                update.effective_user.id
             )
 
-            if not self.isBlocked(update):
+            self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
+            self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
 
-                self.pixlovarrdata["uname"] = \
-                    str(self.cmdHistory[-1]["uname"]) \
-                    if len(self.cmdHistory) != 0 else \
-                    update.effective_user.first_name
-
-                self.pixlovarrdata["timestamp"] = \
-                    str(self.cmdHistory[-1]["timestamp"]) \
-                    if len(self.cmdHistory) != 0 else \
-                    datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
-
-                logging.info(msg)
-
-                self.addItemToHistory(
-                    update,
-                    f"{update.effective_message.text}",
-                    update.effective_user.first_name,
-                    update.effective_user.id
-                )
-
-                self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
-                self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
-
-            else:
-                logging.warning(
-                    f"{msg} "
-                    f"No command was executed."
-                )
+        else:
+            logging.warning(
+                f"{msg} "
+                f"No command was executed."
+            )
 
     def notifyDownload(self, update, context, typeOfMedia, title, year):
         self.sendmessage(
