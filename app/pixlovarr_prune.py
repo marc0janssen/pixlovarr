@@ -159,12 +159,12 @@ class RLP():
             if set(movie.tags) & set(tagsIDs_to_remove):
 
                 try:
-                    created = os.stat(f'{movie.path}/movie.nfo').st_ctime
+                    created = os.stat('/movie/movie.nfo').st_ctime
                     print(f"{datetime.fromtimestamp(created)} - {movie.path}")
 
                 except IOError or FileNotFoundError:
                     logging.info(
-                        f"Can't open file {movie.path}/movie.nfo, "
+                        f"Can't open file {movie.path}/movie.nfo"
                     )
 
                 movieDateAdded = datetime.strptime(
