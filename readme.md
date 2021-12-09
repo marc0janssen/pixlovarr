@@ -17,6 +17,13 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
+version 1.16.5.1346
+
+* Changed: The KEEPTAGS are respected for non-Admin users when trying to delete a movie
+* Changed: Better handling of "ValueErrors" for the INI file
+* New: Option to set if commands issued by an Admin are shown in /sts and /ch
+* Changed: Change "Radarr Purge" to "Pixlovarr Prune" (Sorry for the caused trouble
+  
 version 1.14.5.979
 
 * Fixed: API v3 had bug in build_item_path, temporarily fixed in the __main__
