@@ -8,7 +8,6 @@ import configparser
 import sys
 import shutil
 import os
-import time
 
 from datetime import datetime, timedelta
 
@@ -161,9 +160,8 @@ class RLP():
 
                 try:
                     movieNfo = os.path.join(movie.path, "movie.nfo")
-                    ti_m = os.path.getmtime(movieNfo)
-                    m_ti = time.ctime(ti_m)
-                    print(f"{m_ti} - {movieNfo}")
+                    created = os.stat(movieNfo).st_mtime
+                    print(f"{datetime.fromtimestamp(created)} - {movieNfo}")
 
                 except IOError or FileNotFoundError:
                     logging.info(
