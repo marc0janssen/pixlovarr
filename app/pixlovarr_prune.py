@@ -165,7 +165,9 @@ class RLP():
 
                 except IOError or FileNotFoundError:
                     logging.info(
-                        f"Can't open file {movie.path}/movie.nfo"
+                        f"Script - Missing - "
+                        f"{movie.title} ({movie.year})"
+                        f" is not downloaded yet. Skipping."
                     )
                     return
 
