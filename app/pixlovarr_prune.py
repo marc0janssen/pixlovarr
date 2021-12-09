@@ -159,8 +159,9 @@ class RLP():
             if set(movie.tags) & set(tagsIDs_to_remove):
 
                 try:
-                    created = os.stat('/movie/movie.nfo').st_ctime
-                    print(f"{datetime.fromtimestamp(created)} - {movie.path}")
+                    movieNfo = os.path.join(movie.path, "movie.nfo")
+                    created = os.stat(movieNfo).st_ctime
+                    print(f"{datetime.fromtimestamp(created)} - {movieNfo}")
 
                 except IOError or FileNotFoundError:
                     logging.info(
