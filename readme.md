@@ -166,15 +166,6 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
 
 In the directory /config the python script expects a config file called 'pixlovarr.ini' with the following content:
 
-        [COMMON]
-        BOT_TOKEN = BOTTOKEN
-        ADMIN_USER_ID = ID_NUMBER
-        USERS_PERMANENT_DELETE_MEDIA = OFF
-        USERS_CAN_ONLY_DELETE_OWN_MEDIA = ON
-        SIGN_UP_IS_OPEN = ON
-        ONLY_SHOW_PATH_LARGEST_FREE_SPACE = NO
-        EXCLUDE_ADMIN_FROM_LOGGING = OFF
-        
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
 
@@ -185,7 +176,9 @@ In the directory /config the python script expects a config file called 'pixlova
         SEASON_FOLDER = ON
         CALENDAR_PERIOD_DAYS_SERIES = 30
         AUTO_ADD_EXCLUSION = ON
+        PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
+        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag6,tag7
 
         [RADARR]
         ENABLED = OFF
@@ -193,36 +186,26 @@ In the directory /config the python script expects a config file called 'pixlova
         TOKEN = RADARR_API_TOKEN
         CALENDAR_PERIOD_DAYS_MOVIES = 180
         AUTO_ADD_EXCLUSION = ON
+        PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
+        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag8,tag9
 
-Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
-
-## Config Radarr Library Purge
-
-In the directory /config the python script expects a config file called 'radarr_library_purge.ini' with the following content:
-
-        [GENERAL]
-        ENABLED = ON
+        [PRUNE]
+        ENABLED = OFF
         DRY_RUN = ON
         TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3
-        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
         REMOVE_MOVIES_AFTER_DAYS = 30
         WARN_DAYS_INFRONT = 1
         SHOW_KEPT_MESSAGE = ON
-        TAGS_TO_EXTEND_BEFORE_REMOVAL = tag6,tag7
-        EXTEND_BY_DAYS = 30
-        
-        [RADARR]
-        URL = http://192.168.1.1:7878
-        TOKEN = RADARR_API_TOKEN
-        DELETE_FILES_ON_SERVER = ON
-        AUTO_ADD_EXCLUSION = ON
+        EXTEND_PERIOD_BY_DAYS = 30
 
         [PUSHOVER]
         ENABLED = OFF
         USER_KEY = xxxxxxxxxxxxxxx
         TOKEN_API = xxxxxxxxxxxxxxx
         SOUND = pushover
+
+Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 
 ## links
 
