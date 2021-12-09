@@ -167,6 +167,7 @@ class RLP():
                     logging.info(
                         f"Can't open file {movie.path}/movie.nfo"
                     )
+                    return
 
                 movieDateAdded = datetime.strptime(
                     movie.added, '%Y-%m-%dT%H:%M:%SZ'
