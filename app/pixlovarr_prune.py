@@ -24,7 +24,7 @@ class RLP():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
 
-        self.config_file = "./config/pxlovarr.ini"
+        self.config_file = "./config/pixlovarr.ini"
 
         # Set "any movie removed" to FALSE
         self.anyMovieRemoved = False
