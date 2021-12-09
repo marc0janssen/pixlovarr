@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1260"
+        self.version = "1.14.5.1271"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -1091,6 +1091,11 @@ class Pixlovarr():
             logging.error(
                 f"{e} - {username} - {chat_id}.")
 
+        except error.TimedOut as e:
+            logging.error(
+                f"{e}."
+            )
+
     def replytext(self, update, msg, reply_markup, quote):
 
         try:
@@ -1101,6 +1106,10 @@ class Pixlovarr():
             )
 
         except error.Unauthorized as e:
+            logging.error(
+                f"{e}."
+            )
+        except error.TimedOut as e:
             logging.error(
                 f"{e}."
             )
