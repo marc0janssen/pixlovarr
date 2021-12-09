@@ -160,6 +160,7 @@ class RLP():
 
                 try:
                     movieNfo = os.path.join(movie.path, "movie.nfo")
+                    print(movieNfo)
                     created = os.stat(movieNfo).st_mtime
 
                 except IOError or FileNotFoundError:
