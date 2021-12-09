@@ -161,7 +161,7 @@ class RLP():
                 try:
                     movieNfo = os.path.join(movie.path, "movie.nfo")
                     created = os.path.getctime(movieNfo)
-                    print(f"{created} - {movieNfo}")
+                    print(f"{datetime.fromtimestamp(created)} - {movieNfo}")
 
                 except IOError or FileNotFoundError:
                     logging.info(
