@@ -1,7 +1,7 @@
 # Name: Pixlovarr Prune
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-11-15 21:38:51
-# update: 2021-12-09 14:20:16
+# update: 2021-12-09 19:40:18
 
 import logging
 import configparser
@@ -129,7 +129,7 @@ class RLP():
                 self.show_kept_message:
 
             logging.info(
-                f"Script - KEPT - {movie.title} ({movie.year})"
+                f"Prune - KEEPING - {movie.title} ({movie.year})"
             )
         else:
             # Get ID's for removal movies
@@ -159,23 +159,22 @@ class RLP():
             if set(movie.tags) & set(tagsIDs_to_remove):
 
                 try:
+                    # Get modfified date on movie.nfo,
+                    # Which is the downloaddate
                     movieNfo = os.path.join(movie.path, "movie.nfo")
-                    print(movieNfo)
-                    created = os.stat(movieNfo).st_mtime
+                    modifieddate = os.stat(movieNfo).st_mtime
+                    movieDownloadDate = datetime.fromtimestamp(modifieddate)
 
                 except IOError or FileNotFoundError:
+                    # If FIle is not found, the movie is missing
+                    # add will be skipped These are probably
+                    # movies in the future
                     logging.info(
-                        f"Script - Missing - "
+                        f"Prune - Missing - "
                         f"{movie.title} ({movie.year})"
                         f" is not downloaded yet. Skipping."
                     )
                     return
-
-                movieDateAdded = datetime.strptime(
-                    movie.added, '%Y-%m-%dT%H:%M:%SZ'
-                )
-
-                movieDateAdded = datetime.fromtimestamp(created)
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
@@ -188,40 +187,40 @@ class RLP():
                 #               (warn only 1 day)
                 if (
                     timedelta(days=self.remove_after_days + extend_period) >
-                    now - movieDateAdded and
-                    movieDateAdded +
+                    now - movieDownloadDate and
+                    movieDownloadDate +
                     timedelta(days=self.remove_after_days + extend_period) -
                     now <= timedelta(days=self.warn_days_infront) and
-                    movieDateAdded +
+                    movieDownloadDate +
                     timedelta(days=self.remove_after_days + extend_period) -
                     now > timedelta(days=self.warn_days_infront) -
                     timedelta(days=1)
                 ):
 
                     self.timeLeft = (
-                        movieDateAdded +
+                        movieDownloadDate +
                         timedelta(
                             days=self.remove_after_days +
                             extend_period) - now)
 
                     if self.pushover_enabled:
                         self.message = self.userPushover.send_message(
-                            message=f"Script - {movie.title} ({movie.year}) "
+                            message=f"Prune - {movie.title} ({movie.year}) "
                             f"will be removed from server in "
                             f"{'h'.join(str(self.timeLeft).split(':')[:2])}",
                             sound=self.pushover_sound
                         )
 
                     logging.info(
-                        f"Script - WILL BE REMOVED - "
+                        f"Prune - WILL BE REMOVED - "
                         f"{movie.title} ({movie.year})"
                         f" in {'h'.join(str(self.timeLeft).split(':')[:2])}"
-                        f" - {movieDateAdded}"
+                        f" - {movieDownloadDate}"
                     )
 
                 # Check is movie is older than "days set in INI"
                 if (
-                    now - movieDateAdded >=
+                    now - movieDownloadDate >=
                         timedelta(
                             days=self.remove_after_days + extend_period)
                 ):
@@ -243,23 +242,23 @@ class RLP():
                     if self.pushover_enabled:
                         self.message = self.userPushover.send_message(
                             message=f"{movie.title} ({movie.year}) "
-                            f"Script - REMOVED - {movie.title} ({movie.year})"
+                            f"Prune - REMOVED - {movie.title} ({movie.year})"
                             f"{self.txtFilesDelete}"
-                            f" - {movieDateAdded}",
+                            f" - {movieDownloadDate}",
                             sound=self.pushover_sound
                         )
 
                     logging.info(
-                        f"Script - REMOVED - {movie.title} ({movie.year})"
+                        f"Prune - REMOVED - {movie.title} ({movie.year})"
                         f"{self.txtFilesDelete}"
-                        f" - {movieDateAdded}"
+                        f" - {movieDownloadDate}"
                     )
                     self.anyMovieRemoved = True
 
     def run(self):
         if not self.enabled_run:
             logging.info(
-                "Script - Library purge disabled")
+                "Prune - Library purge disabled")
             sys.exit()
 
         if self.dry_run:
@@ -283,7 +282,7 @@ class RLP():
 
         if not tagIDsByLabels:
             logging.info(
-                "Script - No tags found on Radarr server. "
+                "Prune - No tags found on Radarr server. "
                 "Exiting script."
             )
 
@@ -314,13 +313,13 @@ class RLP():
 
             if self.pushover_enabled:
                 self.message = self.userPushover.send_message(
-                    message="Script - No movies were removed from "
+                    message="Prune - No movies were removed from "
                     "the server",
                     sound=self.pushover_sound
                 )
 
             logging.info(
-                "Script - No movies were removed from the server"
+                "Prune - No movies were removed from the server"
             )
 
 
