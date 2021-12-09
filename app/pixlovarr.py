@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.14.5.1247"
+        self.version = "1.14.5.1260"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -86,7 +86,7 @@ class Pixlovarr():
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
                 self.admin_user_id = self.config['COMMON']['ADMIN_USER_ID']
                 self.users_permanent_delete_media = True if (
-                    self.config['COMMON']['USERS_PERMANENT_DELETE_MEDIA'] ==
+                    self.config['COMMON']['PERMANENT_DELETE_MEDIA'] ==
                     "ON") else False
                 self.users_can_only_delete_own_media = True if (
                     self.config['COMMON']['USERS_CAN_ONLY_DELETE_OWN_MEDIA'] ==
