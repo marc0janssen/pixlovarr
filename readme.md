@@ -163,11 +163,11 @@ The build.sh script will build you your own Pixlovarr docker image. But Pixlovar
 The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image for you.
 
         docker run -d \
-            --name=pixlovarr \
-            --restart=always \
-            -v /docker/pixlovarr/config:/config \
-            -v /docker/pixlovarr/logs:/logs \
-            marc0janssen/pixlovarr:latest
+                --name=pixlovarr \
+                --restart=always \
+                -v /path/to/config/:/config \
+                -v /path/to/movies/:/movies \
+                marc0janssen/pixlovarr:latest
 
 ## Config Pixlovarr
 
