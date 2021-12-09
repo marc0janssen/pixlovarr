@@ -7,6 +7,7 @@ import logging
 import configparser
 import sys
 import shutil
+import os
 
 from datetime import datetime, timedelta
 
@@ -113,12 +114,12 @@ class RLP():
     def sortOnTitle(self, e):
         return e.sortTitle
 
-    def evalMovie(self, movie):
+    def evalMovie(self, movie, labels):
 
         # Get ID's for keeping movies anyway
         tagsIDs_to_keep = []
         for tag_to_keep in self.tags_to_keep:
-            self.tagID_to_keep = self.tagnames.get(tag_to_keep)
+            self.tagID_to_keep = labels.get(tag_to_keep)
             if self.tagID_to_keep:
                 tagsIDs_to_keep.append(self.tagID_to_keep)
 
@@ -134,14 +135,14 @@ class RLP():
             # Get ID's for removal movies
             tagsIDs_to_remove = []
             for tag_to_remove in self.tags_to_remove:
-                tagID_to_remove = self.tagnames.get(tag_to_remove)
+                tagID_to_remove = labels.get(tag_to_remove)
                 if tagID_to_remove:
                     tagsIDs_to_remove.append(tagID_to_remove)
 
             # Get ID's for extended removal
             tagsIDs_to_extend = []
             for tag_to_extend in self.tags_to_extend:
-                tagID_to_extend = self.tagnames.get(tag_to_extend)
+                tagID_to_extend = labels.get(tag_to_extend)
                 if tagID_to_extend:
                     tagsIDs_to_extend.append(tagID_to_extend)
 
@@ -156,6 +157,15 @@ class RLP():
             # check if ONE of the "REMOVAL" tags is
             #  in the set of "MOVIE TAGS"
             if set(movie.tags) & set(tagsIDs_to_remove):
+
+                try:
+                    created = os.stat(f'{movie.path}/movie.nfo').st_ctime
+                    print(datetime.fromtimestamp(created))
+
+                except IOError or FileNotFoundError:
+                    logging.info(
+                        f"Can't open file {movie.path}/movie.nfo, "
+                    )
 
                 movieDateAdded = datetime.strptime(
                     movie.added, '%Y-%m-%dT%H:%M:%SZ'
@@ -260,12 +270,12 @@ class RLP():
                 self.radarr_url, self.radarr_token)
 
         # Convert tags to a dictionary
-        self.tagnames = {}
+        tagIDsByLabels = {}
         for tag in self.radarr_node.get_tag():
             # Add tag to lookup by it's name
-            self.tagnames[tag['label']] = tag['id']
+            tagIDsByLabels[tag['label']] = tag['id']
 
-        if not self.tagnames:
+        if not tagIDsByLabels:
             logging.info(
                 "Script - No tags found on Radarr server. "
                 "Exiting script."
@@ -287,12 +297,12 @@ class RLP():
         if media:
             # There is only 1 movie in the library
             if type(media) is RadarrMovieItem:
-                self.evalMovie(media)
+                self.evalMovie(media, tagIDsByLabels)
 
             else:  # there is more than 1 movie
                 media.sort(key=self.sortOnTitle)  # Sort the list on Title
                 for movie in media:
-                    self.evalMovie(movie)
+                    self.evalMovie(movie, tagIDsByLabels)
 
         if not self.anyMovieRemoved:
 
