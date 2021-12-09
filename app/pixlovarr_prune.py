@@ -160,8 +160,7 @@ class RLP():
 
                 try:
                     movieNfo = os.path.join(movie.path, "movie.nfo")
-                    created = os.stat(movieNfo).st_mtime
-                    print(f"{datetime.fromtimestamp(created)} - {movieNfo}")
+                    movieDownloadDate = os.stat(movieNfo).st_mtime
 
                 except IOError or FileNotFoundError:
                     logging.info(
@@ -171,6 +170,8 @@ class RLP():
                 movieDateAdded = datetime.strptime(
                     movie.added, '%Y-%m-%dT%H:%M:%SZ'
                 )
+
+                movieDateAdded = movieDownloadDate
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
