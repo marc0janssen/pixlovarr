@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1348"
+        self.version = "1.16.5.1373"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -180,8 +180,6 @@ class Pixlovarr():
                 self.blockedusers = self.loaddata(self.pixlovarr_blocked_file)
                 self.pixlovarrdata = self.loaddata(self.pixlovarr_data_file)
 
-                print(self.pixlovarrdata)
-
                 if not self.pixlovarrdata:
                     self.pixlovarrdata["uname"] = "<unknown>"
                     self.pixlovarrdata["timestamp"] = \
@@ -276,7 +274,7 @@ class Pixlovarr():
         Returns: Full path of the serie in the format
         <root path>/<movie name> (<movie year>)
         """
-        return self.radarr_node.build_item_path(movie_info.title + (
+        return self.build_item_path(movie_info.title + (
             f" ({movie_info.year})" if movie_info.year else ""),
             root_folder_id
             )
@@ -2374,8 +2372,6 @@ class Pixlovarr():
 
                 tagIDs_To_Extend = [tag["id"]]
 
-            # IF in the media there are not "KEEP" tags,
-            # then show delete button
             if not set(media.tags) & set(tagIDs_To_Extend):
 
                 pass

@@ -217,8 +217,7 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 ## links
 
 [Pixlovarr Github](https://github.com/marc0janssen/pixlovarr) \
-[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr) \
-[Radarr Library Purge Github](https://github.com/marc0janssen/radarr-library-purge)
+[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr) 
 
 ## Acknowledgement
 

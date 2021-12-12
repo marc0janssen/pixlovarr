@@ -129,7 +129,7 @@ class RLP():
                 self.show_kept_message:
 
             logging.info(
-                f"Prune - KEEPING - {movie.title} ({movie.year})"
+                f"Prune - KEEPING - {movie.title} ({movie.year}). Skipping."
             )
         else:
             # Get ID's for removal movies
@@ -170,7 +170,7 @@ class RLP():
                     # add will be skipped These are probably
                     # movies in the future
                     logging.info(
-                        f"Prune - Missing - "
+                        f"Prune - MISSING - "
                         f"{movie.title} ({movie.year})"
                         f" is not downloaded yet. Skipping."
                     )
