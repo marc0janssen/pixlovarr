@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1376"
+        self.version = "1.16.5.1377"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -241,7 +241,7 @@ class Pixlovarr():
 
         return Path(root_path["path"]) / self.sonarr_node.to_path(title)
 
-    def rbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
+    def mbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
         """Build an item folder path using the root folder specified.
         Args:
             title (str): Title to add to root path. All invalid
