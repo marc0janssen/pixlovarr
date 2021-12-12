@@ -44,7 +44,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1373"
+        self.version = "1.16.5.1376"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -219,7 +219,7 @@ class Pixlovarr():
             sys.exit()
 
 # -----
-    def build_item_path(self, title: str, root_folder_id: int = 0) -> Path:
+    def sbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
         """Build an item folder path using the root folder specified.
         Args:
             title (str): Title to add to root path. All invalid
@@ -231,6 +231,28 @@ class Pixlovarr():
         Returns: Full path of the serie in the format <root path>/<serie name>
         """
         root_paths = self.sonarr_node.get_root_folder()
+
+        root_path = root_paths[0]
+
+        for path in root_paths:
+            if path["id"] == int(root_folder_id):
+
+                root_path = path
+
+        return Path(root_path["path"]) / self.sonarr_node.to_path(title)
+
+    def rbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
+        """Build an item folder path using the root folder specified.
+        Args:
+            title (str): Title to add to root path. All invalid
+            characters are removed
+            root_folder_id (int): Id of the root folder (can be
+            retrieved with get_root_folder())
+                If the id is not found or not specified, the first root
+                folder in the list is used.
+        Returns: Full path of the serie in the format <root path>/<serie name>
+        """
+        root_paths = self.radarr_node.get_root_folder()
 
         root_path = root_paths[0]
 
@@ -255,7 +277,7 @@ class Pixlovarr():
         Returns: Full path of the serie in the format
         <root path>/<movie name> (<movie year>)
         """
-        return self.build_item_path(serie_info.title + (
+        return self.sbuild_item_path(serie_info.title + (
             f" ({serie_info.year})" if serie_info.year else ""),
             root_folder_id
             )
@@ -274,7 +296,7 @@ class Pixlovarr():
         Returns: Full path of the serie in the format
         <root path>/<movie name> (<movie year>)
         """
-        return self.build_item_path(movie_info.title + (
+        return self.mbuild_item_path(movie_info.title + (
             f" ({movie_info.year})" if movie_info.year else ""),
             root_folder_id
             )
