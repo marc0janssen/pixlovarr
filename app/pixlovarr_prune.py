@@ -121,7 +121,7 @@ class RLP():
 
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
-        if set(movie.tags) & set(tagsIDs_to_keep) and \
+        if set(movie.tagsIds) & set(tagsIDs_to_keep) and \
                 self.show_kept_message:
 
             logging.info(
