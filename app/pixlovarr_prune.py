@@ -152,7 +152,7 @@ class RLP():
 
             # check if ONE of the "REMOVAL" tags is
             #  in the set of "MOVIE TAGS"
-            if set(movie.tagsIDs) & set(tagsIDs_to_remove):
+            if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
                 try:
                     # Get modfified date on movie.nfo,
@@ -174,7 +174,7 @@ class RLP():
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
-                    if (set(movie.tags) & set(tagsIDs_to_extend)) else 0
+                    if (set(movie.tagsIds) & set(tagsIDs_to_extend)) else 0
 
                 # check if there needs to be warn "DAYS" infront of removal
                 # 1. Are we still within the period before removel?
