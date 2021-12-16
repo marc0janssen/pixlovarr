@@ -49,7 +49,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1603"
+        self.version = "1.16.5.1609"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2515,11 +2515,17 @@ class Pixlovarr():
                         callback_data=callbackdata)]
                     )
 
-            if data[1] == "movie":
+            tagLabels_to_extend = self.tags_to_extend_radarr
+            tagIDs_To_Extend = self.getIDsforTagLabels(
+                data[1], tagLabels_to_extend)
+
+            if data[1] == "movie" and \
+                    not set(media.tagsIds) & set(tagIDs_To_Extend):
                 callbackdata = (f"extendperiod:{data[1]}:{data[2]}")
 
                 keyboard.append([InlineKeyboardButton(
-                    f"Extend '{media.title} ({media.year})'",
+                    f"Extend '{media.title} ({media.year})' "
+                    f"with {self.extend_by_days} days",
                     callback_data=callbackdata)]
                 )
 

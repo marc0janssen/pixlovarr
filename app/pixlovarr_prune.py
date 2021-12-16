@@ -110,14 +110,40 @@ class RLP():
     def sortOnTitle(self, e):
         return e.sortTitle
 
+    def getTagLabeltoID(self, typeOfMedia):
+        # Put all tags in a dictonairy with pair label <=> ID
+
+        TagLabeltoID = {}
+        if typeOfMedia == "serie":
+            for tag in self.sonarrNode.all_tags():
+                # Add tag to lookup by it's name
+                TagLabeltoID[tag.label] = tag.id
+        else:
+            for tag in self.radarrNode.all_tags():
+                # Add tag to lookup by it's name
+                TagLabeltoID[tag.label] = tag.id
+
+        return TagLabeltoID
+
+    def getIDsforTagLabels(self, typeOfmedia, tagLabels):
+
+        TagLabeltoID = self.getTagLabeltoID(typeOfmedia)
+
+        # Get ID's for extending media
+        tagsIDs = []
+        for taglabel in tagLabels:
+            tagID = TagLabeltoID.get(taglabel)
+            if tagID:
+                tagsIDs.append(tagID)
+
+        return tagsIDs
+
     def evalMovie(self, movie, labels):
 
         # Get ID's for keeping movies anyway
-        tagsIDs_to_keep = []
-        for tag_to_keep in self.tags_to_keep:
-            self.tagID_to_keep = labels.get(tag_to_keep)
-            if self.tagID_to_keep:
-                tagsIDs_to_keep.append(self.tagID_to_keep)
+        tagLabels_to_keep = self.tags_to_keep
+        tagsIDs_to_keep = self.getIDsforTagLabels(
+            "movie", tagLabels_to_keep)
 
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
@@ -128,19 +154,16 @@ class RLP():
                 f"Prune - KEEPING - {movie.title} ({movie.year}). Skipping."
             )
         else:
+
             # Get ID's for removal movies
-            tagsIDs_to_remove = []
-            for tag_to_remove in self.tags_to_remove:
-                tagID_to_remove = labels.get(tag_to_remove)
-                if tagID_to_remove:
-                    tagsIDs_to_remove.append(tagID_to_remove)
+            tagLabels_to_remove = self.tags_to_remove
+            tagsIDs_to_remove = self.getIDsforTagLabels(
+                "movie", tagLabels_to_remove)
 
             # Get ID's for extended removal
-            tagsIDs_to_extend = []
-            for tag_to_extend in self.tags_to_extend:
-                tagID_to_extend = labels.get(tag_to_extend)
-                if tagID_to_extend:
-                    tagsIDs_to_extend.append(tagID_to_extend)
+            tagLabels_to_extend = self.tags_to_extend
+            tagsIDs_to_extend = self.getIDsforTagLabels(
+                "movie", tagLabels_to_extend)
 
             # Warning if no valid tags was found for removal movies
             if not tagsIDs_to_remove:
