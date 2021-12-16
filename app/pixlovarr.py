@@ -49,7 +49,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1625"
+        self.version = "1.17.5.1629"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -248,6 +248,18 @@ class Pixlovarr():
         return self.radarr_node._sendCommand({"name": "MissingMoviesSearch"})
 
 # -----
+
+    def getPruneDate(self, media):
+
+        movieNfo = os.path.join(media.path, "movie.nfo")
+        modifieddate = os.stat(movieNfo).st_mtime
+        movieDownloadDate = datetime.fromtimestamp(modifieddate)
+
+        pruneMovieDate = movieDownloadDate + \
+            timedelta(days=int(self.remove_after_days)) + \
+            timedelta(days=int(self.extend_by_days))
+
+        return datetime.strftime(pruneMovieDate, '%Y-%m-%d')
 
     def getProfileInfo(self, profileID, mediaOfType):
 
@@ -595,6 +607,9 @@ class Pixlovarr():
         if media.tags:
             txtMediaInfo += \
                 f"Tags: {self.getForMedia(media.tags, typeOfMedia)}\n\n"
+
+        if typeOfMedia == "movie":
+            txtMediaInfo += f"Prune: {self.getPruneDate(media)}"
 
         if txtMediaInfo != "":
 
@@ -2336,17 +2351,8 @@ class Pixlovarr():
                 try:
                     # Get modfified date on movie.nfo,
                     # Which is the downloaddate
-                    movieNfo = os.path.join(media.path, "movie.nfo")
 
-                    modifieddate = os.stat(movieNfo).st_mtime
-                    movieDownloadDate = datetime.fromtimestamp(modifieddate)
-
-                    pruneMovieDate = movieDownloadDate + \
-                        timedelta(days=int(self.remove_after_days)) + \
-                        timedelta(days=int(self.extend_by_days))
-
-                    newPruneDate = \
-                        datetime.strftime(pruneMovieDate, '%Y-%m-%d')
+                    newPruneDate = self.getPruneDate(media)
 
                     txtPruneDate = (
                         f"New prune date is {newPruneDate}."
