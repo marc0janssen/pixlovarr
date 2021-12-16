@@ -152,7 +152,7 @@ class RLP():
 
             # check if ONE of the "REMOVAL" tags is
             #  in the set of "MOVIE TAGS"
-            if set(movie.tags) & set(tagsIDs_to_remove):
+            if set(movie.tagsIDs) & set(tagsIDs_to_remove):
 
                 try:
                     # Get modfified date on movie.nfo,
