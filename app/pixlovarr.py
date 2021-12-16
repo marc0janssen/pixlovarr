@@ -49,7 +49,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1624"
+        self.version = "1.17.5.1625"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2346,7 +2346,7 @@ class Pixlovarr():
                         timedelta(days=int(self.extend_by_days))
 
                     newPruneDate = \
-                        datetime.strftime(pruneMovieDate, '%Y-%d-%m')
+                        datetime.strftime(pruneMovieDate, '%Y-%m-%d')
 
                     txtPruneDate = (
                         f"New prune date is {newPruneDate}."
