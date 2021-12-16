@@ -74,8 +74,6 @@ You can later use the tagged media to your liking.
         /mm #<genre> <word> - list my movies
         /ns #<genre> <word> - list new series
         /nm #<genre> <word> - list new movies
-        /sc <word> - Series calendar
-        /mc <word> - Movies calendar
         /qu - List all queued items
         /ts T<#> - Show Top series
         /ps T<#> - Show Top popular series
@@ -217,7 +215,7 @@ Please set these to your liking. If the file pixlovarr.ini is not found, it the 
 ## links
 
 [Pixlovarr Github](https://github.com/marc0janssen/pixlovarr) \
-[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr) 
+[Pixlovarr Docker hub](https://hub.docker.com/r/marc0janssen/pixlovarr)
 
 ## Acknowledgement
 

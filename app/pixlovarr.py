@@ -17,9 +17,10 @@ from telegram.ext import (
 )
 from time import sleep
 from urllib.parse import urlparse
-from pathlib import Path
 from time import time
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
+
+
 from pycliarr.api import (
     RadarrCli,
     RadarrMovieItem
@@ -28,6 +29,9 @@ from pycliarr.api import (
     SonarrCli,
     SonarrSerieItem
 )
+
+from arrapi import SonarrAPI, RadarrAPI
+
 import logging
 import json
 import configparser
@@ -44,7 +48,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1377"
+        self.version = "1.16.5.1555"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -153,11 +157,15 @@ class Pixlovarr():
                     self.sonarr_node = SonarrCli(
                         self.sonarr_url, self.sonarr_token
                     )
+                    self.sonarrNode = SonarrAPI(
+                        self.sonarr_url, self.sonarr_token)
 
                 if self.radarr_enabled:
                     self.radarr_node = RadarrCli(
                         self.radarr_url, self.radarr_token
                     )
+                    self.radarrNode = RadarrAPI(
+                        self.radarr_url, self.radarr_token)
 
                 if not self.sonarr_enabled and not self.radarr_enabled:
                     logging.error(
@@ -219,87 +227,6 @@ class Pixlovarr():
             sys.exit()
 
 # -----
-    def sbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
-        """Build an item folder path using the root folder specified.
-        Args:
-            title (str): Title to add to root path. All invalid
-            characters are removed
-            root_folder_id (int): Id of the root folder (can be
-            retrieved with get_root_folder())
-                If the id is not found or not specified, the first root
-                folder in the list is used.
-        Returns: Full path of the serie in the format <root path>/<serie name>
-        """
-        root_paths = self.sonarr_node.get_root_folder()
-
-        root_path = root_paths[0]
-
-        for path in root_paths:
-            if path["id"] == int(root_folder_id):
-
-                root_path = path
-
-        return Path(root_path["path"]) / self.sonarr_node.to_path(title)
-
-    def mbuild_item_path(self, title: str, root_folder_id: int = 0) -> Path:
-        """Build an item folder path using the root folder specified.
-        Args:
-            title (str): Title to add to root path. All invalid
-            characters are removed
-            root_folder_id (int): Id of the root folder (can be
-            retrieved with get_root_folder())
-                If the id is not found or not specified, the first root
-                folder in the list is used.
-        Returns: Full path of the serie in the format <root path>/<serie name>
-        """
-        root_paths = self.radarr_node.get_root_folder()
-
-        root_path = root_paths[0]
-
-        for path in root_paths:
-            if path["id"] == int(root_folder_id):
-
-                root_path = path
-
-        return Path(root_path["path"]) / self.sonarr_node.to_path(title)
-
-    def build_serie_path(
-            self,
-            serie_info: SonarrSerieItem,
-            root_folder_id: int = 0) -> Path:
-        """Build a movie folder path using the root folder specified.
-        Args:
-            serie_info (SonarrSerieItem) Item for which to build the path
-            root_folder_id (int): Id of the root folder (can be retrieved with
-            get_root_folder())
-            If the id is not found or not specified, the first root folder
-             in the list is used.
-        Returns: Full path of the serie in the format
-        <root path>/<movie name> (<movie year>)
-        """
-        return self.sbuild_item_path(serie_info.title + (
-            f" ({serie_info.year})" if serie_info.year else ""),
-            root_folder_id
-            )
-
-    def build_movie_path(
-            self,
-            movie_info: RadarrMovieItem,
-            root_folder_id: int = 0) -> Path:
-        """Build a movie folder path using the root folder specified.
-        Args:
-            serie_info (SonarrSerieItem) Item for which to build the path
-            root_folder_id (int): Id of the root folder (can be retrieved with
-            get_root_folder())
-            If the id is not found or not specified, the first root folder in
-            the list is used.
-        Returns: Full path of the serie in the format
-        <root path>/<movie name> (<movie year>)
-        """
-        return self.mbuild_item_path(movie_info.title + (
-            f" ({movie_info.year})" if movie_info.year else ""),
-            root_folder_id
-            )
 
     def MissingMoviesSearch(self):
         """Perform an Missing missing movie search.
@@ -314,18 +241,18 @@ class Pixlovarr():
 
         if mediaOfType == "serie":
             if self.sonarr_enabled:
-                profiles = self.sonarr_node.get_quality_profiles()
+                profiles = self.sonarrNode.quality_profile()
 
         else:
             if self.radarr_enabled:
-                profiles = self.radarr_node.get_quality_profiles()
+                profiles = self.radarrNode.quality_profile()
 
         if profiles:
 
             for p in profiles:
 
-                if p['id'] == profileID:
-                    return p['name']
+                if p.id == profileID:
+                    return p.name
 
         return ""
 
@@ -368,15 +295,15 @@ class Pixlovarr():
     def getForMedia(self, tagIDs, typeOfMedia):
 
         if typeOfMedia == "serie":
-            tags = self.sonarr_node.get_tag()
+            tags = self.sonarrNode.all_tags()
         else:
-            tags = self.radarr_node.get_tag()
+            tags = self.radarrNode.all_tags()
 
         txtTags = ""
 
         for tag in tags:
-            if tag["id"] in tagIDs:
-                txtTags += f"{tag['label']}, "
+            if tag.id in tagIDs:
+                txtTags += f"{tag.label}, "
 
         return txtTags[:-2]
 
@@ -471,7 +398,7 @@ class Pixlovarr():
         return e.sortTitle
 
     def sortOnNameDict(self, e):
-        return e['name']
+        return e.name
 
     def addItemToHistory(self, update, cmd, uname, uid):
 
@@ -544,9 +471,10 @@ class Pixlovarr():
 
         txtMediaInfo = ""
 
-        if media.images:
-            image = f"{media.images[0]['url']}" if self.is_http_or_https(
-                media.images[0]['url']) else media.images[0]['remoteUrl']
+        if media._data['images']:
+            image = f"{media._data['images'][0]['url']}" \
+                if self.is_http_or_https(media._data['images'][0]['url']) \
+                    else media._data['images'][0]['remoteUrl']
         else:
             image = self.urlNoImage
 
@@ -567,8 +495,7 @@ class Pixlovarr():
         try:
             if media.inCinemas:
                 dateCinema = datetime.strftime(
-                    datetime.strptime(
-                        media.inCinemas, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+                    media.inCinemas, '%Y-%m-%d')
                 txtCinema = f"In cinemas: {dateCinema}\n\n"
                 txtMediaInfo += txtCinema
         except ValueError:
@@ -579,8 +506,7 @@ class Pixlovarr():
         try:
             if media.firstAired:
                 dateFirstAired = datetime.strftime(
-                    datetime.strptime(
-                        media.firstAired, '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+                    media.firstAired, '%Y-%m-%d')
                 txtFirstAired = f"First aired: {dateFirstAired}\n\n"
                 txtMediaInfo += txtFirstAired
         except ValueError:
@@ -680,34 +606,34 @@ class Pixlovarr():
             # No Youtube ID found
             pass
 
-    def showCalenderMediaInfo(self, media):
+    # def showCalenderMediaInfo(self, media):
 
-        try:
-            serie = self.sonarr_node.get_serie(media["seriesId"])
-            title = f"{serie.title}\n{media['title']}"
-        except KeyError:
-            try:
-                title = f"{media['title']} ({media['year']})"
-            except KeyError:
-                title = "<Title unknown>"
+    #     try:
+    #         serie = self.sonarr_node.get_serie(media["seriesId"])
+    #         title = f"{serie.title}\n{media['title']}"
+    #     except KeyError:
+    #         try:
+    #             title = f"{media['title']} ({media['year']})"
+    #         except KeyError:
+    #             title = "<Title unknown>"
 
-        try:
-            dateCinema = datetime.strftime(
-                datetime.strptime(
-                    media['inCinemas'], '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
-            dateText = "In cinemas"
-        except KeyError:
-            try:
-                dateCinema = media['airDate']
-                dateText = "Airdate"
-            except KeyError:
-                dateCinema = "-"
-                dateText = "Date"
+    #     try:
+    #         dateCinema = datetime.strftime(
+    #             datetime.strptime(
+    #                 media['inCinemas'], '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+    #         dateText = "In cinemas"
+    #     except KeyError:
+    #         try:
+    #             dateCinema = media['airDate']
+    #             dateText = "Airdate"
+    #         except KeyError:
+    #             dateCinema = "-"
+    #             dateText = "Date"
 
-        return(
-            f"{title}\n"
-            f"{dateText}: {dateCinema}\n\n"
-        )
+    #     return(
+    #         f"{title}\n"
+    #         f"{dateText}: {dateCinema}\n\n"
+    #     )
 
     def listMedia(
             self,
@@ -799,7 +725,7 @@ class Pixlovarr():
                             timedelta(days=self.sonarr_period_days_added)
 
                         withinPeriod = True if datetime.strptime(
-                            m.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
+                            m._data['added'], '%Y-%m-%dT%H:%M:%S.%fZ') >= \
                             dateAfterAdded else False
 
                     else:
@@ -807,8 +733,8 @@ class Pixlovarr():
                             timedelta(days=self.radarr_period_days_added)
 
                         withinPeriod = True if datetime.strptime(
-                            m.added, '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
-                            else False
+                            m._data['added'], '%Y-%m-%dT%H:%M:%SZ') >= \
+                            dateAfterAdded else False
 
                 if (not usertagEnabled and not newDownloadOnly) or \
                         (usertagEnabled and usertagFound) or \
@@ -864,64 +790,64 @@ class Pixlovarr():
 
         return numOfMedia
 
-    def listCalendar(self, update, context, media):
+    # def listCalendar(self, update, context, media):
 
-        numOfCalItems = 0
-        if type(media) is SonarrSerieItem or \
-                type(media) is RadarrMovieItem:
+    #     numOfCalItems = 0
+    #     if type(media) is SonarrSerieItem or \
+    #             type(media) is RadarrMovieItem:
 
-            self.sendmessage(
-                update.effective_chat.id,
-                context,
-                update.effective_user.first_name,
-                self.showCalenderMediaInfo(media)
-            )
+    #         self.sendmessage(
+    #             update.effective_chat.id,
+    #             context,
+    #             update.effective_user.first_name,
+    #             self.showCalenderMediaInfo(media)
+    #         )
 
-            numOfCalItems = 1
+    #         numOfCalItems = 1
 
-        else:
+    #     else:
 
-            allMedia = ""
-            for m in media:
+    #         allMedia = ""
+    #         for m in media:
 
-                try:
-                    searchString = f"{m['series']['title']} {m['title']}"
-                except KeyError:
-                    searchString = m['title']
+    #             try:
+    #                 searchString = f"{m['series']['title']} {m['title']}"
+    #             except KeyError:
+    #                 searchString = m['title']
 
-                if re.search(
-                    ' '.join(context.args).lower(), searchString.lower()) \
-                        or not context.args:
+    #             if re.search(
+    #                 ' '.join(context.args).lower(), searchString.lower()) \
+    #                     or not context.args:
 
-                    numOfCalItems += 1
+    #                 numOfCalItems += 1
 
-                    allMedia += (
-                        self.showCalenderMediaInfo(m))
+    #                 allMedia += (
+    #                     self.showCalenderMediaInfo(m))
 
-                    if (numOfCalItems % self.listLength == 0 and
-                            numOfCalItems != 0):
+    #                 if (numOfCalItems % self.listLength == 0 and
+    #                         numOfCalItems != 0):
 
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            allMedia
-                        )
+    #                     self.sendmessage(
+    #                         update.effective_chat.id,
+    #                         context,
+    #                         update.effective_user.first_name,
+    #                         allMedia
+    #                     )
 
-                        allMedia = ""
+    #                     allMedia = ""
 
-                        # make sure no flood
-                        sleep(2)
+    #                     # make sure no flood
+    #                     sleep(2)
 
-            if allMedia != "":
-                self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    allMedia
-                )
+    #         if allMedia != "":
+    #             self.sendmessage(
+    #                 update.effective_chat.id,
+    #                 context,
+    #                 update.effective_user.first_name,
+    #                 allMedia
+    #             )
 
-        return numOfCalItems
+    #     return numOfCalItems
 
     def logAdminCommand(self, update):
 
@@ -1071,13 +997,13 @@ class Pixlovarr():
 
         TagLabeltoID = {}
         if typeOfMedia == "serie":
-            for tag in self.sonarr_node.get_tag():
+            for tag in self.sonarrNode.all_tags():
                 # Add tag to lookup by it's name
-                TagLabeltoID[tag['label']] = tag['id']
+                TagLabeltoID[tag.label] = tag.id
         else:
-            for tag in self.radarr_node.get_tag():
+            for tag in self.radarrNode.all_tags():
                 # Add tag to lookup by it's name
-                TagLabeltoID[tag['label']] = tag['id']
+                TagLabeltoID[tag.label] = tag.id
 
         return TagLabeltoID
 
@@ -1239,8 +1165,6 @@ class Pixlovarr():
                     "/mm #<genre> <key> - list my movies\n"
                     "/ns #<genre> <key> - list new series\n"
                     "/nm #<genre> <key> - list new movies\n"
-                    "/sc <word> - Series calendar\n"
-                    "/mc <word> - Movies calendar\n"
                     "/qu - List all queued items\n"
                     "/ts T<#> - Show Top series\n"
                     "/ps T<#> - Show Top popular series\n"
@@ -1384,8 +1308,8 @@ class Pixlovarr():
                 f"Last timestamp: {str(self.pixlovarrdata['timestamp'])}\n"
                 f"Last serie: {str(self.pixlovarrdata['stitle'])}\n"
                 f"Last movie: {str(self.pixlovarrdata['mtitle'])}\n"
-                f"series: {len(self.sonarr_node.get_serie())}\n"
-                f"movies: {len(self.radarr_node.get_movie())}\n"
+                f"series: {len(self.sonarrNode.all_series())}\n"
+                f"movies: {len(self.radarrNode.all_movies())}\n"
                 f"Items in queue: {str(numOfQueueItems)}\n"
                 f"Commands issued: {str(self.pixlovarrdata['cmdcount'])}\n"
                 f"Granted members: {len(self.members)}\n"
@@ -1482,86 +1406,87 @@ class Pixlovarr():
                     f"There are no {typeOfMedia}s in the newsfeed."
                 )
 
-    def getCalendar(self, update, context):
+    # def getCalendar(self, update, context):
 
-        self.logCommand(update)
+    #     self.logCommand(update)
 
-        if not self.isBlocked(update) and \
-                self.isGranted(update):
+    #     if not self.isBlocked(update) and \
+    #             self.isGranted(update):
 
-            command = update.effective_message.text.split(" ")
+    #         command = update.effective_message.text.split(" ")
 
-            startDate = date.today()
+    #         startDate = date.today()
 
-            if re.match("^/[Ss][Cc]$", command[0]):
-                if self.sonarr_enabled:
-                    endDate = startDate + timedelta(
-                        days=int(self.calendar_period_days_series))
-                    media = self.sonarr_node.get_calendar(
-                        start_date=startDate, end_date=endDate)
-                    typeOfMedia = "episode"
+    #         if re.match("^/[Ss][Cc]$", command[0]):
+    #             if self.sonarr_enabled:
+    #                 endDate = startDate + timedelta(
+    #                     days=int(self.calendar_period_days_series))
+    #                 media = self.sonarr_node.get_calendar(
+    #                     start_date=startDate, end_date=endDate)
+    #                 typeOfMedia = "episode"
 
-            elif re.match("^/[Mm][Cc]$", command[0]):
-                if self.radarr_enabled:
-                    endDate = startDate + timedelta(
-                        days=int(self.calendar_period_days_movies))
-                    media = self.radarr_node.get_calendar(
-                        start_date=startDate, end_date=endDate)
-                    typeOfMedia = "movie"
+    #         elif re.match("^/[Mm][Cc]$", command[0]):
+    #             if self.radarr_enabled:
+    #                 endDate = startDate + timedelta(
+    #                     days=int(self.calendar_period_days_movies))
+    #                 media = self.radarr_node.get_calendar(
+    #                     start_date=startDate, end_date=endDate)
+    #                 typeOfMedia = "movie"
 
-            else:
-                self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    "Something went wrong..."
-                )
+    #         else:
+    #             self.sendmessage(
+    #                 update.effective_chat.id,
+    #                 context,
+    #                 update.effective_user.first_name,
+    #                 "Something went wrong..."
+    #             )
 
-                return
+    #             return
 
-            endtext = f"There are no {typeOfMedia}s in the calendar."
+    #         endtext = f"There are no {typeOfMedia}s in the calendar."
 
-            if media:
-                numOfCalItems = self.listCalendar(update, context, media)
-                endtext = (
-                    f"There are {len(media)} {typeOfMedia}s "
-                    f"in the calendar.")
+    #         if media:
+    #             numOfCalItems = self.listCalendar(update, context, media)
+    #             endtext = (
+    #                 f"There are {len(media)} {typeOfMedia}s "
+    #                 f"in the calendar.")
 
-                if numOfCalItems > 0:
-                    if numOfCalItems != len(media):
-                        endtext = (
-                            f"Listed {numOfCalItems} of {len(media)} "
-                            f"scheduled {typeOfMedia}s from the calendar."
-                        )
-                    else:
-                        endtext = (
-                            f"Listed {numOfCalItems} scheduled {typeOfMedia}s "
-                            f"from the calendar."
-                        )
+    #             if numOfCalItems > 0:
+    #                 if numOfCalItems != len(media):
+    #                     endtext = (
+    #                         f"Listed {numOfCalItems} of {len(media)} "
+    #                         f"scheduled {typeOfMedia}s from the calendar."
+    #                     )
+    #                 else:
+    #                     endtext = (
+    #                         f"Listed {numOfCalItems} scheduled "
+    #                         f"{typeOfMedia}s "
+    #                         f"from the calendar."
+    #                     )
 
-                    self.sendmessage(
-                        update.effective_chat.id,
-                        context,
-                        update.effective_user.first_name,
-                        endtext
-                    )
+    #                 self.sendmessage(
+    #                     update.effective_chat.id,
+    #                     context,
+    #                     update.effective_user.first_name,
+    #                     endtext
+    #                 )
 
-                else:
-                    self.sendmessage(
-                        update.effective_chat.id,
-                        context,
-                        update.effective_user.first_name,
-                        f"There were no results found, "
-                        f"{update.effective_user.first_name}."
-                    )
+    #             else:
+    #                 self.sendmessage(
+    #                     update.effective_chat.id,
+    #                     context,
+    #                     update.effective_user.first_name,
+    #                     f"There were no results found, "
+    #                     f"{update.effective_user.first_name}."
+    #                 )
 
-            else:
-                self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    f"There are no scheduled {typeOfMedia}s in the calendar."
-                )
+    #         else:
+    #             self.sendmessage(
+    #                 update.effective_chat.id,
+    #                 context,
+    #                 update.effective_user.first_name,
+    #                 f"There are no scheduled {typeOfMedia}s in the calendar."
+    #             )
 
     def futureQueue(self, update, context):
 
@@ -1578,7 +1503,7 @@ class Pixlovarr():
             )
 
             if self.sonarr_enabled:
-                series = self.sonarr_node.get_serie()
+                series = self.sonarrNode.all_series()
                 series.sort(key=self.sortOnTitle)
 
                 endtext = "There is no media in the announced queue."
@@ -1630,7 +1555,7 @@ class Pixlovarr():
                         f"There are {fqCount} series in the announced queue.")
 
             if self.radarr_enabled:
-                movies = self.radarr_node.get_movie()
+                movies = self.radarrNode.all_movies()
                 movies.sort(key=self.sortOnTitle)
 
                 allMovies = "Movies\n"
@@ -1775,7 +1700,7 @@ class Pixlovarr():
                     if self.sonarr_enabled:
 
                         foundMedia = \
-                            self.sonarr_node.lookup_serie(term=m['title'])
+                            self.sonarrNode.search_series(term=m['title'])
 
                         if foundMedia is None:
                             continue
@@ -1786,7 +1711,7 @@ class Pixlovarr():
                 else:
                     if self.radarr_enabled:
                         foundMedia = \
-                            self.radarr_node.lookup_movie(term=m['title'])
+                            self.radarrNode.search_movies(term=m['title'])
                         if foundMedia is None:
                             continue
 
@@ -1898,12 +1823,12 @@ class Pixlovarr():
             if re.match("^/[Nn][Ss]$", command[0]):
                 typeOfMedia = "serie"
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.get_serie()
+                    media = self.sonarrNode.all_series()
 
             elif re.match("^/[Nn][Mm]$", command[0]):
                 typeOfMedia = "movie"
                 if self.radarr_enabled:
-                    media = self.radarr_node.get_movie()
+                    media = self.radarrNode.all_movies()
 
             else:
                 self.sendmessage(
@@ -1975,12 +1900,12 @@ class Pixlovarr():
             if re.match("^/[Mm][Ss]$", command[0]):
                 typeOfMedia = "serie"
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.get_serie()
+                    media = self.sonarrNode.all_series()
 
             elif re.match("^/[Mm][Mm]$", command[0]):
                 typeOfMedia = "movie"
                 if self.radarr_enabled:
-                    media = self.radarr_node.get_movie()
+                    media = self.radarrNode.all_movies()
 
             else:
                 self.sendmessage(
@@ -2051,12 +1976,12 @@ class Pixlovarr():
 
             if re.match("^/[Ll][Ss]$", command[0]):
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.get_serie()
+                    media = self.sonarrNode.all_series()
                     typeOfMedia = "serie"
 
             elif re.match("^/[Ll][Mm]$", command[0]):
                 if self.radarr_enabled:
-                    media = self.radarr_node.get_movie()
+                    media = self.radarrNode.all_movies()
                     typeOfMedia = "movie"
 
             else:
@@ -2370,11 +2295,11 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.get_serie(int(data[2]))
+                    media = self.sonarrNode.get_series(int(data[2]))
                     tagLabels_to_extend = self.tags_to_extend_sonarr
             else:
                 if self.radarr_enabled:
-                    media = self.radarr_node.get_movie(int(data[2]))
+                    media = self.radarrNode.get_movie(int(data[2]))
                     tagLabels_to_extend = self.tags_to_extend_radarr
 
             tagIDs_To_Extend = self.getIDsforTagLabels(
@@ -2384,12 +2309,12 @@ class Pixlovarr():
             if not tagIDs_To_Extend:
                 if data[1] == "serie":
                     if self.sonarr_enabled:
-                        tag = self.sonarr_node.create_tag(
+                        tag = self.sonarrNode.create_tag(
                             tagLabels_to_extend[0])
 
                 else:
                     if self.radarr_enabled:
-                        tag = self.radarr_node.create_tag(
+                        tag = self.radarrNode.create_tag(
                             tagLabels_to_extend[0])
 
                 tagIDs_To_Extend = [tag["id"]]
@@ -2427,10 +2352,10 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    root_paths = self.sonarr_node.get_root_folder()
+                    root_paths = self.sonarrNode.root_folder()
             else:
                 if self.radarr_enabled:
-                    root_paths = self.radarr_node.get_root_folder()
+                    root_paths = self.radarrNode.root_folder()
 
             if root_paths:
 
@@ -2443,10 +2368,10 @@ class Pixlovarr():
                     if self.path_largest_space and not self.isAdmin(update):
 
                         # If stored space value is less the current space
-                        if freespace < root_path['freeSpace']:
+                        if freespace < root_path.freeSpace:
 
                             # store the larger valve and clear "keyboard"
-                            freespace = root_path['freeSpace']
+                            freespace = root_path.freeSpace
                             keyboard = []
 
                         else:
@@ -2454,12 +2379,12 @@ class Pixlovarr():
 
                     callbackdata = (
                         f"selectdownload:{data[1]}:{data[2]}:"
-                        f"{data[3]}:{root_path['id']}"
+                        f"{data[3]}:{root_path.id}"
                     )
 
                     keyboard.append([InlineKeyboardButton(
-                        f"{root_path['path']} "
-                        f"({root_path['freeSpace'] // (1024**3)} GB Free)",
+                        f"{root_path.path} "
+                        f"({root_path.freeSpace // (1024**3)} GB Free)",
                         callback_data=callbackdata)]
                     )
 
@@ -2505,11 +2430,11 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.get_serie(int(data[2]))
+                    media = self.sonarrNode.get_series(series_id=int(data[2]))
                     tagLabels_to_keep = self.tags_to_keep_sonarr
             else:
                 if self.radarr_enabled:
-                    media = self.radarr_node.get_movie(int(data[2]))
+                    media = self.radarrNode.get_movie(movie_id=int(data[2]))
                     tagLabels_to_keep = self.tags_to_keep_radarr
 
             self.outputMediaInfo(update, context, data[1], media)
@@ -2522,7 +2447,8 @@ class Pixlovarr():
 
             # IF in the media there are not "KEEP" tags,
             # then show delete button
-            if not set(media.tags) & set(tagsIDs_to_keep) or \
+
+            if not set(media.tagsIds) & set(tagsIDs_to_keep) or \
                     self.isAdmin(update):
 
                 # Show button if:
@@ -2530,9 +2456,10 @@ class Pixlovarr():
                 #           and it is their own media
                 #   - If "only users can delete own media" is disabled
                 #   -  User is an Admin
+
                 if (self.users_can_only_delete_own_media and
-                        self.getUsertagID(update, data[1]) in media.tags) or \
-                        not self.users_can_only_delete_own_media or \
+                        self.getUsertagID(update, data[1]) in media.tagsIds) \
+                            or not self.users_can_only_delete_own_media or \
                         self.isAdmin(update):
 
                     callbackdata = (f"deletemedia:{data[1]}:{data[2]}")
@@ -2602,17 +2529,20 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    self.sonarr_node.delete_serie(
-                        serie_id=int(data[2]),
-                        delete_files=data[3],
-                        add_exclusion=self.sonarr_add_exclusion
+                    self.sonarrNode.delete_series(
+                        series_id=int(data[2]),
+                        tvdb_id=None,
+                        addImportExclusion=self.sonarr_add_exclusion,
+                        deleteFiles=data[3]
                     )
             else:
                 if self.radarr_enabled:
-                    self.radarr_node.delete_movie(
+                    self.radarrNode.delete_movie(
                         movie_id=int(data[2]),
-                        delete_files=data[3],
-                        add_exclusion=self.radarr_add_exclusion
+                        tmdb_id=None,
+                        imdb_id=None,
+                        addImportExclusion=self.radarr_add_exclusion,
+                        deleteFiles=data[3]
                     )
 
             self.sendmessage(
@@ -2640,7 +2570,7 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+                    media = self.sonarrNode.get_series(tvdb_id=data[2])
 
                     self.pixlovarrdata["stitle"] = media.title
                     self.saveconfig(
@@ -2654,28 +2584,22 @@ class Pixlovarr():
                             update.effective_user.id
                         )
 
-                        newTag = self.sonarr_node.create_tag(tagName)
-                        usertagID = newTag["id"]
+                        newTag = self.sonarrNode.create_tag(tagName)
+                        usertagID = newTag.id
 
-                    media.tags.append(usertagID)
+                    tags = []
+                    tags.append(usertagID)
 
-                    if data[5] == "First":
-                        monitored_seasons = [1]
-
-                    elif data[5] == "All":
-                        monitored_seasons = [
-                            i for i in range(1, media.seasonCount+1)]
-
-                    elif data[5] == "New":
-                        monitored_seasons = []
-
-                    downloadPath = str(self.build_serie_path(media, data[4]))
-
-                    self.sonarr_node.add_serie(
-                        serie_info=media, quality=int(data[3]),
-                        monitored_seasons=monitored_seasons,
-                        season_folder=self.sonarr_season_folder,
-                        path=downloadPath
+                    media.add(
+                        int(data[4]),
+                        int(data[3]),
+                        "English",
+                        data[5],
+                        self.sonarr_season_folder,
+                        True,
+                        False,
+                        "standard",
+                        tags
                     )
 
                     self.notifyDownload(
@@ -2683,7 +2607,7 @@ class Pixlovarr():
 
             else:
                 if self.radarr_enabled:
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                    media = self.radarrNode.get_movie(imdb_id=data[2])
 
                     self.pixlovarrdata["mtitle"] = media.title
                     self.saveconfig(
@@ -2697,17 +2621,19 @@ class Pixlovarr():
                             update.effective_user.id
                         )
 
-                        newTag = self.radarr_node.create_tag(tagName)
-                        usertagID = newTag["id"]
+                        newTag = self.radarrNode.create_tag(tagName)
+                        usertagID = newTag.id
 
-                    media.tags.append(usertagID)
+                    tags = []
+                    tags.append(usertagID)
 
-                    downloadPath = str(self.build_movie_path(media, data[4]))
-
-                    self.radarr_node.add_movie(
-                        movie_info=media,
-                        quality=int(data[3]),
-                        path=downloadPath
+                    media.add(
+                        int(data[4]),
+                        int(data[3]),
+                        True,
+                        True,
+                        "inCinemas",
+                        tags
                     )
 
                     self.notifyDownload(
@@ -2723,15 +2649,15 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
-                    profiles = self.sonarr_node.get_quality_profiles()
+                    profiles = self.sonarrNode.quality_profile()
                     callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
-                    media = self.sonarr_node.lookup_serie(tvdb_id=data[2])
+                    media = self.sonarrNode.get_series(tvdb_id=data[2])
 
             else:
                 if self.radarr_enabled:
-                    profiles = self.radarr_node.get_quality_profiles()
+                    profiles = self.radarrNode.quality_profile()
                     callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                    media = self.radarrNode.get_movie(imdb_id=data[2])
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -2745,8 +2671,8 @@ class Pixlovarr():
 
                 for count, p in enumerate(profiles):
                     row.append(InlineKeyboardButton(
-                        f"{p['name']}",
-                        callback_data=f"{callbackdata}:{p['id']}")
+                        f"{p.name}",
+                        callback_data=f"{callbackdata}:{p.id}")
                     )
 
                     if (count+1) % num_columns == 0 or \
@@ -2789,18 +2715,33 @@ class Pixlovarr():
                 if self.sonarr_enabled:
                     keyboard = [
                         [InlineKeyboardButton(
-                            "Download only season 1",
-                            callback_data=f"{callbackdata}:First")],
+                            "Download All seasons",
+                            callback_data=f"{callbackdata}:all")],
                         [InlineKeyboardButton(
-                            "Download all seasons",
-                            callback_data=f"{callbackdata}:All")],
+                            "Download Future seasons",
+                            callback_data=f"{callbackdata}:future")],
                         [InlineKeyboardButton(
-                            "Download only new seasons",
-                            callback_data=f"{callbackdata}:New")]
+                            "Download missing seasons",
+                            callback_data=f"{callbackdata}:missing")],
+                        [InlineKeyboardButton(
+                            "Download existing seasons",
+                            callback_data=f"{callbackdata}:existing")],
+                        [InlineKeyboardButton(
+                            "Download only pilot episode",
+                            callback_data=f"{callbackdata}:pilot")],
+                        [InlineKeyboardButton(
+                            "Download first season",
+                            callback_data=f"{callbackdata}:firstSeason")],
+                        [InlineKeyboardButton(
+                            "Download lastest season",
+                            callback_data=f"{callbackdata}:latestSeason")],
+                        [InlineKeyboardButton(
+                            "Download no seasons",
+                            callback_data=f"{callbackdata}:none")]
                     ]
             else:
                 if self.radarr_enabled:
-                    media = self.radarr_node.lookup_movie(imdb_id=data[2])
+                    media = self.radarrNode.get_movie(imdb_id=data[2])
                     keyboard = [[InlineKeyboardButton(
                         f"Download '{media.title} ({media.year})'",
                         callback_data=f"{callbackdata}:False")]]
@@ -2836,26 +2777,19 @@ class Pixlovarr():
 
             if typeOfMedia == "serie":
                 if self.sonarr_enabled:
-                    media = self.sonarr_node.lookup_serie(term=searchQuery)
+                    media = self.sonarrNode.search_series(term=searchQuery)
             else:
                 if self.radarr_enabled:
-                    media = self.radarr_node.lookup_movie(term=searchQuery)
+                    media = self.radarrNode.search_movies(term=searchQuery)
 
             if media:
                 keyboard = []
                 keyboardPresentMedia = []
 
-                if type(media) == SonarrSerieItem or \
-                        type(media) == RadarrMovieItem:
-                    temp = media
-                    media = []
-                    media.append(temp)
-
                 maxResults = topAmount - 1
 
                 for m in media:
-
-                    if m.id != 0:  # Media found in database
+                    if m.id:  # Media found in database
 
                         callbackdata = f"showMediaInfo:{typeOfMedia}:{m.id}"
 
@@ -3090,11 +3024,13 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
-        self.showMovieCalendar_handler = CommandHandler('mc', self.getCalendar)
-        self.dispatcher.add_handler(self.showMovieCalendar_handler)
+        # self.showMovieCalendar_handler = CommandHandler(
+        # 'mc', self.getCalendar)
+        # self.dispatcher.add_handler(self.showMovieCalendar_handler)
 
-        self.showSerieCalendar_handler = CommandHandler('sc', self.getCalendar)
-        self.dispatcher.add_handler(self.showSerieCalendar_handler)
+        # self.showSerieCalendar_handler = CommandHandler(
+        # 'sc', self.getCalendar)
+        # self.dispatcher.add_handler(self.showSerieCalendar_handler)
 
         self.meta_handler = CommandHandler('rm', self.showMeta)
         self.dispatcher.add_handler(self.meta_handler)

@@ -22,6 +22,7 @@ RUN apk add --update \
 	feedparser \
 	python-telegram-bot \
 	pycliarr \
+	arrapi \
 	requests \
 	imdbpy \
 	chump \
