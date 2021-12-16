@@ -49,7 +49,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1609"
+        self.version = "1.16.5.1613"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2345,7 +2345,10 @@ class Pixlovarr():
                         timedelta(days=int(self.remove_after_days)) + \
                         timedelta(days=int(self.extend_by_days))
 
-                    txtPruneDate = f"New prune date is {pruneMovieDate}."
+                    txtPruneDate = (
+                        f"New prune date is "
+                        f"{datetime.strftime(pruneMovieDate, '%Y-%d-%m')}."
+                    )
 
                 except IOError or FileNotFoundError:
 
