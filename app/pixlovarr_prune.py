@@ -278,7 +278,7 @@ class RLP():
         tagIDsByLabels = {}
         for tag in self.radarrNode.all_tags():
             # Add tag to lookup by it's name
-            tagIDsByLabels[tag['label']] = tag['id']
+            tagIDsByLabels[tag.label] = tag.id
 
         if not tagIDsByLabels:
             logging.info(
