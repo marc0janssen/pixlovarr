@@ -42,13 +42,14 @@ import imdb
 import random
 import feedparser
 import ssl
+import os
 
 
 class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1586"
+        self.version = "1.16.5.1603"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -85,6 +86,8 @@ class Pixlovarr():
             with open(self.config_file, "r") as f:
                 f.close()
             try:
+
+                # COMMON
                 self.config = configparser.ConfigParser()
                 self.config.read(self.config_file)
                 self.bot_token = self.config['COMMON']['BOT_TOKEN']
@@ -107,12 +110,14 @@ class Pixlovarr():
                     ['EXCLUDE_ADMIN_FROM_HISTORY'] ==
                     "ON") else False
 
+                # IMDB
                 self.default_limit_ranking = self.clamp(
                     int(self.config['IMDB']['DEFAULT_LIMIT_RANKING']),
                     self.rankingLimitMin,
                     self.rankingLimitMax
                 )
 
+                # SONARR
                 self.sonarr_enabled = True if (
                     self.config['SONARR']['ENABLED'] == "ON") else False
                 self.sonarr_season_folder = True if (
@@ -134,6 +139,7 @@ class Pixlovarr():
                     self.config['SONARR']
                     ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
 
+                # RADARR
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
                 self.radarr_url = self.config['RADARR']['URL']
@@ -152,6 +158,12 @@ class Pixlovarr():
                 self.tags_to_extend_radarr = list(
                     self.config['RADARR']
                     ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
+
+                # PRUNE
+                self.extend_by_days = int(
+                    self.config['PRUNE']['EXTEND_PERIOD_BY_DAYS'])
+                self.remove_after_days = int(
+                    self.config['PRUNE']['REMOVE_MOVIES_AFTER_DAYS'])
 
                 if self.sonarr_enabled:
                     self.sonarr_node = SonarrCli(
@@ -2312,11 +2324,44 @@ class Pixlovarr():
                         tag = self.radarrNode.create_tag(
                             tagLabels_to_extend[0])
 
-                tagIDs_To_Extend = [tag["id"]]
+                tagIDs_To_Extend = [tag.id]
 
-            if not set(media.tags) & set(tagIDs_To_Extend):
+            if not set(media.tagsIds) & set(tagIDs_To_Extend):
 
-                pass
+                media.edit(
+                    tags=[tagIDs_To_Extend[0]],
+                    apply_tags="add"
+                )
+
+                try:
+                    # Get modfified date on movie.nfo,
+                    # Which is the downloaddate
+                    movieNfo = os.path.join(media.path, "movie.nfo")
+
+                    modifieddate = os.stat(movieNfo).st_mtime
+                    movieDownloadDate = datetime.fromtimestamp(modifieddate)
+
+                    pruneMovieDate = movieDownloadDate + \
+                        timedelta(days=int(self.remove_after_days)) + \
+                        timedelta(days=int(self.extend_by_days))
+
+                    txtPruneDate = f"New prune date is {pruneMovieDate}."
+
+                except IOError or FileNotFoundError:
+
+                    txtPruneDate = (
+                        "New prune date can not be determined. "
+                        "Movie is not downloaded yet."
+                    )
+
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"The {data[1]} retention is extended with another "
+                    f"{self.extend_by_days} days. "
+                    f"{txtPruneDate}"
+                )
 
     def searchMissingMovies(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
@@ -2470,14 +2515,13 @@ class Pixlovarr():
                         callback_data=callbackdata)]
                     )
 
-                    """
-                    callbackdata = (f"extendperiod:{data[1]}:{data[2]}")
+            if data[1] == "movie":
+                callbackdata = (f"extendperiod:{data[1]}:{data[2]}")
 
-                    keyboard.append([InlineKeyboardButton(
-                        f"Extend '{media.title} ({media.year})'",
-                        callback_data=callbackdata)]
-                    )
-                    """
+                keyboard.append([InlineKeyboardButton(
+                    f"Extend '{media.title} ({media.year})'",
+                    callback_data=callbackdata)]
+                )
 
             if data[1] == "movie" and not media.hasFile:
                 callbackdata = (f"searchmedia:{data[1]}")
