@@ -48,7 +48,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.16.5.1572"
+        self.version = "1.16.5.1586"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -471,10 +471,10 @@ class Pixlovarr():
 
         txtMediaInfo = ""
 
-        if media._data['images']:
-            image = f"{media._data['images'][0]['url']}" \
-                if self.is_http_or_https(media._data['images'][0]['url']) \
-                    else media._data['images'][0]['remoteUrl']
+        if media.images:
+            image = f"{media.images[0].url}" \
+                if self.is_http_or_https(media.images[0].url) \
+                    else media.images[0].remoteUrl
         else:
             image = self.urlNoImage
 
@@ -724,17 +724,12 @@ class Pixlovarr():
                         dateAfterAdded = datetime.now() - \
                             timedelta(days=self.sonarr_period_days_added)
 
-                        withinPeriod = True if datetime.strptime(
-                            m._data['added'], '%Y-%m-%dT%H:%M:%S.%fZ') >= \
-                            dateAfterAdded else False
-
                     else:
                         dateAfterAdded = datetime.now() - \
                             timedelta(days=self.radarr_period_days_added)
 
-                        withinPeriod = True if datetime.strptime(
-                            m._data['added'], '%Y-%m-%dT%H:%M:%SZ') >= \
-                            dateAfterAdded else False
+                    withinPeriod = True if m.added >= \
+                        dateAfterAdded else False
 
                 if (not usertagEnabled and not newDownloadOnly) or \
                         (usertagEnabled and usertagFound) or \
