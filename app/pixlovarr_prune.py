@@ -276,7 +276,7 @@ class RLP():
 
         # Convert tags to a dictionary
         tagIDsByLabels = {}
-        for tag in self.radarrNode.all_tag():
+        for tag in self.radarrNode.all_tags():
             # Add tag to lookup by it's name
             tagIDsByLabels[tag['label']] = tag['id']
 
