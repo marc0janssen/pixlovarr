@@ -1,7 +1,7 @@
 # Name: Pixlovarr Prune
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-11-15 21:38:51
-# update: 2021-12-09 19:40:18
+# update: 2021-12-16 16:28:51
 
 import logging
 import configparser
@@ -10,11 +10,7 @@ import shutil
 import os
 
 from datetime import datetime, timedelta
-
-from pycliarr.api import (
-    RadarrCli,
-    RadarrMovieItem
-)
+from arrapi import RadarrAPI
 from chump import Application
 
 
@@ -227,10 +223,14 @@ class RLP():
 
                     if not self.dry_run:
                         if self.radarr_enabled:
-                            self.radarr_node.delete_movie(
+
+                            self.radarrNode.delete_movie(
                                 movie_id=movie.id,
-                                delete_files=self.delete_files,
-                                add_exclusion=self.radarr_add_exclusion)
+                                tmdb_id=None,
+                                imdb_id=None,
+                                addImportExclusion=self.radarr_add_exclusion,
+                                deleteFiles=self.delete_files
+                            )
 
                     if self.delete_files:
                         self.txtFilesDelete = \
@@ -271,12 +271,12 @@ class RLP():
 
         # Connect to Radarr
         if self.radarr_enabled:
-            self.radarr_node = RadarrCli(
+            self.radarrNode = RadarrAPI(
                 self.radarr_url, self.radarr_token)
 
         # Convert tags to a dictionary
         tagIDsByLabels = {}
-        for tag in self.radarr_node.get_tag():
+        for tag in self.radarrNode.all_tag():
             # Add tag to lookup by it's name
             tagIDsByLabels[tag['label']] = tag['id']
 
@@ -296,18 +296,13 @@ class RLP():
 
         # Get all movies from the server.
         if self.radarr_enabled:
-            media = self.radarr_node.get_movie()
+            media = self.radarrNode.all_movies()
 
         # Make sure the library is not empty.
         if media:
-            # There is only 1 movie in the library
-            if type(media) is RadarrMovieItem:
-                self.evalMovie(media, tagIDsByLabels)
-
-            else:  # there is more than 1 movie
-                media.sort(key=self.sortOnTitle)  # Sort the list on Title
-                for movie in media:
-                    self.evalMovie(movie, tagIDsByLabels)
+            media.sort(key=self.sortOnTitle)  # Sort the list on Title
+            for movie in media:
+                self.evalMovie(movie, tagIDsByLabels)
 
         if not self.anyMovieRemoved:
 
