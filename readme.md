@@ -20,6 +20,7 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 Version x
 
 * New: /smm search missing movies
+* New: Keep button for admins beneath the movieinfo
 
 version 1.17.5.1624
 

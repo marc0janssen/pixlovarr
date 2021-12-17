@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1761"
+        self.version = "1.17.5.1763"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2610,8 +2610,7 @@ class Pixlovarr():
             tagIDs_To_Keep = self.getIDsforTagLabels(
                 data[1], tagLabels_to_keep)
 
-            if data[1] == "movie" and \
-                    not set(media.tagsIds) & set(tagIDs_To_Keep) \
+            if not set(media.tagsIds) & set(tagIDs_To_Keep) \
                     and self.isAdmin(update):
                 callbackdata = (f"keepmedia:{data[1]}:{data[2]}")
 
