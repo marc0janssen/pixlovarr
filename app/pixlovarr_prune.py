@@ -41,9 +41,9 @@ class RLP():
                     self.config['RADARR']['ENABLED'] == "ON") else False
                 self.radarr_url = self.config['RADARR']['URL']
                 self.radarr_token = self.config['RADARR']['TOKEN']
-                self.radarr_add_exclusion = True if (
+                self.radarr_tags_exclusion = list(
                     self.config['RADARR']
-                    ['AUTO_ADD_EXCLUSION'] == "ON") else False
+                    ['AUTO_ADD_EXCLUSION'].split(","))
                 self.tags_to_keep = list(
                     self.config['RADARR']
                     ['TAGS_KEEP_MOVIES_ANYWAY'].split(",")
@@ -251,11 +251,20 @@ class RLP():
                     if not self.dry_run:
                         if self.radarr_enabled:
 
+                            # Get ID's for exclusion list movies
+                            tagLabels_for_exclusion = \
+                                self.radarr_tags_exclusion
+                            tagsIDs_for_exclusion = self.getIDsforTagLabels(
+                                "movie", tagLabels_for_exclusion)
+
                             self.radarrNode.delete_movie(
                                 movie_id=movie.id,
                                 tmdb_id=None,
                                 imdb_id=None,
-                                addImportExclusion=self.radarr_add_exclusion,
+                                addImportExclusion=True if
+                                set(movie.tagsIds) &
+                                set(tagsIDs_for_exclusion)
+                                else False,
                                 deleteFiles=self.delete_files
                             )
 
@@ -340,7 +349,7 @@ class RLP():
                     message=(
                         f"Prune - There were {numDeleted} movies removed from "
                         "the server"
-                        ),
+                    ),
                     sound=self.pushover_sound
                 )
 

@@ -176,6 +176,15 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
 
 In the directory /config the python script expects a config file called 'pixlovarr.ini' with the following content:
 
+        [COMMON]
+        BOT_TOKEN = BOTTOKEN
+        ADMIN_USER_ID = ID_NUMBER
+        PERMANENT_DELETE_MEDIA = OFF
+        USERS_CAN_ONLY_DELETE_OWN_MEDIA = ON
+        SIGN_UP_IS_OPEN = ON
+        ONLY_SHOW_PATH_LARGEST_FREE_SPACE = NO
+        EXCLUDE_ADMIN_FROM_HISTORY = OFF
+
         [IMDB]
         DEFAULT_LIMIT_RANKING = 5
 
@@ -185,20 +194,20 @@ In the directory /config the python script expects a config file called 'pixlova
         TOKEN = SONARR_API_TOKEN
         SEASON_FOLDER = ON
         CALENDAR_PERIOD_DAYS_SERIES = 30
-        AUTO_ADD_EXCLUSION = ON
+        AUTO_ADD_EXCLUSION = tag1,tag2
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
-        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
-        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag6,tag7
+        TAGS_KEEP_MOVIES_ANYWAY = tag3,tag4
+        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag5,tag6
 
         [RADARR]
         ENABLED = OFF
         URL = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
         CALENDAR_PERIOD_DAYS_MOVIES = 180
-        AUTO_ADD_EXCLUSION = ON
+        AUTO_ADD_EXCLUSION = tag7,tag8
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
-        TAGS_KEEP_MOVIES_ANYWAY = tag4,tag5
-        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag8,tag9
+        TAGS_KEEP_MOVIES_ANYWAY = tag9,tag10
+        TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag11,ta12
 
         [PRUNE]
         ENABLED = OFF

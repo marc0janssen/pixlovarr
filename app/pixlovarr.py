@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1674"
+        self.version = "1.17.5.1709"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -127,9 +127,9 @@ class Pixlovarr():
                 self.sonarr_token = self.config['SONARR']['TOKEN']
                 self.calendar_period_days_series = \
                     self.config['SONARR']['CALENDAR_PERIOD_DAYS_SERIES']
-                self.sonarr_add_exclusion = True if (
+                self.sonarr_tags_exclusion = list(
                     self.config['SONARR']
-                    ['AUTO_ADD_EXCLUSION'] == "ON") else False
+                    ['AUTO_ADD_EXCLUSION'].split(","))
                 self.sonarr_period_days_added = \
                     int(self.config['SONARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
                 self.tags_to_keep_sonarr = list(
@@ -147,9 +147,9 @@ class Pixlovarr():
                 self.radarr_token = self.config['RADARR']['TOKEN']
                 self.calendar_period_days_movies = \
                     self.config['RADARR']['CALENDAR_PERIOD_DAYS_MOVIES']
-                self.radarr_add_exclusion = True if (
+                self.radarr_tags_exclusion = list(
                     self.config['RADARR']
-                    ['AUTO_ADD_EXCLUSION'] == "ON") else False
+                    ['AUTO_ADD_EXCLUSION'].split(","))
                 self.radarr_period_days_added = \
                     int(self.config['RADARR']['PERIOD_DAYS_ADDED_NEW_DOWLOAD'])
                 self.tags_to_keep_radarr = list(
@@ -2584,20 +2584,44 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaID, 3:delete_files
 
             if data[1] == "serie":
+
+                # Get ID's for exclusion list movies
+                tagLabels_for_exclusion = \
+                    self.sonarr_tags_exclusion
+                tagsIDs_for_exclusion = self.getIDsforTagLabels(
+                    data[1], tagLabels_for_exclusion)
+
+                media = self.sonarrNode.get_series(tvdb_id=data[2])
+
                 if self.sonarr_enabled:
                     self.sonarrNode.delete_series(
                         series_id=int(data[2]),
                         tvdb_id=None,
-                        addImportExclusion=self.sonarr_add_exclusion,
+                        addImportExclusion=True if
+                        set(media.tagsIds) &
+                        set(tagsIDs_for_exclusion)
+                        else False,
                         deleteFiles=data[3]
                     )
             else:
+
+                # Get ID's for exclusion list movies
+                tagLabels_for_exclusion = \
+                    self.radarr_tags_exclusion
+                tagsIDs_for_exclusion = self.getIDsforTagLabels(
+                    data[1], tagLabels_for_exclusion)
+
+                media = self.radarrNode.get_movie(imdb_id=data[2])
+
                 if self.radarr_enabled:
                     self.radarrNode.delete_movie(
                         movie_id=int(data[2]),
                         tmdb_id=None,
                         imdb_id=None,
-                        addImportExclusion=self.radarr_add_exclusion,
+                        addImportExclusion=True if
+                        set(media.tagsIds) &
+                        set(tagsIDs_for_exclusion)
+                        else False,
                         deleteFiles=data[3]
                     )
 
