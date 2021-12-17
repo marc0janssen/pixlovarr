@@ -185,6 +185,8 @@ class RLP():
 
                     if file.lower().endswith(('.mp4', '.avi', '.mkv')):
 
+                        print("found")
+
                         # Get modfified date on movie.nfo,
                         # Which is the downloaddate
                         # movieNfo = os.path.join(movie.path, "movie.nfo")
