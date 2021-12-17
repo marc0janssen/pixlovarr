@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1671"
+        self.version = "1.17.5.1674"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2361,7 +2361,8 @@ class Pixlovarr():
                     )
                 else:
                     txtPruneDate = (
-                        "New prune date is not known."
+                        "New prune date is not known because "
+                        "movie file missing."
                     )
 
                 self.sendmessage(
