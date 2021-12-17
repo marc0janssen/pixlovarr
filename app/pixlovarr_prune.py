@@ -178,28 +178,27 @@ class RLP():
             #  in the set of "MOVIE TAGS"
             if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
-                try:
-                    list_ = glob.glob(movie.path + "/*")
-                    for file in list_:
-                        if file.lower().endswith(('.mp4', '.avi', '.mkv')):
+                list_ = glob.glob(movie.path + "/*")
+                for file in list_:
+                    if file.lower().endswith(('.mp4', '.avi', '.mkv')):
 
-                            # Get modfified date on movie.nfo,
-                            # Which is the downloaddate
-                            # movieNfo = os.path.join(movie.path, "movie.nfo")
-                            modifieddate = os.stat(file).st_mtime
-                            movieDownloadDate = \
-                                datetime.fromtimestamp(modifieddate)
+                        # Get modfified date on movie.nfo,
+                        # Which is the downloaddate
+                        # movieNfo = os.path.join(movie.path, "movie.nfo")
+                        modifieddate = os.stat(file).st_mtime
+                        movieDownloadDate = \
+                            datetime.fromtimestamp(modifieddate)
+                    else:
 
-                except IOError or FileNotFoundError:
-                    # If FIle is not found, the movie is missing
-                    # add will be skipped These are probably
-                    # movies in the future
-                    logging.info(
-                        f"Prune - MISSING - "
-                        f"{movie.title} ({movie.year})"
-                        f" is not downloaded yet. Skipping."
-                    )
-                    return
+                        # If FIle is not found, the movie is missing
+                        # add will be skipped These are probably
+                        # movies in the future
+                        logging.info(
+                            f"Prune - MISSING - "
+                            f"{movie.title} ({movie.year})"
+                            f" is not downloaded yet. Skipping."
+                        )
+                        return
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
