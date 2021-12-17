@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1709"
+        self.version = "1.17.5.1710"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2591,7 +2591,7 @@ class Pixlovarr():
                 tagsIDs_for_exclusion = self.getIDsforTagLabels(
                     data[1], tagLabels_for_exclusion)
 
-                media = self.sonarrNode.get_series(tvdb_id=data[2])
+                media = self.sonarrNode.get_series(series_id=data[2])
 
                 if self.sonarr_enabled:
                     self.sonarrNode.delete_series(
@@ -2611,7 +2611,7 @@ class Pixlovarr():
                 tagsIDs_for_exclusion = self.getIDsforTagLabels(
                     data[1], tagLabels_for_exclusion)
 
-                media = self.radarrNode.get_movie(imdb_id=data[2])
+                media = self.radarrNode.get_movie(movie_id=data[2])
 
                 if self.radarr_enabled:
                     self.radarrNode.delete_movie(
