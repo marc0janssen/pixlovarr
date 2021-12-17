@@ -182,13 +182,13 @@ class RLP():
                     list_ = glob.glob(movie.path + "/*")
                     for file in list_:
                         if file.lower().endswith(('.mp4', '.avi', '.mkv')):
-                            print(file)
 
-                    # Get modfified date on movie.nfo,
-                    # Which is the downloaddate
-                    movieNfo = os.path.join(movie.path, "movie.nfo")
-                    modifieddate = os.stat(movieNfo).st_mtime
-                    movieDownloadDate = datetime.fromtimestamp(modifieddate)
+                            # Get modfified date on movie.nfo,
+                            # Which is the downloaddate
+                            # movieNfo = os.path.join(movie.path, "movie.nfo")
+                            modifieddate = os.stat(file).st_mtime
+                            movieDownloadDate = \
+                                datetime.fromtimestamp(modifieddate)
 
                 except IOError or FileNotFoundError:
                     # If FIle is not found, the movie is missing
