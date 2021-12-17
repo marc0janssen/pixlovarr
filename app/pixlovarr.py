@@ -23,11 +23,9 @@ from datetime import datetime, timedelta
 
 from pycliarr.api import (
     RadarrCli,
-    RadarrMovieItem
 )
 from pycliarr.api import (
     SonarrCli,
-    SonarrSerieItem
 )
 
 from arrapi import SonarrAPI, RadarrAPI
@@ -50,7 +48,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1763"
+        self.version = "1.17.5.1788"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -675,141 +673,142 @@ class Pixlovarr():
 
         keyboard = []
 
-        if type(media) is SonarrSerieItem or \
-                type(media) is RadarrMovieItem:
+        # if type(media) is SonarrSerieItem or \
+        #         type(media) is RadarrMovieItem:
+
+        #     if usertagEnabled:
+        #         usertagID = self.getUsertagID(update, typeOfMedia)
+        #         usertagFound = usertagID in media.tags
+
+        #     if newDownloadOnly:
+        #         if typeOfMedia == "serie":
+        #             dateAfterAdded = datetime.now() - \
+        #                 timedelta(days=self.sonarr_period_days_added)
+
+        #             withinPeriod = True if datetime.strptime(
+        #                 media.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
+        #                 dateAfterAdded else False
+
+        #         else:
+        #             dateAfterAdded = datetime.now() - \
+        #                 timedelta(days=self.radarr_period_days_added)
+
+        #             withinPeriod = True if datetime.strptime(
+        #                 media.added,
+        #                 '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
+        #                 else False
+
+        #     if (not usertagEnabled and not newDownloadOnly) or \
+        #             (usertagEnabled and usertagFound) or \
+        #             (newDownloadOnly and withinPeriod):
+
+        #         callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
+
+        #         keyboard.append([InlineKeyboardButton(
+        #             f"{media.title} ({media.year})",
+        #             callback_data=callbackdata)]
+        #         )
+
+        #         reply_markup = InlineKeyboardMarkup(keyboard)
+
+        #         self.replytext(
+        #             update,
+        #             f"The following {typeOfMedia}s in the catalog:",
+        #             reply_markup,
+        #             False
+        #         )
+
+        #         numOfMedia = 1
+        #     else:
+        #         numOfMedia = 0
+
+        # else:
+
+        media.sort(key=self.sortOnTitle)
+
+        genre = ""
+        if len(context.args) > 0:
+            for x in range(len(context.args)):
+                if re.match("^#[A-Za-z]+$", context.args[0]):
+                    if not genre:
+                        genre = context.args[0][1:]
+                    context.args.pop(0)
+
+        headtxt = (
+            f"The following {typeOfMedia}s "
+            f"in the catalog:"
+        )
+
+        numOfMedia = 0
+        for m in media:
 
             if usertagEnabled:
                 usertagID = self.getUsertagID(update, typeOfMedia)
-                usertagFound = usertagID in media.tags
+                usertagFound = usertagID in m.tags
 
             if newDownloadOnly:
                 if typeOfMedia == "serie":
                     dateAfterAdded = datetime.now() - \
                         timedelta(days=self.sonarr_period_days_added)
 
-                    withinPeriod = True if datetime.strptime(
-                        media.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
-                        dateAfterAdded else False
-
                 else:
                     dateAfterAdded = datetime.now() - \
                         timedelta(days=self.radarr_period_days_added)
 
-                    withinPeriod = True if datetime.strptime(
-                        media.added, '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
-                        else False
+                withinPeriod = True if m.added >= \
+                    dateAfterAdded else False
 
             if (not usertagEnabled and not newDownloadOnly) or \
                     (usertagEnabled and usertagFound) or \
                     (newDownloadOnly and withinPeriod):
 
-                callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
+                if re.search(
+                    ' '.join(context.args).lower(), m.title.lower()) \
+                        or not context.args:
 
-                keyboard.append([InlineKeyboardButton(
-                    f"{media.title} ({media.year})",
-                    callback_data=callbackdata)]
-                )
+                    if genre.lower() in (
+                        genre.lower() for genre in m.genres) \
+                            or not genre:
 
-                reply_markup = InlineKeyboardMarkup(keyboard)
+                        callbackdata = \
+                            f"showMediaInfo:{typeOfMedia}:{m.id}"
 
-                self.replytext(
-                    update,
-                    f"The following {typeOfMedia}s in the catalog:",
-                    reply_markup,
-                    False
-                )
+                        keyboard.append([InlineKeyboardButton(
+                            f"{m.title} ({m.year})",
+                            callback_data=callbackdata)]
+                        )
 
-                numOfMedia = 1
-            else:
-                numOfMedia = 0
+                        numOfMedia += 1
 
-        else:
+                        if (numOfMedia % self.listLength == 0 and
+                                numOfMedia != 0):
 
-            media.sort(key=self.sortOnTitle)
+                            if numOfMedia >= self.listLength:
+                                headtxt = "Next section of the catalog:"
 
-            genre = ""
-            if len(context.args) > 0:
-                for x in range(len(context.args)):
-                    if re.match("^#[A-Za-z]+$", context.args[0]):
-                        if not genre:
-                            genre = context.args[0][1:]
-                        context.args.pop(0)
+                            reply_markup = InlineKeyboardMarkup(keyboard)
 
-            headtxt = (
-                f"The following {typeOfMedia}s "
-                f"in the catalog:"
-            )
-
-            numOfMedia = 0
-            for m in media:
-
-                if usertagEnabled:
-                    usertagID = self.getUsertagID(update, typeOfMedia)
-                    usertagFound = usertagID in m.tags
-
-                if newDownloadOnly:
-                    if typeOfMedia == "serie":
-                        dateAfterAdded = datetime.now() - \
-                            timedelta(days=self.sonarr_period_days_added)
-
-                    else:
-                        dateAfterAdded = datetime.now() - \
-                            timedelta(days=self.radarr_period_days_added)
-
-                    withinPeriod = True if m.added >= \
-                        dateAfterAdded else False
-
-                if (not usertagEnabled and not newDownloadOnly) or \
-                        (usertagEnabled and usertagFound) or \
-                        (newDownloadOnly and withinPeriod):
-
-                    if re.search(
-                        ' '.join(context.args).lower(), m.title.lower()) \
-                            or not context.args:
-
-                        if genre.lower() in (
-                            genre.lower() for genre in m.genres) \
-                                or not genre:
-
-                            callbackdata = \
-                                f"showMediaInfo:{typeOfMedia}:{m.id}"
-
-                            keyboard.append([InlineKeyboardButton(
-                                f"{m.title} ({m.year})",
-                                callback_data=callbackdata)]
+                            self.replytext(
+                                update,
+                                headtxt,
+                                reply_markup,
+                                False
                             )
 
-                            numOfMedia += 1
+                            keyboard = []
 
-                            if (numOfMedia % self.listLength == 0 and
-                                    numOfMedia != 0):
+                            # make sure no flood
+                            sleep(2)
 
-                                if numOfMedia >= self.listLength:
-                                    headtxt = "Next section of the catalog:"
+        if keyboard:
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
-                                reply_markup = InlineKeyboardMarkup(keyboard)
-
-                                self.replytext(
-                                    update,
-                                    headtxt,
-                                    reply_markup,
-                                    False
-                                )
-
-                                keyboard = []
-
-                                # make sure no flood
-                                sleep(2)
-
-            if keyboard:
-                reply_markup = InlineKeyboardMarkup(keyboard)
-
-                self.replytext(
-                    update,
-                    headtxt,
-                    reply_markup,
-                    False
-                )
+            self.replytext(
+                update,
+                headtxt,
+                reply_markup,
+                False
+            )
 
         return numOfMedia
 
@@ -1532,100 +1531,101 @@ class Pixlovarr():
 
                 fqCount = 0
                 allSeries = "Series\n"
-                if type(series) is SonarrSerieItem:
-                    if series.status == "upcoming":
+                # if type(series) is SonarrSerieItem:
+                #     if series.status == "upcoming":
 
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"{series.title} ({str(series.year)})\n"
-                        )
+                #         self.sendmessage(
+                #             update.effective_chat.id,
+                #             context,
+                #             update.effective_user.first_name,
+                #             f"{series.title} ({str(series.year)})\n"
+                #         )
 
+                #         fqCount += 1
+                # else:
+                for s in series:
+                    if s.status == "upcoming":
                         fqCount += 1
-                else:
-                    for s in series:
-                        if s.status == "upcoming":
-                            fqCount += 1
-                            allSeries += (
-                                f"{s.title} ({str(s.year)})\n")
+                        allSeries += (
+                            f"{s.title} ({str(s.year)})\n")
 
-                            if (fqCount % self.listLength == 0 and
-                                    fqCount != 0):
+                        if (fqCount % self.listLength == 0 and
+                                fqCount != 0):
 
-                                self.sendmessage(
-                                    update.effective_chat.id,
-                                    context,
-                                    update.effective_user.first_name,
-                                    allSeries
-                                )
+                            self.sendmessage(
+                                update.effective_chat.id,
+                                context,
+                                update.effective_user.first_name,
+                                allSeries
+                            )
 
-                                allSeries = ""
+                            allSeries = ""
 
-                                # make sure no flood
-                                sleep(2)
+                            # make sure no flood
+                            sleep(2)
 
-                    if allSeries != "":
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            allSeries
-                        )
+                if allSeries != "":
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        allSeries
+                    )
 
-                    endtext = (
-                        f"There are {fqCount} series in the announced queue.")
+                endtext = (
+                    f"There are {fqCount} series in the announced queue.")
 
             if self.radarr_enabled:
                 movies = self.radarrNode.all_movies()
                 movies.sort(key=self.sortOnTitle)
 
                 allMovies = "Movies\n"
-                if type(movies) is RadarrMovieItem:
-                    if not movies.hasFile:
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"{movies.title} ({str(movies.year)})\n"
-                        )
+                # if type(movies) is RadarrMovieItem:
+                #     if not movies.hasFile:
+                #         self.sendmessage(
+                #             update.effective_chat.id,
+                #             context,
+                #             update.effective_user.first_name,
+                #             f"{movies.title} ({str(movies.year)})\n"
+                #         )
 
+                #         fqCount += 1
+                # else:
+
+                #  for m in movies:
+                for m in movies:
+
+                    #  if m.status == "announced":
+                    if not m.hasFile:
                         fqCount += 1
-                else:
-                    #  for m in movies:
-                    for m in movies:
+                        allMovies += (
+                            f"{m.title} ({str(m.year)})\n")
 
-                        #  if m.status == "announced":
-                        if not m.hasFile:
-                            fqCount += 1
-                            allMovies += (
-                                f"{m.title} ({str(m.year)})\n")
+                        if (fqCount % self.listLength == 0 and
+                                fqCount != 0):
 
-                            if (fqCount % self.listLength == 0 and
-                                    fqCount != 0):
+                            self.sendmessage(
+                                update.effective_chat.id,
+                                context,
+                                update.effective_user.first_name,
+                                allMovies
+                            )
 
-                                self.sendmessage(
-                                    update.effective_chat.id,
-                                    context,
-                                    update.effective_user.first_name,
-                                    allMovies
-                                )
+                            allMovies = ""
 
-                                allMovies = ""
+                            # make sure no flood
+                            sleep(2)
 
-                                # make sure no flood
-                                sleep(2)
+                if allMovies != "":
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        allMovies
+                    )
 
-                    if allMovies != "":
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            allMovies
-                        )
-
-                    endtext = (
-                        f"There are {fqCount} items in the announced queue.")
+                endtext = (
+                    f"There are {fqCount} items in the announced queue.")
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -1727,8 +1727,7 @@ class Pixlovarr():
                         if foundMedia is None:
                             continue
 
-                        if type(foundMedia) != SonarrSerieItem:
-                            foundMedia = foundMedia[0]
+                        foundMedia = foundMedia[0]
                         MediaID = foundMedia.tvdbId
                 else:
                     if self.radarr_enabled:
@@ -1737,13 +1736,12 @@ class Pixlovarr():
                         if foundMedia is None:
                             continue
 
-                        if type(foundMedia) != RadarrMovieItem:
-                            foundMedia = foundMedia[0]
+                        foundMedia = foundMedia[0]
                         MediaID = foundMedia.imdbId
 
                 # Is a not downloaded movie? Then show download button
                 # Otherwise show mediainfo button
-                if foundMedia.id == 0:
+                if not foundMedia.id:
                     callbackdata = \
                         f"showdlsummary:{typeOfMedia}:{MediaID}"
 
@@ -2466,6 +2464,7 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+            # 4:Language
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -2496,7 +2495,7 @@ class Pixlovarr():
 
                     callbackdata = (
                         f"selectdownload:{data[1]}:{data[2]}:"
-                        f"{data[3]}:{root_path.id}"
+                        f"{data[3]}:{data[4]}:{root_path.id}"
                     )
 
                     keyboard.append([InlineKeyboardButton(
@@ -2505,11 +2504,13 @@ class Pixlovarr():
                         callback_data=callbackdata)]
                     )
 
+                    txtKeyboard = "Please select download location:"
+
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
                 self.replytext(
                     query,
-                    "Please select download location:",
+                    txtKeyboard,
                     reply_markup,
                     False
                 )
@@ -2519,12 +2520,60 @@ class Pixlovarr():
                     update.effective_chat.id,
                     context,
                     update.effective_user.first_name,
-                    f"No paths were found, Please set them up in"
-                    f"Sonarr and Radarr, "
+                    f"No paths were found, Please set them up in "
+                    f"Sonarr and radarr, "
                     f"{update.effective_user.first_name}."
                 )
 
-                return
+    def selectLanguage(self, update, context):
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+
+            if data[1] == "serie":
+                if self.sonarr_enabled:
+                    languages = self.sonarrNode.language_profile()
+            else:
+                if self.radarr_enabled:
+                    pass
+
+            if languages:
+
+                keyboard = []
+
+                for language in languages:
+
+                    callbackdata = (
+                        f"selectRootFolder:{data[1]}:{data[2]}:"
+                        f"{data[3]}:{language.id}"
+                    )
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"{language.name}",
+                        callback_data=callbackdata)]
+                    )
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                self.replytext(
+                    query,
+                    "Please select language profile:",
+                    reply_markup,
+                    False
+                )
+
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"No language profiles were found, Please set them up in "
+                    f"Sonarr, "
+                    f"{update.effective_user.first_name}."
+                )
 
     def showMetaInfo(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
@@ -2544,6 +2593,8 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaID
+
+            print(data[2])
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -2718,7 +2769,8 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
-            # 3:qualityid, 4: rootfolder, 5: Download which seasons?
+            # 3:qualityid, 4: Langausge Profile 5:rootfolder
+            # 6: Download which seasons?
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2750,10 +2802,10 @@ class Pixlovarr():
                     tags.append(usertagID)
 
                     media.add(
-                        int(data[4]),
+                        int(data[5]),
                         int(data[3]),
-                        "English",
-                        data[5],
+                        int(data[4]),
+                        data[6],
                         self.sonarr_season_folder,
                         True,
                         False,
@@ -2787,7 +2839,7 @@ class Pixlovarr():
                     tags.append(usertagID)
 
                     media.add(
-                        int(data[4]),
+                        int(data[5]),
                         int(data[3]),
                         True,
                         True,
@@ -2809,7 +2861,7 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     profiles = self.sonarrNode.quality_profile()
-                    callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
+                    callbackdata = f"selectlang:{data[1]}:{data[2]}"
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
 
             else:
@@ -2829,10 +2881,16 @@ class Pixlovarr():
                 profiles.sort(key=self.sortOnNameDict)
 
                 for count, p in enumerate(profiles):
-                    row.append(InlineKeyboardButton(
-                        f"{p.name}",
-                        callback_data=f"{callbackdata}:{p.id}")
-                    )
+                    if data[1] == "serie":
+                        row.append(InlineKeyboardButton(
+                            f"{p.name}",
+                            callback_data=f"{callbackdata}:{p.id}")
+                        )
+                    else:
+                        row.append(InlineKeyboardButton(
+                            f"{p.name}",
+                            callback_data=f"{callbackdata}:{p.id}:{None}")
+                        )
 
                     if (count+1) % num_columns == 0 or \
                             count == len(profiles)-1:
@@ -2865,10 +2923,13 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaid, 3: Quality, 4: RootFolder
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+            # 4: Langauge Profile, 5: RootFolder
 
             callbackdata = (
-                f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:{data[4]}")
+                f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:"
+                f"{data[4]}:{data[5]}"
+            )
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -3275,6 +3336,10 @@ class Pixlovarr():
         kbselectKeepMedia_handler = CallbackQueryHandler(
             self.keepMedia, pattern='^keepmedia:')
         self.dispatcher.add_handler(kbselectKeepMedia_handler)
+
+        kbselectLanguage_handler = CallbackQueryHandler(
+            self.selectLanguage, pattern='^selectlang:')
+        self.dispatcher.add_handler(kbselectLanguage_handler)
 
 # Admin Handlders
 
