@@ -338,14 +338,14 @@ class RLP():
             if self.pushover_enabled:
                 self.message = self.userPushover.send_message(
                     message=(
-                        f"Prune - The were {numDeleted} movies removed from "
+                        f"Prune - There were {numDeleted} movies removed from "
                         "the server"
                         ),
                     sound=self.pushover_sound
                 )
 
             logging.info(
-                f"Prune - The were {numDeleted} movies removed from "
+                f"Prune - There were {numDeleted} movies removed from "
                 f"the server"
             )
         else:
