@@ -180,6 +180,9 @@ class RLP():
 
                 list_ = glob.glob(movie.path + "/*")
                 for file in list_:
+                    
+                    print(file)
+
                     if file.lower().endswith(('.mp4', '.avi', '.mkv')):
 
                         # Get modfified date on movie.nfo,
