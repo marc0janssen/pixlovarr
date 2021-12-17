@@ -180,19 +180,14 @@ class RLP():
 
                 list_ = glob.glob(movie.path + "/*")
                 for file in list_:
-                    
-                    print(file)
-
                     if file.lower().endswith(('.mp4', '.avi', '.mkv')):
-
-                        print("found")
-
                         # Get modfified date on movie.nfo,
                         # Which is the downloaddate
                         # movieNfo = os.path.join(movie.path, "movie.nfo")
                         modifieddate = os.stat(file).st_mtime
                         movieDownloadDate = \
                             datetime.fromtimestamp(modifieddate)
+                        break
                     else:
                         movieDownloadDate = None
 
