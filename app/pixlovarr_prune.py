@@ -179,10 +179,7 @@ class RLP():
             if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
                 try:
-
                     list_ = glob.glob(movie.path + "/*")
-                    print(list_)
-
                     for file in list_:
                         if file.lower().endswith(('.mp4', '.avi', '.mkv')):
                             print(file)
