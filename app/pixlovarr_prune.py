@@ -24,9 +24,6 @@ class RLP():
 
         self.config_file = "./config/pixlovarr.ini"
 
-        # Set "any movie removed" to FALSE
-        self.anyMovieRemoved = False
-
         try:
             with open(self.config_file, "r") as f:
                 f.close()
@@ -178,8 +175,8 @@ class RLP():
             #  in the set of "MOVIE TAGS"
             if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
-                list_ = glob.glob(movie.path + "/*")
-                for file in list_:
+                fileList = glob.glob(movie.path + "/*")
+                for file in fileList:
                     if file.lower().endswith(('.mp4', '.avi', '.mkv')):
                         # Get modfified date on movie.nfo,
                         # Which is the downloaddate
@@ -191,7 +188,7 @@ class RLP():
                     else:
                         movieDownloadDate = None
 
-                if not list_ or not movieDownloadDate:
+                if not fileList or not movieDownloadDate:
                     # If FIle is not found, the movie is missing
                     # add will be skipped These are probably
                     # movies in the future
@@ -200,7 +197,7 @@ class RLP():
                         f"{movie.title} ({movie.year})"
                         f" is not downloaded yet. Skipping."
                     )
-                    return
+                    return False
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
@@ -283,7 +280,8 @@ class RLP():
                         f"{self.txtFilesDelete}"
                         f" - {movieDownloadDate}"
                     )
-                    self.anyMovieRemoved = True
+                    return True
+        return False
 
     def run(self):
         if not self.enabled_run:
@@ -329,13 +327,28 @@ class RLP():
             media = self.radarrNode.all_movies()
 
         # Make sure the library is not empty.
+        numDeleted = 0
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
             for movie in media:
-                self.evalMovie(movie, tagIDsByLabels)
+                if self.evalMovie(movie, tagIDsByLabels):
+                    numDeleted += 1
 
-        if not self.anyMovieRemoved:
+        if numDeleted > 0:
+            if self.pushover_enabled:
+                self.message = self.userPushover.send_message(
+                    message=(
+                        f"Prune - The were {numDeleted} movies removed from "
+                        "the server"
+                        ),
+                    sound=self.pushover_sound
+                )
 
+            logging.info(
+                f"Prune - The were {numDeleted} movies removed from "
+                f"the server"
+            )
+        else:
             if self.pushover_enabled:
                 self.message = self.userPushover.send_message(
                     message="Prune - No movies were removed from "
