@@ -49,7 +49,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1629"
+        self.version = "1.17.5.1641"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -237,17 +237,6 @@ class Pixlovarr():
             shutil.copyfile(f"{app_dir}/pixlovarr.ini.example",
                             f"{config_dir}/pixlovarr.ini.example")
             sys.exit()
-
-# -----
-
-    def MissingMoviesSearch(self):
-        """Perform an Missing missing movie search.
-        Returns:
-            json response
-        """
-        return self.radarr_node._sendCommand({"name": "MissingMoviesSearch"})
-
-# -----
 
     def getPruneDate(self, media):
 
@@ -2382,7 +2371,7 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media
 
-            self.MissingMoviesSearch()
+            self.radarrNode.send_command("MissingMoviesSearch")
 
             self.sendmessage(
                 update.effective_chat.id,

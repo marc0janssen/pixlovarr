@@ -8,6 +8,7 @@ import configparser
 import sys
 import shutil
 import os
+import glob
 
 from datetime import datetime, timedelta
 from arrapi import RadarrAPI
@@ -178,6 +179,14 @@ class RLP():
             if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
                 try:
+
+                    list_ = glob.glob(movie.path + "/*")
+                    print(list_)
+
+                    for file in list_:
+                        if file.lower().endswith(('.mp4', '.avi', '.mkv')):
+                            print(file)
+
                     # Get modfified date on movie.nfo,
                     # Which is the downloaddate
                     movieNfo = os.path.join(movie.path, "movie.nfo")
