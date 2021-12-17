@@ -194,16 +194,18 @@ class RLP():
                         movieDownloadDate = \
                             datetime.fromtimestamp(modifieddate)
                     else:
+                        movieDownloadDate = None
 
-                        # If FIle is not found, the movie is missing
-                        # add will be skipped These are probably
-                        # movies in the future
-                        logging.info(
-                            f"Prune - MISSING - "
-                            f"{movie.title} ({movie.year})"
-                            f" is not downloaded yet. Skipping."
-                        )
-                        return
+                if not list_ or not movieDownloadDate:
+                    # If FIle is not found, the movie is missing
+                    # add will be skipped These are probably
+                    # movies in the future
+                    logging.info(
+                        f"Prune - MISSING - "
+                        f"{movie.title} ({movie.year})"
+                        f" is not downloaded yet. Skipping."
+                    )
+                    return
 
                 now = datetime.now()
                 extend_period = self.extend_by_days \
