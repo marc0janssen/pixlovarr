@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1755"
+        self.version = "1.17.5.1757"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2379,6 +2379,10 @@ class Pixlovarr():
             # query.answer()
             # data = query.data.split(":")
             # # 0:marker, 1:type of media
+
+            # called via /smm, not via button
+            if not update.callback_query:
+                self.logCommand(update)
 
             txtMissingMedia = (
                 "Searching for all missing movies. "
