@@ -17,6 +17,10 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
+Version x
+
+* New: /smm search missing movies
+
 version 1.17.5.1624
 
 * Changed: API from pycliarr to arrApi
@@ -93,6 +97,7 @@ You can later use the tagged media to your liking.
         /mm - list your movies
         /sts - Service status info
         /rss - trigger RSS fetching
+        /smm - Trigger missing media search
         /ds T<#> <keyword> - Download serie
         /dm T<#> <keyword> - Download movie
 

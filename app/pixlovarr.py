@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1718"
+        self.version = "1.17.5.1755"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -1200,6 +1200,7 @@ class Pixlovarr():
                     "/fq - Show announced items in catalog\n"
                     "/sts - Service status info\n"
                     "/rss - Trigger RSS fetching\n"
+                    "/smm - Trigger missing media search\n"
                     "/ds T<#> <key> - Download series\n"
                     "/dm T<#> <key> - Download movie\n\n"
                     "/coffee - Buy me a coffee\n"
@@ -1258,18 +1259,16 @@ class Pixlovarr():
             )
 
             if self.sonarr_enabled:
-                respSonarr = self.sonarr_node.sync_rss()
+                respSonarr = self.sonarrNode.send_command("RssSync")
                 txtRSSsync += (
-                    f"Sonarr message: "
-                    f"{respSonarr['body']['completionMessage']}\n"
-                    f"Sonarr priority: {respSonarr['priority']}\n\n"
+                    f"Sonarr message: {respSonarr.message}\n"
+                    f"Sonarr priority: {respSonarr.priority}\n\n"
                 )
             if self.radarr_enabled:
-                respRadarr = self.radarr_node.sync_rss()
+                respRadarr = self.radarrNode.send_command("RssSync")
                 txtRSSsync += (
-                    f"Radarr message: "
-                    f"{respRadarr['body']['completionMessage']}\n"
-                    f"Radarr priority: {respRadarr['priority']}\n"
+                    f"Radarr message: {respRadarr.message}\n"
+                    f"Radarr priority: {respRadarr.priority}\n"
                 )
 
             self.sendmessage(
@@ -2373,23 +2372,38 @@ class Pixlovarr():
                     f"{txtPruneDate}"
                 )
 
-    def searchMissingMovies(self, update, context):
+    def searchMissingMedia(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
 
-            query = update.callback_query
-            query.answer()
-            data = query.data.split(":")
-            # 0:marker, 1:type of media
+            # query = update.callback_query
+            # query.answer()
+            # data = query.data.split(":")
+            # # 0:marker, 1:type of media
 
-            self.radarrNode.send_command("MissingMoviesSearch")
+            txtMissingMedia = (
+                "Searching for all missing movies. "
+                "If you have more missing movies, "
+                "they are all being searched at the moment as well.\n\n"
+            )
+
+            if self.radarr_enabled:
+                respRadarr = \
+                    self.radarrNode.send_command("MissingMoviesSearch")
+                txtMissingMedia += (
+                    f"Radarr message: {respRadarr.message}\n"
+                    f"Radarr priority: {respRadarr.priority}\n\n"
+                )
+            else:
+                txtMissingMedia += (
+                    "Radarr message: Radarr disabled\n"
+                    "Radarr priority: -\n\n"
+                )
 
             self.sendmessage(
                 update.effective_chat.id,
                 context,
                 update.effective_user.first_name,
-                f"Searching for all missing {data[1]}s. "
-                f"If you have more missing {data[1]}s, "
-                f"they are all being searched at the moment as well."
+                txtMissingMedia
             )
 
     def selectRootFolder(self, update, context):
@@ -3138,6 +3152,10 @@ class Pixlovarr():
         self.performRSS_handler = CommandHandler('rss', self.performRSS)
         self.dispatcher.add_handler(self.performRSS_handler)
 
+        self.searchMissingMedia_handler = \
+            CommandHandler('smm', self.searchMissingMedia)
+        self.dispatcher.add_handler(self.searchMissingMedia_handler)
+
 # Keyboard Handlers
 
         kbgrant_handler = CallbackQueryHandler(
@@ -3180,9 +3198,9 @@ class Pixlovarr():
             self.selectRootFolder, pattern='^selectRootFolder:')
         self.dispatcher.add_handler(kbselectRootFolder_handler)
 
-        kbselectSearchMissingMovies_handler = CallbackQueryHandler(
-            self.searchMissingMovies, pattern='^searchmedia:')
-        self.dispatcher.add_handler(kbselectSearchMissingMovies_handler)
+        kbselectSearchMissingMedia_handler = CallbackQueryHandler(
+            self.searchMissingMedia, pattern='^searchmedia:')
+        self.dispatcher.add_handler(kbselectSearchMissingMedia_handler)
 
         kbselectExtendPeriodMedia_handler = CallbackQueryHandler(
             self.extendPeriodMedia, pattern='^extendperiod:')
