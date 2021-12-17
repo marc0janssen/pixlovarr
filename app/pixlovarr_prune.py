@@ -175,6 +175,7 @@ class RLP():
             #  in the set of "MOVIE TAGS"
             if set(movie.tagsIds) & set(tagsIDs_to_remove):
 
+                movieDownloadDate = None
                 fileList = glob.glob(movie.path + "/*")
                 for file in fileList:
                     if file.lower().endswith(('.mp4', '.avi', '.mkv')):
@@ -185,8 +186,6 @@ class RLP():
                         movieDownloadDate = \
                             datetime.fromtimestamp(modifieddate)
                         break
-                    else:
-                        movieDownloadDate = None
 
                 if not fileList or not movieDownloadDate:
                     # If FIle is not found, the movie is missing

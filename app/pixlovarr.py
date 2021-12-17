@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1710"
+        self.version = "1.17.5.1717"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -241,27 +241,26 @@ class Pixlovarr():
 
     def getPruneDate(self, media):
 
-        fileList = glob.glob(media.path + "/*")
-        for file in fileList:
-            if file.lower().endswith(('.mp4', '.avi', '.mkv')):
-                # Get modfified date on movie.nfo,
-                # Which is the downloaddate
-                # movieNfo = os.path.join(movie.path, "movie.nfo")
-                modifieddate = os.stat(file).st_mtime
-                movieDownloadDate = \
-                    datetime.fromtimestamp(modifieddate)
-                break
-            else:
-                movieDownloadDate = None
+        if media.path:
+            movieDownloadDate = None
+            fileList = glob.glob(media.path + "/*")
+            for file in fileList:
+                if file.lower().endswith(('.mp4', '.avi', '.mkv')):
+                    # Get modfified date on movie.nfo,
+                    # Which is the downloaddate
+                    modifieddate = os.stat(file).st_mtime
+                    movieDownloadDate = \
+                        datetime.fromtimestamp(modifieddate)
+                    break
 
-        if not fileList or not movieDownloadDate:
-            return False
-        else:
-            pruneMovieDate = movieDownloadDate + \
-                timedelta(days=int(self.remove_after_days)) + \
-                timedelta(days=int(self.extend_by_days))
+            if movieDownloadDate:
+                pruneMovieDate = movieDownloadDate + \
+                    timedelta(days=int(self.remove_after_days)) + \
+                    timedelta(days=int(self.extend_by_days))
 
-        return datetime.strftime(pruneMovieDate, '%Y-%m-%d')
+                return datetime.strftime(pruneMovieDate, '%Y-%m-%d')
+
+        return False
 
     def getProfileInfo(self, profileID, mediaOfType):
 
