@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1717"
+        self.version = "1.17.5.1718"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -609,7 +609,7 @@ class Pixlovarr():
             txtMediaInfo += \
                 f"Tags: {self.getForMedia(media.tags, typeOfMedia)}\n\n"
 
-        if typeOfMedia == "movie":
+        if typeOfMedia == "movie" and self.getPruneDate(media):
             txtMediaInfo += f"Prune: {self.getPruneDate(media)}"
 
         if txtMediaInfo != "":
