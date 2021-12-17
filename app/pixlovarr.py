@@ -43,13 +43,14 @@ import random
 import feedparser
 import ssl
 import os
+import glob
 
 
 class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1665"
+        self.version = "1.17.5.1671"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -240,13 +241,25 @@ class Pixlovarr():
 
     def getPruneDate(self, media):
 
-        movieNfo = os.path.join(media.path, "movie.nfo")
-        modifieddate = os.stat(movieNfo).st_mtime
-        movieDownloadDate = datetime.fromtimestamp(modifieddate)
+        fileList = glob.glob(media.path + "/*")
+        for file in fileList:
+            if file.lower().endswith(('.mp4', '.avi', '.mkv')):
+                # Get modfified date on movie.nfo,
+                # Which is the downloaddate
+                # movieNfo = os.path.join(movie.path, "movie.nfo")
+                modifieddate = os.stat(file).st_mtime
+                movieDownloadDate = \
+                    datetime.fromtimestamp(modifieddate)
+                break
+            else:
+                movieDownloadDate = None
 
-        pruneMovieDate = movieDownloadDate + \
-            timedelta(days=int(self.remove_after_days)) + \
-            timedelta(days=int(self.extend_by_days))
+        if not fileList or not movieDownloadDate:
+            return False
+        else:
+            pruneMovieDate = movieDownloadDate + \
+                timedelta(days=int(self.remove_after_days)) + \
+                timedelta(days=int(self.extend_by_days))
 
         return datetime.strftime(pruneMovieDate, '%Y-%m-%d')
 
@@ -2337,21 +2350,18 @@ class Pixlovarr():
                     apply_tags="add"
                 )
 
-                try:
-                    # Get modfified date on movie.nfo,
-                    # Which is the downloaddate
+                # Get modfified date on movie.nfo,
+                # Which is the downloaddate
 
+                if self.getPruneDate(media):
                     newPruneDate = self.getPruneDate(media)
 
                     txtPruneDate = (
                         f"New prune date is {newPruneDate}."
                     )
-
-                except IOError or FileNotFoundError:
-
+                else:
                     txtPruneDate = (
-                        "New prune date can not be determined. "
-                        "Movie is not downloaded yet."
+                        "New prune date is not known."
                     )
 
                 self.sendmessage(
