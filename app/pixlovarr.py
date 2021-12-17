@@ -50,7 +50,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1757"
+        self.version = "1.17.5.1761"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -2307,6 +2307,55 @@ class Pixlovarr():
 
 # HandlerCallback Commands
 
+    def keepMedia(self, update, context):
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaid
+
+            if data[1] == "serie":
+                if self.sonarr_enabled:
+                    media = self.sonarrNode.get_series(int(data[2]))
+                    tagLabels_to_keep = self.tags_to_keep_sonarr
+            else:
+                if self.radarr_enabled:
+                    media = self.radarrNode.get_movie(int(data[2]))
+                    tagLabels_to_keep = self.tags_to_keep_radarr
+
+            tagIDs_To_Keep = self.getIDsforTagLabels(
+                data[1], tagLabels_to_keep)
+
+            # If there not IDs yet, then create them for the first time
+            if not tagIDs_To_Keep:
+                if data[1] == "serie":
+                    if self.sonarr_enabled:
+                        tag = self.sonarrNode.create_tag(
+                            tagLabels_to_keep[0])
+
+                else:
+                    if self.radarr_enabled:
+                        tag = self.radarrNode.create_tag(
+                            tagLabels_to_keep[0])
+
+                tagIDs_To_Keep = [tag.id]
+
+            if not set(media.tagsIds) & set(tagIDs_To_Keep):
+
+                media.edit(
+                    tags=[tagIDs_To_Keep[0]],
+                    apply_tags="add"
+                )
+
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"The {data[1]} is kept on the server "
+                    f"and refrained from pruning."
+                )
+
     def extendPeriodMedia(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
 
@@ -2554,6 +2603,20 @@ class Pixlovarr():
                 keyboard.append([InlineKeyboardButton(
                     f"Extend '{media.title} ({media.year})' "
                     f"with {self.extend_by_days} days",
+                    callback_data=callbackdata)]
+                )
+
+            tagLabels_to_keep = self.tags_to_keep_radarr
+            tagIDs_To_Keep = self.getIDsforTagLabels(
+                data[1], tagLabels_to_keep)
+
+            if data[1] == "movie" and \
+                    not set(media.tagsIds) & set(tagIDs_To_Keep) \
+                    and self.isAdmin(update):
+                callbackdata = (f"keepmedia:{data[1]}:{data[2]}")
+
+                keyboard.append([InlineKeyboardButton(
+                    f"Keep '{media.title} ({media.year})'",
                     callback_data=callbackdata)]
                 )
 
@@ -3209,6 +3272,10 @@ class Pixlovarr():
         kbselectExtendPeriodMedia_handler = CallbackQueryHandler(
             self.extendPeriodMedia, pattern='^extendperiod:')
         self.dispatcher.add_handler(kbselectExtendPeriodMedia_handler)
+
+        kbselectKeepMedia_handler = CallbackQueryHandler(
+            self.keepMedia, pattern='^keepmedia:')
+        self.dispatcher.add_handler(kbselectKeepMedia_handler)
 
 # Admin Handlders
 
