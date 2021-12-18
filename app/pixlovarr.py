@@ -15,11 +15,9 @@ from telegram.ext import (
     MessageHandler,
     Filters
 )
-from time import sleep
 from urllib.parse import urlparse
-from time import time
+from time import time, sleep
 from datetime import datetime, timedelta
-
 
 from pycliarr.api import (
     RadarrCli,
@@ -48,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1788"
+        self.version = "1.17.5.1793"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -672,58 +670,6 @@ class Pixlovarr():
     ):
 
         keyboard = []
-
-        # if type(media) is SonarrSerieItem or \
-        #         type(media) is RadarrMovieItem:
-
-        #     if usertagEnabled:
-        #         usertagID = self.getUsertagID(update, typeOfMedia)
-        #         usertagFound = usertagID in media.tags
-
-        #     if newDownloadOnly:
-        #         if typeOfMedia == "serie":
-        #             dateAfterAdded = datetime.now() - \
-        #                 timedelta(days=self.sonarr_period_days_added)
-
-        #             withinPeriod = True if datetime.strptime(
-        #                 media.added, '%Y-%m-%dT%H:%M:%S.%fZ') >= \
-        #                 dateAfterAdded else False
-
-        #         else:
-        #             dateAfterAdded = datetime.now() - \
-        #                 timedelta(days=self.radarr_period_days_added)
-
-        #             withinPeriod = True if datetime.strptime(
-        #                 media.added,
-        #                 '%Y-%m-%dT%H:%M:%SZ') >= dateAfterAdded \
-        #                 else False
-
-        #     if (not usertagEnabled and not newDownloadOnly) or \
-        #             (usertagEnabled and usertagFound) or \
-        #             (newDownloadOnly and withinPeriod):
-
-        #         callbackdata = f"showMediaInfo:{typeOfMedia}:{media.id}"
-
-        #         keyboard.append([InlineKeyboardButton(
-        #             f"{media.title} ({media.year})",
-        #             callback_data=callbackdata)]
-        #         )
-
-        #         reply_markup = InlineKeyboardMarkup(keyboard)
-
-        #         self.replytext(
-        #             update,
-        #             f"The following {typeOfMedia}s in the catalog:",
-        #             reply_markup,
-        #             False
-        #         )
-
-        #         numOfMedia = 1
-        #     else:
-        #         numOfMedia = 0
-
-        # else:
-
         media.sort(key=self.sortOnTitle)
 
         genre = ""
@@ -1531,18 +1477,7 @@ class Pixlovarr():
 
                 fqCount = 0
                 allSeries = "Series\n"
-                # if type(series) is SonarrSerieItem:
-                #     if series.status == "upcoming":
 
-                #         self.sendmessage(
-                #             update.effective_chat.id,
-                #             context,
-                #             update.effective_user.first_name,
-                #             f"{series.title} ({str(series.year)})\n"
-                #         )
-
-                #         fqCount += 1
-                # else:
                 for s in series:
                     if s.status == "upcoming":
                         fqCount += 1
@@ -1580,17 +1515,6 @@ class Pixlovarr():
                 movies.sort(key=self.sortOnTitle)
 
                 allMovies = "Movies\n"
-                # if type(movies) is RadarrMovieItem:
-                #     if not movies.hasFile:
-                #         self.sendmessage(
-                #             update.effective_chat.id,
-                #             context,
-                #             update.effective_user.first_name,
-                #             f"{movies.title} ({str(movies.year)})\n"
-                #         )
-
-                #         fqCount += 1
-                # else:
 
                 #  for m in movies:
                 for m in movies:

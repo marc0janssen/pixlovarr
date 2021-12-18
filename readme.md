@@ -177,6 +177,8 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
                 --restart=always \
                 -v /path/to/config/:/config \
                 -v /path/to/movies/:/movies \
+                -v /path/to/movies2/:/movies2 \
+                -v /path/to/movies3/:/movies3 \
                 marc0janssen/pixlovarr:latest
 
 ## Config Pixlovarr
