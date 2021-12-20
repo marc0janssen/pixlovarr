@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1807"
+        self.version = "1.17.5.1817"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -168,6 +168,9 @@ class Pixlovarr():
                     )
                     self.sonarrNode = SonarrAPI(
                         self.sonarr_url, self.sonarr_token)
+                self.video_extensions = list(
+                    self.config['PRUNE']
+                    ['VIDEO_EXTENSIONS_FOR_PRUNE'].split(","))
 
                 if self.radarr_enabled:
                     self.radarr_node = RadarrCli(
@@ -241,7 +244,7 @@ class Pixlovarr():
             movieDownloadDate = None
             fileList = glob.glob(media.path + "/*")
             for file in fileList:
-                if file.lower().endswith(('.mp4', '.avi', '.mkv')):
+                if file.lower().endswith(tuple(self.video_extensions)):
                     # Get modfified date on movie.nfo,
                     # Which is the downloaddate
                     modifieddate = os.stat(file).st_mtime

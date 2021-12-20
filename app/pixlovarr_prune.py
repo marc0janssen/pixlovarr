@@ -70,6 +70,9 @@ class RLP():
                     ['SHOW_KEPT_MESSAGE'] == "ON") else False
                 self.extend_by_days = int(
                     self.config['PRUNE']['EXTEND_PERIOD_BY_DAYS'])
+                self.video_extensions = list(
+                    self.config['PRUNE']
+                    ['VIDEO_EXTENSIONS_FOR_PRUNE'].split(","))
 
                 # PUSHOVER
                 self.pushover_enabled = True if (
@@ -177,9 +180,8 @@ class RLP():
 
                 movieDownloadDate = None
                 fileList = glob.glob(movie.path + "/*")
-                videoExtenstions = ['.mp4', '.avi', '.mkv', '.m2ts', '.wmv']
                 for file in fileList:
-                    if file.lower().endswith(tuple(videoExtenstions)):
+                    if file.lower().endswith(tuple(self.video_extensions)):
                         # Get modfified date on movie.nfo,
                         # Which is the downloaddate
                         # movieNfo = os.path.join(movie.path, "movie.nfo")
