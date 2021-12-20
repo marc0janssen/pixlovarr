@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1817"
+        self.version = "1.17.5.1823"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -170,7 +170,7 @@ class Pixlovarr():
                         self.sonarr_url, self.sonarr_token)
                 self.video_extensions = list(
                     self.config['PRUNE']
-                    ['VIDEO_EXTENSIONS_FOR_PRUNE'].split(","))
+                    ['VIDEO_EXTENSIONS_MONITORED'].split(","))
 
                 if self.radarr_enabled:
                     self.radarr_node = RadarrCli(

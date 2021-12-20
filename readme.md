@@ -17,6 +17,10 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Changelog
 
+Version 1.17.5.1822
+
+* Changed: Extensions that are monitored for pruning
+
 Version 1.17.5.1788
 
 * New: /smm search missing movies
@@ -226,6 +230,7 @@ In the directory /config the python script expects a config file called 'pixlova
         WARN_DAYS_INFRONT = 1
         SHOW_KEPT_MESSAGE = ON
         EXTEND_PERIOD_BY_DAYS = 30
+        VIDEO_EXTENSIONS_MONITORED = .mp4,.avi,.mkv,.m2ts,.wmv
 
         [PUSHOVER]
         ENABLED = OFF

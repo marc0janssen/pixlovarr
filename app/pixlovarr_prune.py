@@ -72,7 +72,7 @@ class RLP():
                     self.config['PRUNE']['EXTEND_PERIOD_BY_DAYS'])
                 self.video_extensions = list(
                     self.config['PRUNE']
-                    ['VIDEO_EXTENSIONS_FOR_PRUNE'].split(","))
+                    ['VIDEO_EXTENSIONS_MONITORED'].split(","))
 
                 # PUSHOVER
                 self.pushover_enabled = True if (
