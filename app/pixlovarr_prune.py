@@ -178,7 +178,7 @@ class RLP():
                 movieDownloadDate = None
                 fileList = glob.glob(movie.path + "/*")
                 for file in fileList:
-                    if file.lower().endswith('.mp4', '.avi', '.mkv'):
+                    if file.lower().endswith(('.mp4', '.avi', '.mkv')):
                         # Get modfified date on movie.nfo,
                         # Which is the downloaddate
                         # movieNfo = os.path.join(movie.path, "movie.nfo")
