@@ -99,8 +99,8 @@ You can later use the tagged media to your liking.
         /rs - Show recently reviewed series
         /rm - Show recently reviewed movies       
         /fq - Show announced items in catalog
-        /ms - list your series
-        /mm - list your movies
+        /sc - Show series calendar
+        /mc - Show movies calendar
         /sts - Service status info
         /rss - trigger RSS fetching
         /smm - Trigger missing media search

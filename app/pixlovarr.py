@@ -17,13 +17,13 @@ from telegram.ext import (
 )
 from urllib.parse import urlparse
 from time import time, sleep
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from pycliarr.api import (
-    RadarrCli,
+    RadarrCli, RadarrMovieItem
 )
 from pycliarr.api import (
-    SonarrCli,
+    SonarrCli, SonarrSerieItem
 )
 
 from arrapi import SonarrAPI, RadarrAPI
@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1823"
+        self.version = "1.17.5.1965"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -633,34 +633,34 @@ class Pixlovarr():
             # No Youtube ID found
             pass
 
-    # def showCalenderMediaInfo(self, media):
+    def showCalenderMediaInfo(self, media):
 
-    #     try:
-    #         serie = self.sonarr_node.get_serie(media["seriesId"])
-    #         title = f"{serie.title}\n{media['title']}"
-    #     except KeyError:
-    #         try:
-    #             title = f"{media['title']} ({media['year']})"
-    #         except KeyError:
-    #             title = "<Title unknown>"
+        try:
+            serie = self.sonarr_node.get_serie(media["seriesId"])
+            title = f"{serie.title}\n{media['title']}"
+        except KeyError:
+            try:
+                title = f"{media['title']} ({media['year']})"
+            except KeyError:
+                title = "<Title unknown>"
 
-    #     try:
-    #         dateCinema = datetime.strftime(
-    #             datetime.strptime(
-    #                 media['inCinemas'], '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
-    #         dateText = "In cinemas"
-    #     except KeyError:
-    #         try:
-    #             dateCinema = media['airDate']
-    #             dateText = "Airdate"
-    #         except KeyError:
-    #             dateCinema = "-"
-    #             dateText = "Date"
+        try:
+            dateCinema = datetime.strftime(
+                datetime.strptime(
+                    media['inCinemas'], '%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%d')
+            dateText = "In cinemas"
+        except KeyError:
+            try:
+                dateCinema = media['airDate']
+                dateText = "Airdate"
+            except KeyError:
+                dateCinema = "-"
+                dateText = "Date"
 
-    #     return(
-    #         f"{title}\n"
-    #         f"{dateText}: {dateCinema}\n\n"
-    #     )
+        return(
+            f"{title}\n"
+            f"{dateText}: {dateCinema}\n\n"
+        )
 
     def listMedia(
             self,
@@ -761,64 +761,64 @@ class Pixlovarr():
 
         return numOfMedia
 
-    # def listCalendar(self, update, context, media):
+    def listCalendar(self, update, context, media):
 
-    #     numOfCalItems = 0
-    #     if type(media) is SonarrSerieItem or \
-    #             type(media) is RadarrMovieItem:
+        numOfCalItems = 0
+        if type(media) is SonarrSerieItem or \
+                type(media) is RadarrMovieItem:
 
-    #         self.sendmessage(
-    #             update.effective_chat.id,
-    #             context,
-    #             update.effective_user.first_name,
-    #             self.showCalenderMediaInfo(media)
-    #         )
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                self.showCalenderMediaInfo(media)
+            )
 
-    #         numOfCalItems = 1
+            numOfCalItems = 1
 
-    #     else:
+        else:
 
-    #         allMedia = ""
-    #         for m in media:
+            allMedia = ""
+            for m in media:
 
-    #             try:
-    #                 searchString = f"{m['series']['title']} {m['title']}"
-    #             except KeyError:
-    #                 searchString = m['title']
+                try:
+                    searchString = f"{m['series']['title']} {m['title']}"
+                except KeyError:
+                    searchString = m['title']
 
-    #             if re.search(
-    #                 ' '.join(context.args).lower(), searchString.lower()) \
-    #                     or not context.args:
+                if re.search(
+                    ' '.join(context.args).lower(), searchString.lower()) \
+                        or not context.args:
 
-    #                 numOfCalItems += 1
+                    numOfCalItems += 1
 
-    #                 allMedia += (
-    #                     self.showCalenderMediaInfo(m))
+                    allMedia += (
+                        self.showCalenderMediaInfo(m))
 
-    #                 if (numOfCalItems % self.listLength == 0 and
-    #                         numOfCalItems != 0):
+                    if (numOfCalItems % self.listLength == 0 and
+                            numOfCalItems != 0):
 
-    #                     self.sendmessage(
-    #                         update.effective_chat.id,
-    #                         context,
-    #                         update.effective_user.first_name,
-    #                         allMedia
-    #                     )
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            allMedia
+                        )
 
-    #                     allMedia = ""
+                        allMedia = ""
 
-    #                     # make sure no flood
-    #                     sleep(2)
+                        # make sure no flood
+                        sleep(2)
 
-    #         if allMedia != "":
-    #             self.sendmessage(
-    #                 update.effective_chat.id,
-    #                 context,
-    #                 update.effective_user.first_name,
-    #                 allMedia
-    #             )
+            if allMedia != "":
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    allMedia
+                )
 
-    #     return numOfCalItems
+        return numOfCalItems
 
     def logAdminCommand(self, update):
 
@@ -1146,6 +1146,8 @@ class Pixlovarr():
                     "/rs - Show recently reviewed series\n"
                     "/rm - Show recently reviewed movies\n"
                     "/fq - Show announced items in catalog\n"
+                    "/sc - Show series calendar\n"
+                    "/mc - Show movies calendar\n"
                     "/sts - Service status info\n"
                     "/rss - Trigger RSS fetching\n"
                     "/smm - Trigger missing media search\n"
@@ -1376,87 +1378,87 @@ class Pixlovarr():
                     f"There are no {typeOfMedia}s in the newsfeed."
                 )
 
-    # def getCalendar(self, update, context):
+    def getCalendar(self, update, context):
 
-    #     self.logCommand(update)
+        self.logCommand(update)
 
-    #     if not self.isBlocked(update) and \
-    #             self.isGranted(update):
+        if not self.isBlocked(update) and \
+                self.isGranted(update):
 
-    #         command = update.effective_message.text.split(" ")
+            command = update.effective_message.text.split(" ")
 
-    #         startDate = date.today()
+            startDate = date.today()
 
-    #         if re.match("^/[Ss][Cc]$", command[0]):
-    #             if self.sonarr_enabled:
-    #                 endDate = startDate + timedelta(
-    #                     days=int(self.calendar_period_days_series))
-    #                 media = self.sonarr_node.get_calendar(
-    #                     start_date=startDate, end_date=endDate)
-    #                 typeOfMedia = "episode"
+            if re.match("^/[Ss][Cc]$", command[0]):
+                if self.sonarr_enabled:
+                    endDate = startDate + timedelta(
+                        days=int(self.calendar_period_days_series))
+                    media = self.sonarr_node.get_calendar(
+                        start_date=startDate, end_date=endDate)
+                    typeOfMedia = "episode"
 
-    #         elif re.match("^/[Mm][Cc]$", command[0]):
-    #             if self.radarr_enabled:
-    #                 endDate = startDate + timedelta(
-    #                     days=int(self.calendar_period_days_movies))
-    #                 media = self.radarr_node.get_calendar(
-    #                     start_date=startDate, end_date=endDate)
-    #                 typeOfMedia = "movie"
+            elif re.match("^/[Mm][Cc]$", command[0]):
+                if self.radarr_enabled:
+                    endDate = startDate + timedelta(
+                        days=int(self.calendar_period_days_movies))
+                    media = self.radarr_node.get_calendar(
+                        start_date=startDate, end_date=endDate)
+                    typeOfMedia = "movie"
 
-    #         else:
-    #             self.sendmessage(
-    #                 update.effective_chat.id,
-    #                 context,
-    #                 update.effective_user.first_name,
-    #                 "Something went wrong..."
-    #             )
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    "Something went wrong..."
+                )
 
-    #             return
+                return
 
-    #         endtext = f"There are no {typeOfMedia}s in the calendar."
+            endtext = f"There are no {typeOfMedia}s in the calendar."
 
-    #         if media:
-    #             numOfCalItems = self.listCalendar(update, context, media)
-    #             endtext = (
-    #                 f"There are {len(media)} {typeOfMedia}s "
-    #                 f"in the calendar.")
+            if media:
+                numOfCalItems = self.listCalendar(update, context, media)
+                endtext = (
+                    f"There are {len(media)} {typeOfMedia}s "
+                    f"in the calendar.")
 
-    #             if numOfCalItems > 0:
-    #                 if numOfCalItems != len(media):
-    #                     endtext = (
-    #                         f"Listed {numOfCalItems} of {len(media)} "
-    #                         f"scheduled {typeOfMedia}s from the calendar."
-    #                     )
-    #                 else:
-    #                     endtext = (
-    #                         f"Listed {numOfCalItems} scheduled "
-    #                         f"{typeOfMedia}s "
-    #                         f"from the calendar."
-    #                     )
+                if numOfCalItems > 0:
+                    if numOfCalItems != len(media):
+                        endtext = (
+                            f"Listed {numOfCalItems} of {len(media)} "
+                            f"scheduled {typeOfMedia}s from the calendar."
+                        )
+                    else:
+                        endtext = (
+                            f"Listed {numOfCalItems} scheduled "
+                            f"{typeOfMedia}s "
+                            f"from the calendar."
+                        )
 
-    #                 self.sendmessage(
-    #                     update.effective_chat.id,
-    #                     context,
-    #                     update.effective_user.first_name,
-    #                     endtext
-    #                 )
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        endtext
+                    )
 
-    #             else:
-    #                 self.sendmessage(
-    #                     update.effective_chat.id,
-    #                     context,
-    #                     update.effective_user.first_name,
-    #                     f"There were no results found, "
-    #                     f"{update.effective_user.first_name}."
-    #                 )
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"There were no results found, "
+                        f"{update.effective_user.first_name}."
+                    )
 
-    #         else:
-    #             self.sendmessage(
-    #                 update.effective_chat.id,
-    #                 context,
-    #                 update.effective_user.first_name,
-    #                 f"There are no scheduled {typeOfMedia}s in the calendar."
-    #             )
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"There are no scheduled {typeOfMedia}s in the calendar."
+                )
 
     def futureQueue(self, update, context):
 
@@ -3171,13 +3173,11 @@ class Pixlovarr():
         self.futurequeue_handler = CommandHandler('fq', self.futureQueue)
         self.dispatcher.add_handler(self.futurequeue_handler)
 
-        # self.showMovieCalendar_handler = CommandHandler(
-        # 'mc', self.getCalendar)
-        # self.dispatcher.add_handler(self.showMovieCalendar_handler)
+        self.showMovieCalendar_handler = CommandHandler('mc', self.getCalendar)
+        self.dispatcher.add_handler(self.showMovieCalendar_handler)
 
-        # self.showSerieCalendar_handler = CommandHandler(
-        # 'sc', self.getCalendar)
-        # self.dispatcher.add_handler(self.showSerieCalendar_handler)
+        self.showSerieCalendar_handler = CommandHandler('sc', self.getCalendar)
+        self.dispatcher.add_handler(self.showSerieCalendar_handler)
 
         self.meta_handler = CommandHandler('rm', self.showMeta)
         self.dispatcher.add_handler(self.meta_handler)
