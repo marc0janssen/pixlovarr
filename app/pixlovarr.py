@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.1965"
+        self.version = "1.17.5.1967"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"
@@ -367,46 +367,47 @@ class Pixlovarr():
                 f"ETA: {pt}"
             )
 
-            title = (
-                f"{queueitem['title']} "
-            )
+            # title = (
+            #     f"{queueitem['title']} "
+            # )
 
             numOfItems += 1
 
-            if numOfItems <= 3:
-                callbackdata = (
-                    f"deletequeueitem:{typeOfMedia}:"
-                    f"{queueitem['id']}"
+            # if numOfItems <= 3:
+            #     callbackdata = (
+            #         f"deletequeueitem:{typeOfMedia}:"
+            #         f"{queueitem['id']}"
+            #     )
+
+            #     keyboard = [[InlineKeyboardButton(
+            #         f"Remove {title}",
+            #         callback_data=callbackdata)]]
+
+            #     reply_markup = InlineKeyboardMarkup(keyboard)
+
+            #     self.replytext(
+            #         update,
+            #         text,
+            #         reply_markup,
+            #         False
+            #     )
+
+            # else:
+
+            txtQueue += f"{text}\n\n"
+
+            if (numOfItems % self.listLength == 0 and numOfItems != 0):
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    txtQueue
                 )
 
-                keyboard = [[InlineKeyboardButton(
-                    f"Remove {title}",
-                    callback_data=callbackdata)]]
+                txtQueue = ""
 
-                reply_markup = InlineKeyboardMarkup(keyboard)
-
-                self.replytext(
-                    update,
-                    text,
-                    reply_markup,
-                    False
-                )
-
-            else:
-                txtQueue += f"{text}\n\n"
-
-                if (numOfItems % self.listLength == 0 and numOfItems != 0):
-                    self.sendmessage(
-                        update.effective_chat.id,
-                        context,
-                        update.effective_user.first_name,
-                        txtQueue
-                    )
-
-                    txtQueue = ""
-
-                    # make sure no flood
-                    sleep(2)
+                # make sure no flood
+                sleep(2)
 
         if txtQueue != "":
             self.sendmessage(
