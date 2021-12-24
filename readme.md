@@ -15,7 +15,7 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Versions
 
-pixlovarr: 1.17.5.2218
+pixlovarr: 1.17.5.2220
 
 Stable
 
@@ -24,7 +24,7 @@ docker pull marc0janssen/pixlovarr:stable
 ```
 
 ```shell
-docker pull marc0janssen/pixlovarr:1.17.5.2218
+docker pull marc0janssen/pixlovarr:1.17.5.2220
 ```
 
 Latest (experimental)
@@ -35,7 +35,7 @@ docker pull marc0janssen/pixlovarr:latest
 
 ## Changelog
 
-Versioon 1.17.5.2217
+Versioon 1.17.5.2220
 
 * Enabled calenders for Sonarr and Radarr
 
