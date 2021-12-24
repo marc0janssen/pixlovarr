@@ -1,7 +1,7 @@
 
 # Pixlovarr
 
-2021-12-07 17:11:30
+2021-12-24 22:36:29
 
 ## What is it?
 
@@ -11,11 +11,33 @@ The bot will guide you with an inline keyboard, this is for User commands and Ad
 
 Radarr Library Purge is a compagnon written in Python for Radarr to automaticly remove and delete movies which are added by lists. All movies which are not tagged are not evaluated.
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y078U1V)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y078U1V) [![Bitcoin](https://marc0janssen.github.io/bitcoin_logo.png)](https://marc0janssen.github.io/bitcoin.html)
 
-[![Bitcoin](https://marc0janssen.github.io/bitcoin_logo.png)](https://marc0janssen.github.io/bitcoin.html)
+## Versions
+
+pixlovarr: 1.17.5.2218
+
+Stable
+
+```shell
+docker pull marc0janssen/pixlovarr:stable
+```
+
+```shell
+docker pull marc0janssen/pixlovarr:1.17.5.2218
+```
+
+Latest (experimental)
+
+```shell
+docker pull marc0janssen/pixlovarr:latest
+```
 
 ## Changelog
+
+Versioon 1.17.5.2217
+
+* Enabled calenders for Sonarr and Radarr
 
 Version 1.17.5.1822
 
@@ -78,6 +100,7 @@ You can later use the tagged media to your liking.
 
 ## Bot Commands
 
+```shell
         -- User commands --
         /start - Start this bot
         /help - Show this text
@@ -117,8 +140,11 @@ You can later use the tagged media to your liking.
         /lt - list tags
         /open - open signup
         /close - close signup 
+```
 
 ## Examples
+
+```shell
 
         List all series in the catalog
         /ls
@@ -167,15 +193,19 @@ You can later use the tagged media to your liking.
 
         Find top25 movies with "jake" for download
         /dm t25 jake
+```
 
 ## Docker
 
 The build.sh script will build you your own Pixlovarr docker image. But Pixlovarr is also available on Docker Hub.
 
+```shell
         docker build -t marc0janssen/pixlovarr:latest -f ./Dockerfile .
+```
 
 The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image for you.
 
+```shell
         docker run -d \
                 --name=pixlovarr \
                 --restart=always \
@@ -183,12 +213,17 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
                 -v /path/to/movies/:/movies \
                 -v /path/to/movies2/:/movies2 \
                 -v /path/to/movies3/:/movies3 \
+                -v /path/to/series/:/series \
+                -v /path/to/series2/:/series2 \
+                -v /path/to/series3/:/series3 \
                 marc0janssen/pixlovarr:latest
+```
 
 ## Config Pixlovarr
 
 In the directory /config the python script expects a config file called 'pixlovarr.ini' with the following content:
 
+```INI
         [COMMON]
         BOT_TOKEN = BOTTOKEN
         ADMIN_USER_ID = ID_NUMBER
@@ -237,6 +272,7 @@ In the directory /config the python script expects a config file called 'pixlova
         USER_KEY = xxxxxxxxxxxxxxx
         TOKEN_API = xxxxxxxxxxxxxxx
         SOUND = pushover
+```
 
 Please set these to your liking. If the file pixlovarr.ini is not found, it the script will create a sample ini-file in the /config directory and exit.
 

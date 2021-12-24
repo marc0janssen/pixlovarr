@@ -3,7 +3,6 @@
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-04-21 20:23:43
-# update: 2021-05-14 22:16:33
+# update: 2021-12-24 22:20:12
 
-docker image rm marc0janssen/pixlovarr:latest
-docker build -t marc0janssen/pixlovarr:latest -f ./Dockerfile .
+docker build --rm -t pixlovarr -f ./Dockerfile .
