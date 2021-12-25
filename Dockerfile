@@ -4,7 +4,7 @@ RUN mkdir /app && mkdir /config
 
 ADD /app/update_git.sh /app/update_git.sh 
 
-RUN apk add --update \
+RUN apk update && apk upgrade && apk add --update \
 	libxml2 \
 	libxml2-dev \
 	libxslt \

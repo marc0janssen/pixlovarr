@@ -8,6 +8,7 @@
 docker run -d \
 	--name=pixlovarr \
 	--restart=always \
-	-v /path/to/config/:/config \
-	-v /path/to/movies/:/movies \
+	-v /volume1/docker/pixlovarr/config:/config \
+	-v /volume1/video/movies:/movies \
+	-v /volume2/video2/movies:/movies2 \
 	marc0janssen/pixlovarr:latest
