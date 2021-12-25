@@ -49,4 +49,5 @@ ENV TZ=Europe/Amsterdam
 VOLUME /config
 
 # CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
-CMD ["/app/start.sh"]
+# CMD ["/app/start.sh"]
+ENTRYPOINT ["/app/start.sh"]
