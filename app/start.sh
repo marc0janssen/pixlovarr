@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/assh
 
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
