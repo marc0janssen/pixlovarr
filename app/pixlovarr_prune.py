@@ -402,7 +402,7 @@ class RLP():
         logfile.close()
 
         logfile = open(self.log_file, "r")
-        pruneLog = logfile.read()
+        pruneLog = logfile.read().encode('utf-8')
         logfile.close()
 
         message = f"""\
