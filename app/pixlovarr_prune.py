@@ -11,6 +11,10 @@ import os
 import glob
 import smtplib
 
+from email.mime.multipart import MIMEMultipart
+# from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 from datetime import datetime, timedelta
 from arrapi import RadarrAPI
 from chump import Application
@@ -401,26 +405,30 @@ class RLP():
         logfile.write(f"{txtEnd}\n")
         logfile.close()
 
-        logfile = open(self.log_file, "r")
-        pruneLog = logfile.read().encode('utf-8')
-        logfile.close()
+        sender_email = self.mail_sender
+        receiver_email = self.mail_receiver
 
-        message = f"""\
-                Subject: Pixlovarr - Pruned {numDeleted} movies
-                To: {self.mail_receiver}
-                From: {self.mail_sender}
+        message = MIMEMultipart()
+        print(message)
+        message["From"] = sender_email
+        message['To'] = receiver_email
+        message['Subject'] = "Pixlovarr - Pruned {numDeleted} movies"
 
-                {pruneLog}"""
+        attachment = open(self.log_file, 'rb')
+        obj = MIMEBase('application', 'octet-stream')
+        obj.set_payload((attachment).read())
+        encoders.encode_base64(obj)
+        obj.add_header('Content-Disposition', "attachment; filename= "+self.log_file)
+        message.attach(obj)
+        my_message = message.as_string()
 
         try:
-            # send your message with credentials specified above
-            with smtplib.SMTP(self.mail_server, self.mail_port) as server:
-                server.login(self.mail_login, self.mail_password)
-                server.sendmail(self.mail_sender, self.mail_receiver, message)
-
-            # tell the script to report if your message was sent
-            # or which errors need to be fixed
-            logging.info('Prune -  Mail Sent')
+            email_session = smtplib.SMTP(self.mail_server, self.mail_port)
+            email_session.starttls()
+            email_session.login(self.mail_login, self.mail_password)
+            email_session.sendmail(self.mail_sender, self.mail_receiver, my_message)
+            email_session.quit()
+            logging.info('Prune - Mail Sent')
 
         except (gaierror, ConnectionRefusedError):
             print('Failed to connect to the server. Bad connection settings?')
@@ -428,6 +436,34 @@ class RLP():
             print('Failed to connect to the server. Wrong user/password?')
         except smtplib.SMTPException as e:
             print('SMTP error occurred: ' + str(e))
+
+        # logfile = open(self.log_file, "rB")
+        # pruneLog = logfile.read()
+        # logfile.close()
+
+        # message = f"""\
+        #         Subject: Pixlovarr - Pruned {numDeleted} movies
+        #         To: {self.mail_receiver}
+        #         From: {self.mail_sender}
+
+        #         {pruneLog}"""
+
+        # try:
+        #     # send your message with credentials specified above
+        #     with smtplib.SMTP(self.mail_server, self.mail_port) as server:
+        #         server.login(self.mail_login, self.mail_password)
+        #         server.sendmail(self.mail_sender, self.mail_receiver, message)
+
+        #     # tell the script to report if your message was sent
+        #     # or which errors need to be fixed
+        #     logging.info('Prune - Mail Sent')
+
+        # except (gaierror, ConnectionRefusedError):
+        #     print('Failed to connect to the server. Bad connection settings?')
+        # except smtplib.SMTPServerDisconnected:
+        #     print('Failed to connect to the server. Wrong user/password?')
+        # except smtplib.SMTPException as e:
+        #     print('SMTP error occurred: ' + str(e))
 
 
 if __name__ == '__main__':
