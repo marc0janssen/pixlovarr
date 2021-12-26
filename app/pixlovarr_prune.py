@@ -43,17 +43,6 @@ class RLP():
                     self.config['COMMON']
                     ['PERMANENT_DELETE_MEDIA'] == "ON") else False
 
-                self.mail_enabled = True if (
-                    self.config['COMMON']
-                    ['MAIL_ENABLED'] == "ON") else False
-                self.mail_port = int(
-                    self.config['COMMON']['MAIL_PORT'])
-                self.mail_server = self.config['COMMON']['MAIL_SERVER']
-                self.mail_login = self.config['COMMON']['MAIL_LOGIN']
-                self.mail_password = self.config['COMMON']['MAIL_PASSWORD']
-                self.mail_sender = self.config['COMMON']['MAIL_SENDER']
-                self.mail_receiver = self.config['COMMON']['MAIL_RECEIVER']
-
                 # RADARR
                 self.radarr_enabled = True if (
                     self.config['RADARR']['ENABLED'] == "ON") else False
@@ -91,6 +80,16 @@ class RLP():
                 self.video_extensions = list(
                     self.config['PRUNE']
                     ['VIDEO_EXTENSIONS_MONITORED'].split(","))
+                self.mail_enabled = True if (
+                    self.config['PRUNE']
+                    ['MAIL_ENABLED'] == "ON") else False
+                self.mail_port = int(
+                    self.config['PRUNE']['MAIL_PORT'])
+                self.mail_server = self.config['PRUNE']['MAIL_SERVER']
+                self.mail_login = self.config['PRUNE']['MAIL_LOGIN']
+                self.mail_password = self.config['PRUNE']['MAIL_PASSWORD']
+                self.mail_sender = self.config['PRUNE']['MAIL_SENDER']
+                self.mail_receiver = self.config['PRUNE']['MAIL_RECEIVER']
 
                 # PUSHOVER
                 self.pushover_enabled = True if (
