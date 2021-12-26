@@ -22,7 +22,12 @@ class RLP():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
 
-        self.config_file = "./config/pixlovarr.ini"
+        config_dir = "./config"
+        app_dir = "./app"
+        log_dir = "./log"
+
+        self.config_file = f"{config_dir}/pixlovarr.ini"
+        self.log_file = f"{log_dir}/pixlovarr_prune.log"
 
         try:
             with open(self.config_file, "r") as f:
@@ -104,8 +109,8 @@ class RLP():
                 f"creating example INI file."
             )
 
-            shutil.copyfile('./app/pixlovarr.ini.example',
-                            './config/pixlovarr.ini.example')
+            shutil.copyfile(f'{app_dir}pixlovarr.ini.example',
+                            f'{config_dir}/pixlovarr.ini.example')
             sys.exit()
 
     def sortOnTitle(self, e):
@@ -139,7 +144,7 @@ class RLP():
 
         return tagsIDs
 
-    def evalMovie(self, movie, labels):
+    def evalMovie(self, movie, fileHandle):
 
         # Get ID's for keeping movies anyway
         tagLabels_to_keep = self.tags_to_keep
@@ -151,9 +156,14 @@ class RLP():
         if set(movie.tagsIds) & set(tagsIDs_to_keep) and \
                 self.show_kept_message:
 
-            logging.info(
-                f"Prune - KEEPING - {movie.title} ({movie.year}). Skipping."
+            txtKeeping = (
+                f"Prune - KEEPING - {movie.title} ({movie.year})."
+                f" Skipping."
             )
+
+            fileHandle.write(txtKeeping)
+            logging.info(txtKeeping)
+
         else:
 
             # Get ID's for removal movies
@@ -194,11 +204,16 @@ class RLP():
                     # If FIle is not found, the movie is missing
                     # add will be skipped These are probably
                     # movies in the future
-                    logging.info(
+
+                    txtMissing = (
                         f"Prune - MISSING - "
                         f"{movie.title} ({movie.year})"
                         f" is not downloaded yet. Skipping."
                     )
+
+                    fileHandle.write(txtMissing)
+                    logging.info(txtMissing)
+
                     return False
 
                 now = datetime.now()
@@ -236,12 +251,15 @@ class RLP():
                             sound=self.pushover_sound
                         )
 
-                    logging.info(
+                    txtWillBeRemoved = (
                         f"Prune - WILL BE REMOVED - "
                         f"{movie.title} ({movie.year})"
                         f" in {'h'.join(str(self.timeLeft).split(':')[:2])}"
                         f" - {movieDownloadDate}"
                     )
+
+                    fileHandle.write(txtWillBeRemoved)
+                    logging.info(txtWillBeRemoved)
 
                 # Check is movie is older than "days set in INI"
                 if (
@@ -286,11 +304,15 @@ class RLP():
                             sound=self.pushover_sound
                         )
 
-                    logging.info(
+                    txtRemoved = (
                         f"Prune - REMOVED - {movie.title} ({movie.year})"
                         f"{self.txtFilesDelete}"
                         f" - {movieDownloadDate}"
                     )
+
+                    fileHandle.write(txtRemoved)
+                    logging.info(txtRemoved)
+
                     return True
         return False
 
@@ -298,6 +320,15 @@ class RLP():
         if not self.enabled_run:
             logging.info(
                 "Prune - Library purge disabled")
+            sys.exit()
+
+        # Connect to Radarr
+        if self.radarr_enabled:
+            self.radarrNode = RadarrAPI(
+                self.radarr_url, self.radarr_token)
+        else:
+            logging.info(
+                "Prune - Radarr disabled in INI, exting.")
             sys.exit()
 
         if self.dry_run:
@@ -308,25 +339,6 @@ class RLP():
             logging.info(
                 "*****************************************************")
 
-        # Connect to Radarr
-        if self.radarr_enabled:
-            self.radarrNode = RadarrAPI(
-                self.radarr_url, self.radarr_token)
-
-        # Convert tags to a dictionary
-        tagIDsByLabels = {}
-        for tag in self.radarrNode.all_tags():
-            # Add tag to lookup by it's name
-            tagIDsByLabels[tag.label] = tag.id
-
-        if not tagIDsByLabels:
-            logging.info(
-                "Prune - No tags found on Radarr server. "
-                "Exiting script."
-            )
-
-            sys.exit()
-
         # Setting for PushOver
         if self.pushover_enabled:
             self.appPushover = Application(self.pushover_token_api)
@@ -334,42 +346,48 @@ class RLP():
                 self.appPushover.get_user(self.pushover_user_key)
 
         # Get all movies from the server.
+        media = None
         if self.radarr_enabled:
             media = self.radarrNode.all_movies()
 
         # Make sure the library is not empty.
         numDeleted = 0
+        logfile = open(self.log_file, "w")
+        logfile.write("Pixlovarr Prune\n\n")
+
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
             for movie in media:
-                if self.evalMovie(movie, tagIDsByLabels):
+                if self.evalMovie(movie, logfile):
                     numDeleted += 1
 
         if numDeleted > 0:
-            if self.pushover_enabled:
-                self.message = self.userPushover.send_message(
-                    message=(
-                        f"Prune - There were {numDeleted} movies removed from "
-                        "the server"
-                    ),
-                    sound=self.pushover_sound
-                )
-
-            logging.info(
+            txtEnd = (
                 f"Prune - There were {numDeleted} movies removed from "
                 f"the server"
             )
-        else:
+
             if self.pushover_enabled:
                 self.message = self.userPushover.send_message(
-                    message="Prune - No movies were removed from "
-                    "the server",
+                    message=txtEnd,
                     sound=self.pushover_sound
                 )
 
-            logging.info(
-                "Prune - No movies were removed from the server"
-            )
+            logging.info(txtEnd)
+
+        else:
+            txtEnd = ("Prune - No movies were removed from the server")
+
+            if self.pushover_enabled:
+                self.message = self.userPushover.send_message(
+                    message=txtEnd,
+                    sound=self.pushover_sound
+                )
+
+            logging.info(txtEnd)
+
+        logfile.write(txtEnd)
+        logfile.close()
 
 
 if __name__ == '__main__':
