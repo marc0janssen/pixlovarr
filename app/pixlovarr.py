@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.17.5.2345"
+        self.version = "1.17.5.2360"
         self.startTime = datetime.now()
         config_dir = "./config"
         app_dir = "./app"

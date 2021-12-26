@@ -43,12 +43,16 @@ class RLP():
                     self.config['COMMON']
                     ['PERMANENT_DELETE_MEDIA'] == "ON") else False
 
-                self.mail_port = "587"
-                self.mail_server = "linux2026.webawere.nl"
-                self.mail_login = "services@mjanssen.nl"
-                self.mail_password = "PBr6B7cedkFrBa"
-                self.mail_sender = "services@mjanssen.nl"
-                self.mail_receiver = "services@mjanssen.nl"
+                self.mail_enabled = True if (
+                    self.config['COMMON']
+                    ['MAIL_ENABLED'] == "ON") else False
+                self.mail_port = int(
+                    self.config['COMMON']['MAIL_PORT'])
+                self.mail_server = self.config['COMMON']['MAIL_SERVER']
+                self.mail_login = self.config['COMMON']['MAIL_LOGIN']
+                self.mail_password = self.config['COMMON']['MAIL_PASSWORD']
+                self.mail_sender = self.config['COMMON']['MAIL_SENDER']
+                self.mail_receiver = self.config['COMMON']['MAIL_RECEIVER']
 
                 # RADARR
                 self.radarr_enabled = True if (
@@ -413,7 +417,7 @@ class RLP():
 
             # tell the script to report if your message was sent
             # or which errors need to be fixed
-            logging.info('Prune - Mail Sent')
+            logging.info('Prune -  Mail Sent')
 
         except (gaierror, ConnectionRefusedError):
             print('Failed to connect to the server. Bad connection settings?')
