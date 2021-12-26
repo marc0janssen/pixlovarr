@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN mkdir /app && mkdir /config
+RUN mkdir /app /config /log
 
 ADD /app/update_git.sh /app/update_git.sh 
 
@@ -42,11 +42,12 @@ RUN apk update && apk upgrade && apk add --update \
 
 RUN echo '0	4	*   *   *   python3 /app/pixlovarr_prune.py &> /proc/1/fd/1' >> /etc/crontabs/root
 
-RUN ln -s /config /root/config && ln -s /app /root/app
+RUN ln -s /config /root/config && ln -s /app /root/app && ln -s /log /root/log
 
 ENV TZ=Europe/Amsterdam
 
 VOLUME /config
+VOLUME /Log
 
 # CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
 # CMD ["/app/start.sh"]
