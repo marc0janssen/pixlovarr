@@ -9,10 +9,12 @@ import sys
 import shutil
 import os
 import glob
+import smtplib
 
 from datetime import datetime, timedelta
 from arrapi import RadarrAPI
 from chump import Application
+from socket import gaierror
 
 
 class RLP():
@@ -40,6 +42,13 @@ class RLP():
                 self.delete_files = True if (
                     self.config['COMMON']
                     ['PERMANENT_DELETE_MEDIA'] == "ON") else False
+
+                self.mail_port = "587"
+                self.mail_server = "linux2026.webawere.nl"
+                self.mail_login = "services@mjanssen.nl"
+                self.mail_password = "PBr6B7cedkFrBa"
+                self.mail_sender = "services@mjanssen.nl"
+                self.mail_receiver = "services@mjanssen.nl"
 
                 # RADARR
                 self.radarr_enabled = True if (
@@ -386,8 +395,32 @@ class RLP():
 
             logging.info(txtEnd)
 
-        logfile.write(txtEnd)
+        logfile.write(f"{txtEnd}\n")
         logfile.close()
+
+        message = f"""\
+                Subject: Hi Mailtrap
+                To: {self.mail_receiver}
+                From: {self.mail_sender}
+
+                This is my first message with Python."""
+
+        try:
+            # send your message with credentials specified above
+            with smtplib.SMTP(self.mail_server, self.mail_port) as server:
+                server.login(self.mail_login, self.mail_password)
+                server.sendmail(self.mail_sender, self.mail_receiver, message)
+
+            # tell the script to report if your message was sent
+            # or which errors need to be fixed
+            logging.info('Prune - Mail Sent')
+
+        except (gaierror, ConnectionRefusedError):
+            print('Failed to connect to the server. Bad connection settings?')
+        except smtplib.SMTPServerDisconnected:
+            print('Failed to connect to the server. Wrong user/password?')
+        except smtplib.SMTPException as e:
+            print('SMTP error occurred: ' + str(e))
 
 
 if __name__ == '__main__':
