@@ -402,12 +402,16 @@ class RLP():
         logfile.write(f"{txtEnd}\n")
         logfile.close()
 
+        logfile = open(self.log_file, "r")
+        pruneLog = logfile.read()
+        logfile.close()
+
         message = f"""\
-                Subject: Hi Mailtrap
+                Subject: Pixlovarr - Pruned {numDeleted} movies
                 To: {self.mail_receiver}
                 From: {self.mail_sender}
 
-                This is my first message with Python."""
+                {pruneLog}"""
 
         try:
             # send your message with credentials specified above
