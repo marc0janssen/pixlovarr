@@ -28,19 +28,23 @@ class RLP():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO)
 
-        config_dir = "./config"
-        app_dir = "./app"
-        log_dir = "./log"
+        config_dir = "./config/"
+        app_dir = "./app/"
+        log_dir = "./log/"
 
-        self.config_file = f"{config_dir}/pixlovarr.ini"
-        self.log_file = f"{log_dir}/pixlovarr_prune.log"
+        self.config_file = "pixlovarr.ini"
+        self.exampleconfigfile = "pixlovarr.ini.example"
+        self.log_file = "pixlovarr_prune.log"
+
+        self.config_filePath = f"{config_dir}{self.config_file}"
+        self.log_filePath = f"{log_dir}{self.log_file}"
 
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_filePath, "r") as f:
                 f.close()
             try:
                 self.config = configparser.ConfigParser()
-                self.config.read(self.config_file)
+                self.config.read(self.config_filePath)
 
                 # COMMON
                 self.delete_files = True if (
@@ -121,12 +125,12 @@ class RLP():
 
         except IOError or FileNotFoundError:
             logging.error(
-                f"Can't open file {self.config_file}, "
+                f"Can't open file {self.config_filePath}, "
                 f"creating example INI file."
             )
 
-            shutil.copyfile(f'{app_dir}pixlovarr.ini.example',
-                            f'{config_dir}/pixlovarr.ini.example')
+            shutil.copyfile(f'{app_dir}{self.exampleconfigfile}',
+                            f'{config_dir}{self.exampleconfigfile}')
             sys.exit()
 
     def sortOnTitle(self, e):
@@ -368,7 +372,7 @@ class RLP():
 
         # Make sure the library is not empty.
         numDeleted = 0
-        logfile = open(self.log_file, "w")
+        logfile = open(self.log_filePath, "w")
         logfile.write("Pixlovarr Prune\n\n")
 
         if media:
@@ -413,7 +417,7 @@ class RLP():
         message['To'] = receiver_email
         message['Subject'] = f"Pixlovarr - Pruned {numDeleted} movies"
 
-        attachment = open(self.log_file, 'rb')
+        attachment = open(self.log_filePath, 'rb')
         obj = MIMEBase('application', 'octet-stream')
         obj.set_payload((attachment).read())
         encoders.encode_base64(obj)
