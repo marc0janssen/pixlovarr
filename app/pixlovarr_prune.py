@@ -161,7 +161,7 @@ class RLP():
                 f" Skipping."
             )
 
-            fileHandle.write(txtKeeping)
+            fileHandle.write(f"{txtKeeping}\n")
             logging.info(txtKeeping)
 
         else:
@@ -211,7 +211,7 @@ class RLP():
                         f" is not downloaded yet. Skipping."
                     )
 
-                    fileHandle.write(txtMissing)
+                    fileHandle.write(f"{txtMissing}\n")
                     logging.info(txtMissing)
 
                     return False
@@ -258,7 +258,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    fileHandle.write(txtWillBeRemoved)
+                    fileHandle.write(f"{txtWillBeRemoved}\n")
                     logging.info(txtWillBeRemoved)
 
                 # Check is movie is older than "days set in INI"
@@ -310,7 +310,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    fileHandle.write(txtRemoved)
+                    fileHandle.write(f"{txtRemoved}\n")
                     logging.info(txtRemoved)
 
                     return True
