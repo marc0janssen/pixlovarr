@@ -165,12 +165,13 @@ class RLP():
 
         return tagsIDs
 
-    def writeLog(self, msg):
-
-        print(msg)
+    def writeLog(self, init, msg):
 
         try:
-            logfile = open(self.log_filePath, "w")
+            if init:
+                logfile = open(self.log_filePath, "w")
+            else:
+                logfile = open(self.log_filePath, "a")
             logfile.write(msg)
             logfile.close()
         except IOError:
@@ -195,7 +196,7 @@ class RLP():
                 f" Skipping."
             )
 
-            self.writeLog(f"{txtKeeping}\n")
+            self.writeLog(False, f"{txtKeeping}\n")
             logging.info(txtKeeping)
 
         else:
@@ -245,7 +246,7 @@ class RLP():
                         f" is not downloaded yet. Skipping."
                     )
 
-                    self.writeLog(f"{txtMissing}\n")
+                    self.writeLog(False, f"{txtMissing}\n")
                     logging.info(txtMissing)
 
                     return False
@@ -292,7 +293,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    self.writeLog(f"{txtWillBeRemoved}\n")
+                    self.writeLog(False, f"{txtWillBeRemoved}\n")
                     logging.info(txtWillBeRemoved)
 
                 # Check is movie is older than "days set in INI"
@@ -344,7 +345,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    self.writeLog(f"{txtRemoved}\n")
+                    self.writeLog(False, f"{txtRemoved}\n")
                     logging.info(txtRemoved)
 
                     return True
@@ -384,7 +385,7 @@ class RLP():
         if self.radarr_enabled:
             media = self.radarrNode.all_movies()
 
-        self.writeLog("Pixlovarr Prune\n\n")
+        self.writeLog(True, "Pixlovarr Prune\n\n")
 
         # Make sure the library is not empty.
         numDeleted = 0
@@ -410,7 +411,7 @@ class RLP():
 
         logging.info(txtEnd)
 
-        self.writeLog(f"{txtEnd}\n")
+        self.writeLog(False, f"{txtEnd}\n")
 
         if self.mail_enabled:
 
