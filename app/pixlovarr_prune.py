@@ -435,7 +435,9 @@ class RLP():
         logging.info(txtEnd)
         self.writeLog(False, f"{txtEnd}\n")
 
-        if self.mail_enabled and (not self.only_mail_when_removed or (self.only_mail_when_removed and (isRemoved or isNotified))):
+        if self.mail_enabled and \
+            (not self.only_mail_when_removed or
+                (self.only_mail_when_removed and (isRemoved or isNotified))):
 
             sender_email = self.mail_sender
             receiver_email = self.mail_receiver
