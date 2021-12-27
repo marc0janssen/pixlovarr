@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.0.2454"
+        self.version = "1.18.0.2458"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -65,6 +65,7 @@ class Pixlovarr():
         )
 
         self.config_file = f"{config_dir}pixlovarr.ini"
+        self.log_filePath = f"{log_dir}pixlovarr.log"
 
         self.cmdHistory = []
         self.maxCmdHistory = 50
@@ -868,6 +869,14 @@ class Pixlovarr():
                 datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
 
             logging.info(msg)
+
+            try:
+                with open(self.log_filePath, "a") as logfile:
+                    logfile.write(msg)
+            except IOError:
+                logging.error(
+                    f"Can't write file {self.log_filePath}"
+                )
 
             self.addItemToHistory(
                 update,
