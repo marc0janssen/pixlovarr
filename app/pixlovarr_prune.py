@@ -12,7 +12,7 @@ import glob
 import smtplib
 
 from email.mime.multipart import MIMEMultipart
-# from email.mime.text import MIMEText
+from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from datetime import datetime, timedelta
@@ -427,6 +427,14 @@ class RLP():
             obj.add_header(
                 'Content-Disposition', "attachment; filename= "+self.log_file)
             message.attach(obj)
+
+            body = (
+                "Hi,\n\n Attached is the prunelog from Prxlovarr.\n\n"
+                "Have a nice day."
+            )
+            plain_text = MIMEText(body, _subtype='plain', _charset='UTF-8')
+            message.attach(plain_text)
+
             my_message = message.as_string()
 
             try:
