@@ -165,7 +165,18 @@ class RLP():
 
         return tagsIDs
 
-    def evalMovie(self, movie, fileHandle):
+    def writeLog(self, msg):
+
+        try:
+            logfile = open(self.log_filePath, "w")
+            logfile.write(msg)
+            logfile.close()
+        except IOError:
+            logging.error(
+                f"Can't write file {self.log_filePath}."
+            )
+
+    def evalMovie(self, movie):
 
         # Get ID's for keeping movies anyway
         tagLabels_to_keep = self.tags_to_keep
@@ -182,13 +193,7 @@ class RLP():
                 f" Skipping."
             )
 
-            try:
-                fileHandle.write(f"{txtKeeping}\n")
-            except IOError:
-                logging.error(
-                    f"Can't write file {self.log_filePath}."
-                )
-
+            self.writeLog(f"{txtKeeping}\n")
             logging.info(txtKeeping)
 
         else:
@@ -238,12 +243,7 @@ class RLP():
                         f" is not downloaded yet. Skipping."
                     )
 
-                    try:
-                        fileHandle.write(f"{txtMissing}\n")
-                    except IOError:
-                        logging.error(
-                            f"Can't write file {self.log_filePath}."
-                        )
+                    self.writeLog(f"{txtMissing}\n")
                     logging.info(txtMissing)
 
                     return False
@@ -290,12 +290,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    try:
-                        fileHandle.write(f"{txtWillBeRemoved}\n")
-                    except IOError:
-                        logging.error(
-                            f"Can't write file {self.log_filePath}."
-                        )
+                    self.writeLog(f"{txtWillBeRemoved}\n")
                     logging.info(txtWillBeRemoved)
 
                 # Check is movie is older than "days set in INI"
@@ -347,13 +342,7 @@ class RLP():
                         f" - {movieDownloadDate}"
                     )
 
-                    try:
-                        fileHandle.write(f"{txtRemoved}\n")
-                    except IOError:
-                        logging.error(
-                            f"Can't write file {self.log_filePath}."
-                        )
-
+                    self.writeLog(f"{txtRemoved}\n")
                     logging.info(txtRemoved)
 
                     return True
@@ -393,20 +382,14 @@ class RLP():
         if self.radarr_enabled:
             media = self.radarrNode.all_movies()
 
-        try:
-            with open(self.log_filePath, "w") as logfile:
-                logfile.write("Pixlovarr Prune\n\n")
-        except IOError:
-            logging.error(
-                f"Can't write file {self.log_filePath}."
-            )
+        self.writeLog("Pixlovarr Prune\n\n")
 
         # Make sure the library is not empty.
         numDeleted = 0
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
             for movie in media:
-                if self.evalMovie(movie, logfile):
+                if self.evalMovie(movie):
                     numDeleted += 1
 
         if numDeleted > 0:
@@ -414,32 +397,18 @@ class RLP():
                 f"Prune - There were {numDeleted} movies removed from "
                 f"the server"
             )
-
-            if self.pushover_enabled:
-                self.message = self.userPushover.send_message(
-                    message=txtEnd,
-                    sound=self.pushover_sound
-                )
-
-            logging.info(txtEnd)
-
         else:
             txtEnd = ("Prune - No movies were removed from the server")
 
-            if self.pushover_enabled:
-                self.message = self.userPushover.send_message(
-                    message=txtEnd,
-                    sound=self.pushover_sound
-                )
-
-            logging.info(txtEnd)
-
-        try:
-            logfile.write(f"{txtEnd}\n")
-        except IOError:
-            logging.error(
-                f"Can't write file {self.log_filePath}."
+        if self.pushover_enabled:
+            self.message = self.userPushover.send_message(
+                message=txtEnd,
+                sound=self.pushover_sound
             )
+
+        logging.info(txtEnd)
+
+        self.writeLog(f"{txtEnd}\n")
 
         if self.mail_enabled:
 
