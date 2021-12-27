@@ -386,7 +386,8 @@ class RLP():
         if self.radarr_enabled:
             media = self.radarrNode.all_movies()
 
-        self.writeLog(True, "Pixlovarr Prune\n\n")
+        self.writeLog(True, "Pixlovarr Prune started\n\n")
+        logging.info("Pixlovarr Prune started")
 
         # Make sure the library is not empty.
         numDeleted = 0
@@ -411,7 +412,6 @@ class RLP():
             )
 
         logging.info(txtEnd)
-
         self.writeLog(False, f"{txtEnd}\n")
 
         if self.mail_enabled:
