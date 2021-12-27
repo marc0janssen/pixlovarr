@@ -17,3 +17,4 @@ chmod +x /app/start.sh
 chmod +x /app/update_git.sh
 
 rm -rf /tmp/*
+
