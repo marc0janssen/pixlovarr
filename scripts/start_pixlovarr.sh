@@ -12,5 +12,5 @@ docker run -d \
 	-v /volume1/docker/pixlovarr/config:/config \
 	-v /volume1/video/movies:/movies \
 	-v /volume2/video2/movies:/movies2 \
-	-e PRUNE_CRON="* 4,16 * * *" \
+	-e PRUNE_CRON="0 4,16 * * *" \
 	marc0janssen/pixlovarr:latest
