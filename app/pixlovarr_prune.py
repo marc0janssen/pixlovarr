@@ -409,38 +409,44 @@ class RLP():
         logfile.write(f"{txtEnd}\n")
         logfile.close()
 
-        sender_email = self.mail_sender
-        receiver_email = self.mail_receiver
+        if self.mail_enabled:
 
-        message = MIMEMultipart()
-        message["From"] = sender_email
-        message['To'] = receiver_email
-        message['Subject'] = f"Pixlovarr - Pruned {numDeleted} movies"
+            sender_email = self.mail_sender
+            receiver_email = self.mail_receiver
 
-        attachment = open(self.log_filePath, 'rb')
-        obj = MIMEBase('application', 'octet-stream')
-        obj.set_payload((attachment).read())
-        encoders.encode_base64(obj)
-        obj.add_header(
-            'Content-Disposition', "attachment; filename= "+self.log_file)
-        message.attach(obj)
-        my_message = message.as_string()
+            message = MIMEMultipart()
+            message["From"] = sender_email
+            message['To'] = receiver_email
+            message['Subject'] = f"Pixlovarr - Pruned {numDeleted} movies"
 
-        try:
-            email_session = smtplib.SMTP(self.mail_server, self.mail_port)
-            email_session.starttls()
-            email_session.login(self.mail_login, self.mail_password)
-            email_session.sendmail(
-                self.mail_sender, self.mail_receiver, my_message)
-            email_session.quit()
-            logging.info('Prune - Mail Sent')
+            attachment = open(self.log_filePath, 'rb')
+            obj = MIMEBase('application', 'octet-stream')
+            obj.set_payload((attachment).read())
+            encoders.encode_base64(obj)
+            obj.add_header(
+                'Content-Disposition', "attachment; filename= "+self.log_file)
+            message.attach(obj)
+            my_message = message.as_string()
 
-        except (gaierror, ConnectionRefusedError):
-            print('Failed to connect to the server. Bad connection settings?')
-        except smtplib.SMTPServerDisconnected:
-            print('Failed to connect to the server. Wrong user/password?')
-        except smtplib.SMTPException as e:
-            print('SMTP error occurred: ' + str(e))
+            try:
+                email_session = smtplib.SMTP(self.mail_server, self.mail_port)
+                email_session.starttls()
+                email_session.login(self.mail_login, self.mail_password)
+                email_session.sendmail(
+                    self.mail_sender, self.mail_receiver, my_message)
+                email_session.quit()
+                logging.info(f"Prune - Mail Sent to {message['To']}")
+
+            except (gaierror, ConnectionRefusedError):
+                logging.error(
+                    "Failed to connect to the server. "
+                    "Bad connection settings?")
+            except smtplib.SMTPServerDisconnected:
+                logging.error(
+                    "Failed to connect to the server. Wrong user/password?")
+            except smtplib.SMTPException as e:
+                logging.error(
+                    "SMTP error occurred: " + str(e))
 
 
 if __name__ == '__main__':
