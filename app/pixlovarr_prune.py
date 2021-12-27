@@ -375,93 +375,96 @@ class RLP():
             with open(self.log_filePath, "w") as logfile:
                 logfile.write("Pixlovarr Prune\n\n")
 
-            # Make sure the library is not empty.
-            numDeleted = 0
-            if media:
-                media.sort(key=self.sortOnTitle)  # Sort the list on Title
-                for movie in media:
-                    if self.evalMovie(movie, logfile):
-                        numDeleted += 1
+                # Make sure the library is not empty.
+                numDeleted = 0
+                if media:
+                    media.sort(key=self.sortOnTitle)  # Sort the list on Title
+                    for movie in media:
+                        if self.evalMovie(movie, logfile):
+                            numDeleted += 1
 
-            if numDeleted > 0:
-                txtEnd = (
-                    f"Prune - There were {numDeleted} movies removed from "
-                    f"the server"
-                )
-
-                if self.pushover_enabled:
-                    self.message = self.userPushover.send_message(
-                        message=txtEnd,
-                        sound=self.pushover_sound
+                if numDeleted > 0:
+                    txtEnd = (
+                        f"Prune - There were {numDeleted} movies removed from "
+                        f"the server"
                     )
 
-                logging.info(txtEnd)
+                    if self.pushover_enabled:
+                        self.message = self.userPushover.send_message(
+                            message=txtEnd,
+                            sound=self.pushover_sound
+                        )
 
-            else:
-                txtEnd = ("Prune - No movies were removed from the server")
+                    logging.info(txtEnd)
 
-                if self.pushover_enabled:
-                    self.message = self.userPushover.send_message(
-                        message=txtEnd,
-                        sound=self.pushover_sound
+                else:
+                    txtEnd = ("Prune - No movies were removed from the server")
+
+                    if self.pushover_enabled:
+                        self.message = self.userPushover.send_message(
+                            message=txtEnd,
+                            sound=self.pushover_sound
+                        )
+
+                    logging.info(txtEnd)
+
+                logfile.write(f"{txtEnd}\n")
+                logfile.close()
+
+                if self.mail_enabled:
+
+                    sender_email = self.mail_sender
+                    receiver_email = self.mail_receiver
+
+                    message = MIMEMultipart()
+                    message["From"] = sender_email
+                    message['To'] = ", ".join(receiver_email)
+                    message['Subject'] = \
+                        f"Pixlovarr - Pruned {numDeleted} movies"
+
+                    attachment = open(self.log_filePath, 'rb')
+                    obj = MIMEBase('application', 'octet-stream')
+                    obj.set_payload((attachment).read())
+                    encoders.encode_base64(obj)
+                    obj.add_header(
+                        'Content-Disposition',
+                        "attachment; filename= "+self.log_file
                     )
+                    message.attach(obj)
 
-                logging.info(txtEnd)
-
-            logfile.write(f"{txtEnd}\n")
-            logfile.close()
-
-            if self.mail_enabled:
-
-                sender_email = self.mail_sender
-                receiver_email = self.mail_receiver
-
-                message = MIMEMultipart()
-                message["From"] = sender_email
-                message['To'] = ", ".join(receiver_email)
-                message['Subject'] = f"Pixlovarr - Pruned {numDeleted} movies"
-
-                attachment = open(self.log_filePath, 'rb')
-                obj = MIMEBase('application', 'octet-stream')
-                obj.set_payload((attachment).read())
-                encoders.encode_base64(obj)
-                obj.add_header(
-                    'Content-Disposition',
-                    "attachment; filename= "+self.log_file
-                )
-                message.attach(obj)
-
-                body = (
-                    "Hi,\n\n Attached is the prunelog from Prxlovarr.\n\n"
-                    "Have a nice day."
-                )
-                plain_text = MIMEText(body, _subtype='plain', _charset='UTF-8')
-                message.attach(plain_text)
-
-                my_message = message.as_string()
-
-                try:
-                    email_session = smtplib.SMTP(
-                        self.mail_server, self.mail_port)
-                    email_session.starttls()
-                    email_session.login(self.mail_login, self.mail_password)
-                    email_session.sendmail(
-                        self.mail_sender, self.mail_receiver, my_message)
-                    email_session.quit()
-                    logging.info(f"Prune - Mail Sent to {message['To']}")
-
-                except (gaierror, ConnectionRefusedError):
-                    logging.error(
-                        "Failed to connect to the server. "
-                        "Bad connection settings?")
-                except smtplib.SMTPServerDisconnected:
-                    logging.error(
-                        "Failed to connect to the server. "
-                        "Wrong user/password?"
+                    body = (
+                        "Hi,\n\n Attached is the prunelog from Prxlovarr.\n\n"
+                        "Have a nice day."
                     )
-                except smtplib.SMTPException as e:
-                    logging.error(
-                        "SMTP error occurred: " + str(e))
+                    plain_text = MIMEText(
+                        body, _subtype='plain', _charset='UTF-8')
+                    message.attach(plain_text)
+
+                    my_message = message.as_string()
+
+                    try:
+                        email_session = smtplib.SMTP(
+                            self.mail_server, self.mail_port)
+                        email_session.starttls()
+                        email_session.login(
+                            self.mail_login, self.mail_password)
+                        email_session.sendmail(
+                            self.mail_sender, self.mail_receiver, my_message)
+                        email_session.quit()
+                        logging.info(f"Prune - Mail Sent to {message['To']}")
+
+                    except (gaierror, ConnectionRefusedError):
+                        logging.error(
+                            "Failed to connect to the server. "
+                            "Bad connection settings?")
+                    except smtplib.SMTPServerDisconnected:
+                        logging.error(
+                            "Failed to connect to the server. "
+                            "Wrong user/password?"
+                        )
+                    except smtplib.SMTPException as e:
+                        logging.error(
+                            "SMTP error occurred: " + str(e))
         except IOError:
             logging.error(
                 f"Can't write file {self.log_filePath}, "
