@@ -80,7 +80,7 @@ class RLP():
                     self.config['PRUNE']['DRY_RUN'] == "ON") else False
                 self.enabled_run = True if (
                     self.config['PRUNE']['ENABLED'] == "ON") else False
-                self._only_show_remove_messages = True if (
+                self.only_show_remove_messages = True if (
                     self.config['PRUNE']
                     ['ONLY_SHOW_REMOVE_MESSAGES'] == "ON") else False
                 self.extend_by_days = int(
@@ -189,7 +189,7 @@ class RLP():
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
         if set(movie.tagsIds) & set(tagsIDs_to_keep) and \
-                not self._only_show_remove_messages:
+                not self.only_show_remove_messages:
 
             txtKeeping = (
                 f"Prune - KEEPING - {movie.title} ({movie.year})."
@@ -240,7 +240,7 @@ class RLP():
                     # add will be skipped These are probably
                     # movies in the future
 
-                    if not self._only_show_remove_messages:
+                    if not self.only_show_remove_messages:
                         txtMissing = (
                             f"Prune - MISSING - "
                             f"{movie.title} ({movie.year})"
