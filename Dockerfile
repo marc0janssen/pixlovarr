@@ -37,6 +37,8 @@ RUN apk update && apk upgrade && apk add --update \
 
 COPY /app/ /app/
 
+RUN chmod +x /app/*.sh
+
 RUN echo '0	4	*   *   *   python3 /app/pixlovarr_prune.py &> /proc/1/fd/1' >> /etc/crontabs/root
 
 RUN ln -s /config /root/config && ln -s /app /root/app && ln -s /log /root/log
