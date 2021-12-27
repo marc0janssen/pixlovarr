@@ -33,7 +33,7 @@ RUN apk update && apk upgrade && apk add --update \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
 
-ENV PRUNE_CRON="* 4 * * *"
+ENV PRUNE_CRON="0 4 * * *"
 
 RUN mkdir /app /config /log
 
