@@ -1,7 +1,7 @@
 # Name: Pixlovarr Prune
 # Coder: Marco Janssen (twitter @marc0janssen)
 # date: 2021-11-15 21:38:51
-# update: 2021-12-16 16:28:51
+# update: 2021-12-27 10:07:59
 
 import logging
 import configparser

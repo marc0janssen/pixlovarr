@@ -35,8 +35,9 @@ RUN apk update && apk upgrade && apk add --update \
 	libxml2-dev \
 	libxslt-dev \
 	&& rm -f /var/cache/apk/* \
-	&& rm -rf /tmp/* \ 
-	&& chmod +x /app/update_git.sh \
+	&& rm -rf /tmp/*
+
+RUN chmod +x /app/update_git.sh \
 	&& /app/update_git.sh \
 	&& chmod +x /app/runjob.sh
 
