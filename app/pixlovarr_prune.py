@@ -167,6 +167,8 @@ class RLP():
 
     def writeLog(self, msg):
 
+        print(msg)
+
         try:
             logfile = open(self.log_filePath, "w")
             logfile.write(msg)
