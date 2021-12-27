@@ -4,11 +4,14 @@
 
 Version 1.18.0.2444
 
+* New: PRUNE_CRON added as environment variable. Sets the CRON for pruning. If not set: default is "0 4 * * *"
+* New: Prune log gets written to /log (tip: Set Volume in on startup-script)
+* New: Prune log gets mailed if enabled in INI file
+* New: Pixlovarr log written to /log
 * Changed: Container startup
 * Changed: Dockerfile to optimize for buildx
-* New: PRUNE_CRON added as environment variable. Sets the CRON for pruning. If not set: default is "0 4 * * *"
-* New: Prune log gets mailed if enabled in INI file
-* New: Prune log gets written to /log (tip: Set Volume in on startup-script)
+* Changed: startup script
+* Changed: SHOW_KEPT_MESSAGES was replaced by ONLY_SHOW_REMOVE_MESSAGES
 
 Versioon 1.17.5.2220
 

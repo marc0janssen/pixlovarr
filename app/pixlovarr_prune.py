@@ -80,9 +80,9 @@ class RLP():
                     self.config['PRUNE']['DRY_RUN'] == "ON") else False
                 self.enabled_run = True if (
                     self.config['PRUNE']['ENABLED'] == "ON") else False
-                self.show_kept_message = True if (
+                self._only_show_remove_messages = True if (
                     self.config['PRUNE']
-                    ['SHOW_KEPT_MESSAGE'] == "ON") else False
+                    ['ONLY_SHOW_REMOVE_MESSAGES'] == "ON") else False
                 self.extend_by_days = int(
                     self.config['PRUNE']['EXTEND_PERIOD_BY_DAYS'])
                 self.video_extensions = list(
@@ -189,7 +189,7 @@ class RLP():
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
         if set(movie.tagsIds) & set(tagsIDs_to_keep) and \
-                self.show_kept_message:
+                not self._only_show_remove_messages:
 
             txtKeeping = (
                 f"Prune - KEEPING - {movie.title} ({movie.year})."
@@ -240,14 +240,15 @@ class RLP():
                     # add will be skipped These are probably
                     # movies in the future
 
-                    txtMissing = (
-                        f"Prune - MISSING - "
-                        f"{movie.title} ({movie.year})"
-                        f" is not downloaded yet. Skipping."
-                    )
+                    if not self._only_show_remove_messages:
+                        txtMissing = (
+                            f"Prune - MISSING - "
+                            f"{movie.title} ({movie.year})"
+                            f" is not downloaded yet. Skipping."
+                        )
 
-                    self.writeLog(False, f"{txtMissing}\n")
-                    logging.info(txtMissing)
+                        self.writeLog(False, f"{txtMissing}\n")
+                        logging.info(txtMissing)
 
                     return False
 
