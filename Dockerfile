@@ -1,7 +1,5 @@
 FROM alpine:latest
 
-RUN mkdir /app /config /log
-
 RUN apk update && apk upgrade && apk add --update \
 	libxml2 \
 	libxml2-dev \
@@ -35,6 +33,8 @@ RUN apk update && apk upgrade && apk add --update \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
 
+RUN mkdir /app /config /log
+
 COPY /app/ /app/
 
 RUN chmod +x /app/*.sh
@@ -48,6 +48,4 @@ ENV TZ=Europe/Amsterdam
 VOLUME /config
 VOLUME /Log
 
-# CMD ["/usr/bin/python3", "/app/pixlovarr.py"]
-# CMD ["/app/start.sh"]
 ENTRYPOINT ["/app/start.sh"]
