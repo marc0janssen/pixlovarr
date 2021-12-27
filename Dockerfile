@@ -2,8 +2,6 @@ FROM alpine:latest
 
 RUN mkdir /app /config /log
 
-ADD /app/update_git.sh /app/update_git.sh 
-
 RUN apk update && apk upgrade && apk add --update \
 	libxml2 \
 	libxml2-dev \
@@ -37,9 +35,7 @@ RUN apk update && apk upgrade && apk add --update \
 	&& rm -f /var/cache/apk/* \
 	&& rm -rf /tmp/*
 
-RUN chmod +x /app/update_git.sh \
-	&& /app/update_git.sh \
-	&& chmod +x /app/runjob.sh
+COPY /app/ /app/
 
 RUN echo '0	4	*   *   *   python3 /app/pixlovarr_prune.py &> /proc/1/fd/1' >> /etc/crontabs/root
 
