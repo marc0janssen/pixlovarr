@@ -46,10 +46,11 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.0.2446"
+        self.version = "1.18.0.2449"
         self.startTime = datetime.now()
-        config_dir = "./config"
-        app_dir = "./app"
+        config_dir = "./config/"
+        app_dir = "./app/"
+        log_dir = "./log/"
 
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -63,7 +64,7 @@ class Pixlovarr():
             "https://postimg.cc/3dfySHP9"
         )
 
-        self.config_file = f"{config_dir}/pixlovarr.ini"
+        self.config_file = f"{config_dir}pixlovarr.ini"
 
         self.cmdHistory = []
         self.maxCmdHistory = 50
@@ -187,13 +188,13 @@ class Pixlovarr():
                     sys.exit()
 
                 self.pixlovarr_signups_file = (
-                    f"{config_dir}/pixlovarr_signups.json")
+                    f"{config_dir}pixlovarr_signups.json")
                 self.pixlovarr_members_file = (
-                    f"{config_dir}/pixlovarr_members.json")
+                    f"{config_dir}pixlovarr_members.json")
                 self.pixlovarr_blocked_file = (
-                    f"{config_dir}/pixlovarr_blocked.json")
+                    f"{config_dir}pixlovarr_blocked.json")
                 self.pixlovarr_data_file = (
-                    f"{config_dir}/pixlovarr_data.json")
+                    f"{config_dir}pixlovarr_data.json")
 
                 self.signups = self.loaddata(self.pixlovarr_signups_file)
                 self.members = self.loaddata(self.pixlovarr_members_file)
@@ -234,8 +235,8 @@ class Pixlovarr():
                 f"creating example INI file."
             )
 
-            shutil.copyfile(f"{app_dir}/pixlovarr.ini.example",
-                            f"{config_dir}/pixlovarr.ini.example")
+            shutil.copyfile(f"{app_dir}pixlovarr.ini.example",
+                            f"{config_dir}pixlovarr.ini.example")
             sys.exit()
 
     def getPruneDate(self, media):
