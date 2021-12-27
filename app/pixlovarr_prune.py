@@ -88,12 +88,12 @@ class RLP():
                 self.video_extensions = list(
                     self.config['PRUNE']
                     ['VIDEO_EXTENSIONS_MONITORED'].split(","))
-                self.only_mail_when_result = True if (
-                    self.config['PRUNE']
-                    ['ONLY_MAIL_WHEN_RESULT'] == "ON") else False
                 self.mail_enabled = True if (
                     self.config['PRUNE']
                     ['MAIL_ENABLED'] == "ON") else False
+                self.only_mail_when_removed = True if (
+                    self.config['PRUNE']
+                    ['ONLY_MAIL_WHEN_REMOVED'] == "ON") else False
                 self.mail_port = int(
                     self.config['PRUNE']['MAIL_PORT'])
                 self.mail_server = self.config['PRUNE']['MAIL_SERVER']
@@ -184,7 +184,7 @@ class RLP():
 
     def evalMovie(self, movie):
 
-        isRemoved, isNotified = False
+        isRemoved, isNotified = False, False
 
         # Get ID's for keeping movies anyway
         tagLabels_to_keep = self.tags_to_keep
@@ -410,7 +410,7 @@ class RLP():
 
         # Make sure the library is not empty.
         numDeleted = 0
-        isRemoved, isNotified = False
+        isRemoved, isNotified = False, False
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
             for movie in media:
@@ -435,7 +435,7 @@ class RLP():
         logging.info(txtEnd)
         self.writeLog(False, f"{txtEnd}\n")
 
-        if self.mail_enabled and (not self.only_mail_when_result or (self.only_mail_when_result and (isRemoved or isNotified))):
+        if self.mail_enabled and (not self.only_mail_when_removed or (self.only_mail_when_removed and (isRemoved or isNotified))):
 
             sender_email = self.mail_sender
             receiver_email = self.mail_receiver
