@@ -88,6 +88,9 @@ class RLP():
                 self.video_extensions = list(
                     self.config['PRUNE']
                     ['VIDEO_EXTENSIONS_MONITORED'].split(","))
+                self.only_mail_when_result = True if (
+                    self.config['PRUNE']
+                    ['ONLY_MAIL_WHEN_RESULT'] == "ON") else False
                 self.mail_enabled = True if (
                     self.config['PRUNE']
                     ['MAIL_ENABLED'] == "ON") else False
@@ -181,6 +184,8 @@ class RLP():
 
     def evalMovie(self, movie):
 
+        isRemoved, isNotified = False
+
         # Get ID's for keeping movies anyway
         tagLabels_to_keep = self.tags_to_keep
         tagsIDs_to_keep = self.getIDsforTagLabels(
@@ -237,7 +242,7 @@ class RLP():
 
                 if not fileList or not movieDownloadDate:
                     # If FIle is not found, the movie is missing
-                    # add will be skipped These are probably
+                    # add will be skipped, These are probably
                     # movies in the future
 
                     if not self.only_show_remove_messages:
@@ -250,107 +255,121 @@ class RLP():
                         self.writeLog(False, f"{txtMissing}\n")
                         logging.info(txtMissing)
 
-                    return False
+                else:
 
-                now = datetime.now()
-                extend_period = self.extend_by_days \
-                    if (set(movie.tagsIds) & set(tagsIDs_to_extend)) else 0
+                    now = datetime.now()
+                    extend_period = self.extend_by_days \
+                        if (set(movie.tagsIds) & set(tagsIDs_to_extend)) else 0
 
-                # check if there needs to be warn "DAYS" infront of removal
-                # 1. Are we still within the period before removel?
-                # 2. Is "NOW" less than "warning days" before removal?
-                # 3. is "NOW" more then "warning days - 1" before removal
-                #               (warn only 1 day)
-                if (
-                    timedelta(days=self.remove_after_days + extend_period) >
-                    now - movieDownloadDate and
-                    movieDownloadDate +
-                    timedelta(days=self.remove_after_days + extend_period) -
-                    now <= timedelta(days=self.warn_days_infront) and
-                    movieDownloadDate +
-                    timedelta(days=self.remove_after_days + extend_period) -
-                    now > timedelta(days=self.warn_days_infront) -
-                    timedelta(days=1)
-                ):
-
-                    self.timeLeft = (
+                    # check if there needs to be warn "DAYS" infront of removal
+                    # 1. Are we still within the period before removel?
+                    # 2. Is "NOW" less than "warning days" before removal?
+                    # 3. is "NOW" more then "warning days - 1" before removal
+                    #               (warn only 1 day)
+                    if (
+                        timedelta(
+                            days=self.remove_after_days + extend_period) >
+                        now - movieDownloadDate and
                         movieDownloadDate +
                         timedelta(
-                            days=self.remove_after_days +
-                            extend_period) - now)
-
-                    if self.pushover_enabled:
-                        self.message = self.userPushover.send_message(
-                            message=f"Prune - {movie.title} ({movie.year}) "
-                            f"will be removed from server in "
-                            f"{'h'.join(str(self.timeLeft).split(':')[:2])}",
-                            sound=self.pushover_sound
-                        )
-
-                    txtWillBeRemoved = (
-                        f"Prune - WILL BE REMOVED - "
-                        f"{movie.title} ({movie.year})"
-                        f" in {'h'.join(str(self.timeLeft).split(':')[:2])}"
-                        f" - {movieDownloadDate}"
-                    )
-
-                    self.writeLog(False, f"{txtWillBeRemoved}\n")
-                    logging.info(txtWillBeRemoved)
-
-                # Check is movie is older than "days set in INI"
-                if (
-                    now - movieDownloadDate >=
+                            days=self.remove_after_days + extend_period) -
+                        now <= timedelta(days=self.warn_days_infront) and
+                        movieDownloadDate +
                         timedelta(
-                            days=self.remove_after_days + extend_period)
-                ):
+                            days=self.remove_after_days + extend_period) -
+                        now > timedelta(days=self.warn_days_infront) -
+                        timedelta(days=1)
+                    ):
 
-                    if not self.dry_run:
-                        if self.radarr_enabled:
+                        self.timeLeft = (
+                            movieDownloadDate +
+                            timedelta(
+                                days=self.remove_after_days +
+                                extend_period) - now)
 
-                            # Get ID's for exclusion list movies
-                            tagLabels_for_exclusion = \
-                                self.radarr_tags_exclusion
-                            tagsIDs_for_exclusion = self.getIDsforTagLabels(
-                                "movie", tagLabels_for_exclusion)
+                        txtTimeLeft = \
+                            'h'.join(str(self.timeLeft).split(':')[:2])
+                        if self.pushover_enabled:
 
-                            self.radarrNode.delete_movie(
-                                movie_id=movie.id,
-                                tmdb_id=None,
-                                imdb_id=None,
-                                addImportExclusion=True if
-                                set(movie.tagsIds) &
-                                set(tagsIDs_for_exclusion)
-                                else False,
-                                deleteFiles=self.delete_files
+                            self.message = self.userPushover.send_message(
+                                message=f"Prune - {movie.title} "
+                                f"({movie.year}) "
+                                f"will be removed from server in "
+                                f"{txtTimeLeft}",
+                                sound=self.pushover_sound
                             )
 
-                    if self.delete_files:
-                        self.txtFilesDelete = \
-                            ", files deleted."
-                    else:
-                        self.txtFilesDelete = \
-                            ", files preserved."
-
-                    if self.pushover_enabled:
-                        self.message = self.userPushover.send_message(
-                            message=f"{movie.title} ({movie.year}) "
-                            f"Prune - REMOVED - {movie.title} ({movie.year})"
-                            f"{self.txtFilesDelete}"
-                            f" - {movieDownloadDate}",
-                            sound=self.pushover_sound
+                        txtWillBeRemoved = (
+                            f"Prune - WILL BE REMOVED - "
+                            f"{movie.title} ({movie.year})"
+                            f" in {txtTimeLeft}"
+                            f" - {movieDownloadDate}"
                         )
 
-                    txtRemoved = (
-                        f"Prune - REMOVED - {movie.title} ({movie.year})"
-                        f"{self.txtFilesDelete}"
-                        f" - {movieDownloadDate}"
-                    )
+                        self.writeLog(False, f"{txtWillBeRemoved}\n")
+                        logging.info(txtWillBeRemoved)
 
-                    self.writeLog(False, f"{txtRemoved}\n")
-                    logging.info(txtRemoved)
+                        isRemoved = False
+                        isNotified = True
 
-                    return True
-        return False
+                    # Check is movie is older than "days set in INI"
+                    if (
+                        now - movieDownloadDate >=
+                            timedelta(
+                                days=self.remove_after_days + extend_period)
+                    ):
+
+                        if not self.dry_run:
+                            if self.radarr_enabled:
+
+                                # Get ID's for exclusion list movies
+                                tagLabels_for_exclusion = \
+                                    self.radarr_tags_exclusion
+                                tagsIDs_for_exclusion = \
+                                    self.getIDsforTagLabels(
+                                        "movie", tagLabels_for_exclusion)
+
+                                self.radarrNode.delete_movie(
+                                    movie_id=movie.id,
+                                    tmdb_id=None,
+                                    imdb_id=None,
+                                    addImportExclusion=True if
+                                    set(movie.tagsIds) &
+                                    set(tagsIDs_for_exclusion)
+                                    else False,
+                                    deleteFiles=self.delete_files
+                                )
+
+                        if self.delete_files:
+                            self.txtFilesDelete = \
+                                ", files deleted."
+                        else:
+                            self.txtFilesDelete = \
+                                ", files preserved."
+
+                        if self.pushover_enabled:
+                            self.message = self.userPushover.send_message(
+                                message=f"{movie.title} ({movie.year}) "
+                                f"Prune - REMOVED - {movie.title} "
+                                f"({movie.year})"
+                                f"{self.txtFilesDelete}"
+                                f" - {movieDownloadDate}",
+                                sound=self.pushover_sound
+                            )
+
+                        txtRemoved = (
+                            f"Prune - REMOVED - {movie.title} ({movie.year})"
+                            f"{self.txtFilesDelete}"
+                            f" - {movieDownloadDate}"
+                        )
+
+                        self.writeLog(False, f"{txtRemoved}\n")
+                        logging.info(txtRemoved)
+
+                        isRemoved = True
+                        isNotified = False
+
+        return isRemoved, isNotified
 
     def run(self):
         if not self.enabled_run:
@@ -386,18 +405,20 @@ class RLP():
         if self.radarr_enabled:
             media = self.radarrNode.all_movies()
 
-        self.writeLog(True, "Pixlovarr Prune started\n\n")
-        logging.info("Pixlovarr Prune started")
+        logging.info("Prune - Pixlovarr Prune started")
+        self.writeLog(True, "Prune - Pixlovarr Prune started\n")
 
         # Make sure the library is not empty.
         numDeleted = 0
+        isRemoved, isNotified = False
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
             for movie in media:
-                if self.evalMovie(movie):
+                isRemoved, isNotified = self.evalMovie(movie)
+                if isRemoved:
                     numDeleted += 1
 
-        if numDeleted > 0:
+        if isRemoved:
             txtEnd = (
                 f"Prune - There were {numDeleted} movies removed from "
                 f"the server"
@@ -414,7 +435,7 @@ class RLP():
         logging.info(txtEnd)
         self.writeLog(False, f"{txtEnd}\n")
 
-        if self.mail_enabled:
+        if self.mail_enabled and (not self.only_mail_when_result or (self.only_mail_when_result and (isRemoved or isNotified))):
 
             sender_email = self.mail_sender
             receiver_email = self.mail_receiver
