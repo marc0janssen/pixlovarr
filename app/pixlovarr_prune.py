@@ -97,7 +97,8 @@ class RLP():
                 self.mail_login = self.config['PRUNE']['MAIL_LOGIN']
                 self.mail_password = self.config['PRUNE']['MAIL_PASSWORD']
                 self.mail_sender = self.config['PRUNE']['MAIL_SENDER']
-                self.mail_receiver = self.config['PRUNE']['MAIL_RECEIVER']
+                self.mail_receiver = list(
+                    self.config['PRUNE']['MAIL_RECEIVER'].split(","))
 
                 # PUSHOVER
                 self.pushover_enabled = True if (
@@ -416,7 +417,7 @@ class RLP():
 
             message = MIMEMultipart()
             message["From"] = sender_email
-            message['To'] = receiver_email
+            message['To'] = ", ".join(receiver_email)
             message['Subject'] = f"Pixlovarr - Pruned {numDeleted} movies"
 
             attachment = open(self.log_filePath, 'rb')
