@@ -10,7 +10,7 @@ if grep  -qF  '/app/pixlovarr_prune.py' /etc/crontabs/root; then
 	echo "Confirmed: Pixlovarr Prune to Crontab"
 else
 	echo "Adding: Pixlovarr Prune to Crontab"
-    echo "${PRUNE_CRON} python3 /app/pixlovarr_prune.py &> /proc/1/fd/1 2>&1" > /etc/crontabs/root
+    echo "${PRUNE_CRON} python3 /app/pixlovarr_prune.py &> /proc/1/fd/1 2>&1" >> /etc/crontabs/root
 fi
 
 echo "Start the crond process"
