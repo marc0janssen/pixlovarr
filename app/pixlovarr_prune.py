@@ -418,7 +418,7 @@ class RLP():
                 if isRemoved:
                     numDeleted += 1
 
-        if isRemoved:
+        if numDeleted > 0:
             txtEnd = (
                 f"Prune - There were {numDeleted} movies removed from "
                 f"the server"
@@ -438,6 +438,8 @@ class RLP():
         if self.mail_enabled and \
             (not self.only_mail_when_removed or
                 (self.only_mail_when_removed and (isRemoved or isNotified))):
+
+            print("ok")
 
             sender_email = self.mail_sender
             receiver_email = self.mail_receiver
