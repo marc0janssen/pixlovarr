@@ -163,7 +163,7 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
                 -v /path/to/series/:/series \
                 -v /path/to/series2/:/series2 \
                 -v /path/to/series3/:/series3 \
-                -e PRUNE_CRON="* 4,16 * * *" \
+                -e PRUNE_CRON="0 4,16 * * *" \
                 marc0janssen/pixlovarr:latest
 ```
 
