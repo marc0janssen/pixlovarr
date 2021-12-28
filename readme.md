@@ -214,7 +214,15 @@ In the directory /config the python script expects a config file called 'pixlova
         SHOW_KEPT_MESSAGE = ON
         EXTEND_PERIOD_BY_DAYS = 30
         VIDEO_EXTENSIONS_MONITORED = .mp4,.avi,.mkv,.m2ts,.wmv
-
+        MAIL_ENABLED = OFF
+        ONLY_MAIL_WHEN_REMOVED = OFF
+        MAIL_PORT = 587
+        MAIL_SERVER = mail.sever.tld
+        MAIL_LOGIN = login@mail.tld
+        MAIL_PASSWORD = sgdfjsgdjsdg
+        MAIL_SENDER = sender@mail.tld
+        MAIL_RECEIVER = receiver@mail.tld,receiver2@mail.tld
+        
         [PUSHOVER]
         ENABLED = OFF
         USER_KEY = xxxxxxxxxxxxxxx
