@@ -410,6 +410,7 @@ class RLP():
 
         # Make sure the library is not empty.
         numDeleted = 0
+        numNotifified = 0
         isRemoved, isNotified = False, False
         if media:
             media.sort(key=self.sortOnTitle)  # Sort the list on Title
@@ -417,14 +418,14 @@ class RLP():
                 isRemoved, isNotified = self.evalMovie(movie)
                 if isRemoved:
                     numDeleted += 1
+                if isNotified:
+                    numNotifified += 1
 
-        if numDeleted > 0:
-            txtEnd = (
-                f"Prune - There were {numDeleted} movies removed from "
-                f"the server"
-            )
-        else:
-            txtEnd = ("Prune - No movies were removed from the server")
+        txtEnd = (
+            f"Prune - There were {numDeleted} movies removed "
+            f"and {numNotifified} movvies will be removed "
+            f"within {self.warn_days_infront} days"
+        )
 
         if self.pushover_enabled:
             self.message = self.userPushover.send_message(
@@ -437,9 +438,8 @@ class RLP():
 
         if self.mail_enabled and \
             (not self.only_mail_when_removed or
-                (self.only_mail_when_removed and (isRemoved or isNotified))):
-
-            print("ok")
+                (self.only_mail_when_removed and (
+                    numDeleted > 0 or numNotifified > 0))):
 
             sender_email = self.mail_sender
             receiver_email = self.mail_receiver
