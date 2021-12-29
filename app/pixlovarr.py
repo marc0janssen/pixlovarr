@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2665"
+        self.version = "1.18.1.2666"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -843,7 +843,7 @@ class Pixlovarr():
             f"{service} - {typeOfUser} "
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} "
-            f"chose {choice}"
+            f"chose '{choice}'"
         )
 
         logging.info(msg)
