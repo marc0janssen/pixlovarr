@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2666"
+        self.version = "1.18.1.2668"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2433,7 +2433,7 @@ class Pixlovarr():
                     languages = self.sonarrNode.language_profile()
 
                     for lang in languages:
-                        if lang.id == data[4]:
+                        if lang.id == int(data[4]):
                             self.logChoice(update, lang.name)
             else:
                 if self.radarr_enabled:
@@ -2441,7 +2441,7 @@ class Pixlovarr():
                     profiles = self.radarrNode.quality_profile()
 
                     for p in profiles:
-                        if p.id == data[3]:
+                        if p.id == int(data[3]):
                             self.logChoice(update, p.name)
 
             if root_paths:
@@ -2510,7 +2510,7 @@ class Pixlovarr():
                     profiles = self.sonarrNode.quality_profile()
 
                     for p in profiles:
-                        if p.id == data[3]:
+                        if p.id == int(data[3]):
                             self.logChoice(update, p.name)
             else:
                 if self.radarr_enabled:
@@ -2917,7 +2917,7 @@ class Pixlovarr():
 
                     root_paths = self.sonarrNode.root_folder()
                     for r in root_paths:
-                        if r.id == data[5]:
+                        if r.id == int(data[5]):
                             self.logChoice(update, r.path)
 
                     keyboard = [
@@ -2951,7 +2951,7 @@ class Pixlovarr():
 
                     root_paths = self.radarrNode.root_folder()
                     for r in root_paths:
-                        if r.id == data[5]:
+                        if r.id == int(data[5]):
                             self.logChoice(update, r.path)
 
                     media = self.radarrNode.get_movie(imdb_id=data[2])
