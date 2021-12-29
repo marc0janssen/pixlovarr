@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2659"
+        self.version = "1.18.1.2665"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2430,9 +2430,19 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     root_paths = self.sonarrNode.root_folder()
+                    languages = self.sonarrNode.language_profile()
+
+                    for lang in languages:
+                        if lang.id == data[4]:
+                            self.logChoice(update, lang.name)
             else:
                 if self.radarr_enabled:
                     root_paths = self.radarrNode.root_folder()
+                    profiles = self.radarrNode.quality_profile()
+
+                    for p in profiles:
+                        if p.id == data[3]:
+                            self.logChoice(update, p.name)
 
             if root_paths:
 
@@ -2497,6 +2507,11 @@ class Pixlovarr():
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     languages = self.sonarrNode.language_profile()
+                    profiles = self.sonarrNode.quality_profile()
+
+                    for p in profiles:
+                        if p.id == data[3]:
+                            self.logChoice(update, p.name)
             else:
                 if self.radarr_enabled:
                     pass
@@ -2742,6 +2757,9 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
+
+                    self.logChoice(update, data[6])
+
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
 
                     self.pixlovarrdata["stitle"] = media.title
@@ -2831,7 +2849,7 @@ class Pixlovarr():
                     callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
 
-            self.logChoice(update, media.title)
+            self.logChoice(update, f"{media.title} ({media.year})")
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -2896,6 +2914,12 @@ class Pixlovarr():
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
+
+                    root_paths = self.sonarrNode.root_folder()
+                    for r in root_paths:
+                        if r.id == data[5]:
+                            self.logChoice(update, r.path)
+
                     keyboard = [
                         [InlineKeyboardButton(
                             "Download All seasons",
@@ -2924,6 +2948,12 @@ class Pixlovarr():
                     ]
             else:
                 if self.radarr_enabled:
+
+                    root_paths = self.radarrNode.root_folder()
+                    for r in root_paths:
+                        if r.id == data[5]:
+                            self.logChoice(update, r.path)
+
                     media = self.radarrNode.get_movie(imdb_id=data[2])
                     keyboard = [[InlineKeyboardButton(
                         f"Download '{media.title} ({media.year})'",
