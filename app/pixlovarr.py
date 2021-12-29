@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2675"
+        self.version = "1.18.1.2676"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2328,7 +2328,7 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
 
-            self.logChoice(update, "Extend period")
+            self.logChoice(update, "Extend media retention")
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
