@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2668"
+        self.version = "1.18.1.2675"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -977,7 +977,10 @@ class Pixlovarr():
             f"{update.effective_user.first_name} - "
             f"{update.effective_user.id} has deleted the "
             f"{typeOfMedia} '{title}' "
-            f"from the queue.")
+            f"from the queue."
+        )
+
+        self.logChoice(update, f"Delete {typeOfMedia} {title} from queue")
 
     def createTagName(self, username, userid):
         # make striped username with only az09
@@ -2274,6 +2277,8 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
 
+            self.logChoice(update, "Keep media")
+
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     media = self.sonarrNode.get_series(int(data[2]))
@@ -2322,6 +2327,8 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid
+
+            self.logChoice(update, "Extend period")
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -2391,6 +2398,8 @@ class Pixlovarr():
             # called via /smm, not via button
             if not update.callback_query:
                 self.logCommand(update)
+            else:
+                self.logChoice(update, "Search missing media")
 
             txtMissingMedia = (
                 "Searching for all missing movies. "
@@ -2570,8 +2579,6 @@ class Pixlovarr():
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaID
 
-            print(data[2])
-
             if data[1] == "serie":
                 if self.sonarr_enabled:
                     media = self.sonarrNode.get_series(series_id=int(data[2]))
@@ -2580,6 +2587,8 @@ class Pixlovarr():
                 if self.radarr_enabled:
                     media = self.radarrNode.get_movie(movie_id=int(data[2]))
                     tagLabels_to_keep = self.tags_to_keep_radarr
+
+            self.logChoice(update, f"{media.title} ({media.year})")
 
             self.outputMediaInfo(update, context, data[1], media)
 
@@ -2730,6 +2739,8 @@ class Pixlovarr():
                         else False,
                         deleteFiles=data[3]
                     )
+
+            self.logChoice(update, f"Delete {data[1]}")
 
             self.sendmessage(
                 update.effective_chat.id,
