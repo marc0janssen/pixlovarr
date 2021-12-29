@@ -2,7 +2,7 @@
 
 2021-12-27 14:15:19
 
-Version
+Version "latest"
 
 * Changed: email subject to reflexed attached log
 
