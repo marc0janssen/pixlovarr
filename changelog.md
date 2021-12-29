@@ -2,6 +2,10 @@
 
 2021-12-27 14:15:19
 
+Version
+
+* Changed: email subject to reflexed attached log
+
 Version 1.18.1.2611
 
 * New: PRUNE_CRON added as environment variable. Sets the CRON for pruning. If not set: default is "0 4 * * *"

@@ -423,7 +423,7 @@ class RLP():
 
         txtEnd = (
             f"Prune - There were {numDeleted} movies removed "
-            f"and {numNotifified} movvies will be removed "
+            f"and {numNotifified} movies planned to be removed "
             f"within {self.warn_days_infront} days"
         )
 
@@ -447,8 +447,10 @@ class RLP():
             message = MIMEMultipart()
             message["From"] = sender_email
             message['To'] = ", ".join(receiver_email)
-            message['Subject'] = \
-                f"Pixlovarr - Pruned {numDeleted} movies"
+            message['Subject'] = (
+                f"Pixlovarr - Pruned {numDeleted} movies "
+                f"and {numNotifified} planned for removal"
+            )
 
             attachment = open(self.log_filePath, 'rb')
             obj = MIMEBase('application', 'octet-stream')
