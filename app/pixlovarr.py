@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2647"
+        self.version = "1.18.1.2659"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -823,6 +823,33 @@ class Pixlovarr():
 
         return numOfCalItems
 
+    def writeLog(self, msg):
+        try:
+            logfile = open(self.log_filePath, "a")
+            logfile.write(f"{datetime.now()} - {msg}\n")
+        except IOError:
+            logging.error(
+                f"Can't write file {self.log_filePath}"
+            )
+
+    def logChoice(self, update, choice):
+
+        service = "Open" if self.isSignUpOpen() else "Closed"
+        typeOfUser = "Blocked member" if self.isBlocked(update) else \
+            "Non member" if not self.isGranted(update) else \
+            "Member" if not self.isAdmin(update) else "Admin"
+
+        msg = (
+            f"{service} - {typeOfUser} "
+            f"{update.effective_user.first_name} - "
+            f"{update.effective_user.id} "
+            f"chose {choice}"
+        )
+
+        logging.info(msg)
+
+        self.writeLog(msg)
+
     def logAdminCommand(self, update):
 
         service = "Open" if self.isSignUpOpen() else "Closed"
@@ -870,13 +897,7 @@ class Pixlovarr():
 
             logging.info(msg)
 
-            try:
-                logfile = open(self.log_filePath, "a")
-                logfile.write(f"{datetime.now()} - {msg}\n")
-            except IOError:
-                logging.error(
-                    f"Can't write file {self.log_filePath}"
-                )
+            self.writeLog(msg)
 
             self.addItemToHistory(
                 update,
@@ -2809,6 +2830,8 @@ class Pixlovarr():
                     profiles = self.radarrNode.quality_profile()
                     callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
+
+            self.logChoice(update, media.title)
 
             self.outputMediaInfo(update, context, data[1], media)
 

@@ -147,7 +147,7 @@ You can later use the tagged media to your liking.
 The build.sh script will build you your own Pixlovarr docker image. But Pixlovarr is also available on Docker Hub.
 
 ```shell
-        docker build -t marc0janssen/pixlovarr:latest -f ./Dockerfile .
+        docker build -t pixlovarr -f ./Dockerfile .
 ```
 
 The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image for you.
@@ -164,7 +164,7 @@ The script start_pixlovarr.sh in ./scripts will pull and run the Pixlovarr image
                 -v /path/to/series2/:/series2 \
                 -v /path/to/series3/:/series3 \
                 -e PRUNE_CRON="0 4,16 * * *" \
-                marc0janssen/pixlovarr:latest
+                pixlovarr
 ```
 
 ## Config Pixlovarr
@@ -222,7 +222,7 @@ In the directory /config the python script expects a config file called 'pixlova
         MAIL_PASSWORD = sgdfjsgdjsdg
         MAIL_SENDER = sender@mail.tld
         MAIL_RECEIVER = receiver@mail.tld,receiver2@mail.tld
-        
+
         [PUSHOVER]
         ENABLED = OFF
         USER_KEY = xxxxxxxxxxxxxxx
