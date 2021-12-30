@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2677"
+        self.version = "1.18.1.2679"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -827,6 +827,7 @@ class Pixlovarr():
         try:
             logfile = open(self.log_filePath, "a")
             logfile.write(f"{datetime.now()} - {msg}\n")
+            logfile.close()
         except IOError:
             logging.error(
                 f"Can't write file {self.log_filePath}"
