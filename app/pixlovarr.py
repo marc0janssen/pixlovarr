@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2843"
+        self.version = "1.18.1.2856"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -63,6 +63,8 @@ class Pixlovarr():
         self.urlNoImage = (
             "https://postimg.cc/3dfySHP9"
         )
+
+        self.availability = ["announced", "inCinemas", "released", "preDB"]
 
         self.config_file = f"{config_dir}pixlovarr.ini"
         self.log_filePath = f"{log_dir}pixlovarr.log"
@@ -2435,7 +2437,7 @@ class Pixlovarr():
             query.answer()
             data = query.data.split(":")
             # 0:marker, 1:type of media, 2:mediaid, 3: Quality
-            # 4:Language
+            # 4:Language/Availability
 
             if data[1] == "serie":
                 if self.sonarr_enabled:
@@ -2448,11 +2450,11 @@ class Pixlovarr():
             else:
                 if self.radarr_enabled:
                     root_paths = self.radarrNode.root_folder()
-                    profiles = self.radarrNode.quality_profile()
 
-                    for p in profiles:
-                        if p.id == int(data[3]):
-                            self.logChoice(update, p.name)
+                    print(data[4])
+
+                    availability = str(self.Availability[int(data[4])])
+                    self.logChoice(update, availability)
 
             if root_paths:
 
@@ -2558,6 +2560,62 @@ class Pixlovarr():
                     update.effective_user.first_name,
                     f"No language profiles were found, Please set them up in "
                     f"Sonarr, "
+                    f"{update.effective_user.first_name}."
+                )
+
+    def selectAvailability(self, update, context):
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            query = update.callback_query
+            query.answer()
+            data = query.data.split(":")
+            # 0:marker, 1:type of media, 2:mediaid, 3: Quality
+
+            if data[1] == "serie":
+                if self.sonarr_enabled:
+                    return
+            else:
+                if self.radarr_enabled:
+                    profiles = self.sonarrNode.quality_profile()
+
+                    for p in profiles:
+                        if p.id == int(data[3]):
+                            self.logChoice(update, p.name)
+
+            if self.availability:
+
+                keyboard = []
+
+                for count, availability in enumerate(self.availability):
+
+                    print(count)
+
+                    callbackdata = (
+                        f"selectRootFolder:{data[1]}:{data[2]}:"
+                        f"{data[3]}:{count}"
+                    )
+
+                    keyboard.append([InlineKeyboardButton(
+                        f"{availability}",
+                        callback_data=callbackdata)]
+                    )
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                self.replytext(
+                    query,
+                    "Please select availability:",
+                    reply_markup,
+                    False
+                )
+
+            else:
+                self.sendmessage(
+                    update.effective_chat.id,
+                    context,
+                    update.effective_user.first_name,
+                    f"No availability was found, Please set them up in "
+                    f"INIT, "
                     f"{update.effective_user.first_name}."
                 )
 
@@ -2756,9 +2814,13 @@ class Pixlovarr():
             query = update.callback_query
             query.answer()
             data = query.data.split(":")
-            # 0:marker, 1:type of media, 2:mediaid
-            # 3:qualityid, 4: Langausge Profile 5:rootfolder
-            # 6: Download which seasons?
+            # 0:marker,
+            # 1:type of media,
+            # 2:mediaid
+            # 3:qualityid,
+            # 4:Langausge Profile / Availability
+            # 5:rootfolder
+            # 6:Download which seasons?
 
             self.sendmessage(
                 update.effective_chat.id,
@@ -2829,12 +2891,14 @@ class Pixlovarr():
                     tags = []
                     tags.append(usertagID)
 
+                    availability = str(self.Availability[int(data[4])])
+
                     media.add(
                         int(data[5]),
                         int(data[3]),
                         True,
                         True,
-                        "inCinemas",
+                        availability,
                         tags
                     )
 
@@ -2858,7 +2922,7 @@ class Pixlovarr():
             else:
                 if self.radarr_enabled:
                     profiles = self.radarrNode.quality_profile()
-                    callbackdata = f"selectRootFolder:{data[1]}:{data[2]}"
+                    callbackdata = f"selectAvailability:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
 
             self.logChoice(update, f"{media.title} ({media.year})")
@@ -2882,7 +2946,7 @@ class Pixlovarr():
                     else:
                         row.append(InlineKeyboardButton(
                             f"{p.name}",
-                            callback_data=f"{callbackdata}:{p.id}:{None}")
+                            callback_data=f"{callbackdata}:{p.id}")
                         )
 
                     if (count+1) % num_columns == 0 or \
@@ -3343,6 +3407,10 @@ class Pixlovarr():
         kbselectLanguage_handler = CallbackQueryHandler(
             self.selectLanguage, pattern='^selectlang:')
         self.dispatcher.add_handler(kbselectLanguage_handler)
+
+        kbselectAvailability_handler = CallbackQueryHandler(
+            self.selectAvailability, pattern='^selectAvailability:')
+        self.dispatcher.add_handler(kbselectAvailability_handler)
 
 # Admin Handlders
 
