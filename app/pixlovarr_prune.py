@@ -175,7 +175,7 @@ class RLP():
                 logfile = open(self.log_filePath, "w")
             else:
                 logfile = open(self.log_filePath, "a")
-            logfile.write(f"{datetime.now()} - {msg}\n")
+            logfile.write(f"{datetime.now()} - {msg}")
             logfile.close()
         except IOError:
             logging.error(

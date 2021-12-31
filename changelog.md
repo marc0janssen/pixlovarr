@@ -5,7 +5,7 @@
 Version "latest"
 
 * Changed: email subject to reflexed attached log
-* New: Log choices in menus
+* New: Log choices which are made in menus
 
 Version 1.18.1.2611
 
