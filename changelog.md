@@ -6,7 +6,8 @@ Version "latest"
 
 * Changed: email subject to reflexed attached log
 * New: Log choices which are made in menus
-* NEW: Untagged movies are tagged during Prune (if enabled in INI)
+* New: Untagged movies are tagged during Prune (if enabled in INI)
+* New: "availability" can be choosen for movies
 
 Version 1.18.1.2611
 
