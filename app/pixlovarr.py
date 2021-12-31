@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.18.1.2856"
+        self.version = "1.18.1.2857"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2451,9 +2451,7 @@ class Pixlovarr():
                 if self.radarr_enabled:
                     root_paths = self.radarrNode.root_folder()
 
-                    print(data[4])
-
-                    availability = str(self.Availability[int(data[4])])
+                    availability = str(self.availability[int(data[4])])
                     self.logChoice(update, availability)
 
             if root_paths:
@@ -2587,8 +2585,6 @@ class Pixlovarr():
                 keyboard = []
 
                 for count, availability in enumerate(self.availability):
-
-                    print(count)
 
                     callbackdata = (
                         f"selectRootFolder:{data[1]}:{data[2]}:"
@@ -2891,7 +2887,7 @@ class Pixlovarr():
                     tags = []
                     tags.append(usertagID)
 
-                    availability = str(self.Availability[int(data[4])])
+                    availability = str(self.availability[int(data[4])])
 
                     media.add(
                         int(data[5]),
