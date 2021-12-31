@@ -102,6 +102,11 @@ class RLP():
                 self.mail_sender = self.config['PRUNE']['MAIL_SENDER']
                 self.mail_receiver = list(
                     self.config['PRUNE']['MAIL_RECEIVER'].split(","))
+                self.tag_untagged_media = True if (
+                    self.config['PRUNE']
+                    ['TAG_UNTAGGED_MEDIA'] == "ON") else False
+                self.untagged_media_tag = list(
+                    self.config['PRUNE']['UNTAGGED_MEDIA_TAG'].split(","))
 
                 # PUSHOVER
                 self.pushover_enabled = True if (
@@ -368,6 +373,24 @@ class RLP():
 
                         isRemoved = True
                         isNotified = False
+            else:
+                # Movie has not tags and we want them to be tagged
+                if not movie.tagsIds and self.tag_untagged_media:
+                    movie.edit(
+                        tags=self.untagged_media_tag,
+                        apply_tags="add"
+                    )
+
+                    if not self.only_show_remove_messages:
+
+                        txtTagging = (
+                            f"Prune - TAGGED - "
+                            f"{movie.title} ({movie.year})"
+                            f" with {', '.join(self.untagged_media_tag)}"
+                        )
+
+                        self.writeLog(False, f"{txtTagging}\n")
+                        logging.info(txtTagging)
 
         return isRemoved, isNotified
 
