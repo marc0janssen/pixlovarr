@@ -375,7 +375,8 @@ class RLP():
                         isNotified = False
             else:
                 # Movie has not tags and we want them to be tagged
-                if not movie.tagsIds and self.tag_untagged_media:
+                if not movie.tagsIds and \
+                        self.tag_untagged_media and self.untagged_media_tag:
                     movie.edit(
                         tags=self.untagged_media_tag,
                         apply_tags="add"
