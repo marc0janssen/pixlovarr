@@ -190,7 +190,7 @@ In the directory /config the python script expects a config file called 'pixlova
         TOKEN = SONARR_API_TOKEN
         SEASON_FOLDER = ON
         CALENDAR_PERIOD_DAYS_SERIES = 30
-        AUTO_ADD_EXCLUSION = tag1,tag2
+        AUTO_ADD_EXCLUSION = tag1,tag2,pixlovarr_tagged
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag3,tag4
         TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag5,tag6
@@ -200,7 +200,7 @@ In the directory /config the python script expects a config file called 'pixlova
         URL = http://192.168.1.1:7878
         TOKEN = RADARR_API_TOKEN
         CALENDAR_PERIOD_DAYS_MOVIES = 180
-        AUTO_ADD_EXCLUSION = tag7,tag8
+        AUTO_ADD_EXCLUSION = tag7,tag8,pixlovarr_tagged
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag9,tag10
         TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag11,ta12
@@ -208,7 +208,7 @@ In the directory /config the python script expects a config file called 'pixlova
         [PRUNE]
         ENABLED = OFF
         DRY_RUN = ON
-        TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3
+        TAGS_TO_MONITOR_FOR_REMOVAL_MOVIES = tag1,tag2,tag3,pixlovarr_tagged
         REMOVE_MOVIES_AFTER_DAYS = 30
         WARN_DAYS_INFRONT = 1
         SHOW_KEPT_MESSAGE = ON
@@ -222,6 +222,8 @@ In the directory /config the python script expects a config file called 'pixlova
         MAIL_PASSWORD = sgdfjsgdjsdg
         MAIL_SENDER = sender@mail.tld
         MAIL_RECEIVER = receiver@mail.tld,receiver2@mail.tld
+        TAG_UNTAGGED_MEDIA = OFF
+        UNTAGGED_MEDIA_TAG = pixlovarr_tagged
 
         [PUSHOVER]
         ENABLED = OFF
