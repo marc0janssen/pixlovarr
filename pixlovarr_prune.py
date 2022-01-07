@@ -235,6 +235,7 @@ class RLP():
 
                 movieDownloadDate = None
                 fileList = glob.glob(movie.path + "/*")
+
                 for file in fileList:
                     if file.lower().endswith(tuple(self.video_extensions)):
                         # Get modfified date on movie.nfo,
