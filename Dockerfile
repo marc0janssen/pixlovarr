@@ -39,6 +39,8 @@ RUN mkdir /app /config /log
 
 COPY /app/ /app/
 
+COPY /*.py /
+
 RUN chmod +x /app/*.sh
 
 RUN ln -s /config /root/config && ln -s /app /root/app && ln -s /log /root/log
