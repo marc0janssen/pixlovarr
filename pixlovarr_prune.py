@@ -492,7 +492,11 @@ class RLP():
                 "Have a nice day.\n"
             )
 
-            body += str(attachment.read())
+            logfile = open(self.log_filePath, "r")
+
+            body += logfile.readlines()
+
+            logfile.close()
 
             plain_text = MIMEText(
                 body, _subtype='plain', _charset='UTF-8')
