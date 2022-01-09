@@ -5,6 +5,7 @@
 Version "Latest"
 
 * Fixed: None object for description
+* Changed: log also in mail body now
 
 Version 1.19.0.2868
 
