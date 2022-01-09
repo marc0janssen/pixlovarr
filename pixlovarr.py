@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.19.0.2929"
+        self.version = "1.19.0.2930"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -516,7 +516,7 @@ class Pixlovarr():
         try:
             textoverview = f"{media.overview[:4092]}\n\n" if \
                 media.overview != "" else "No description available.\n\n"
-        except AttributeError:
+        except AttributeError or TypeError:
             textoverview = "No description available.\n\n"
 
         txtMediaInfo += textoverview
