@@ -489,8 +489,11 @@ class RLP():
 
             body = (
                 "Hi,\n\n Attached is the prunelog from Prxlovarr.\n\n"
-                "Have a nice day."
+                "Have a nice day.\n"
             )
+
+            body += attachment
+
             plain_text = MIMEText(
                 body, _subtype='plain', _charset='UTF-8')
             message.attach(plain_text)
