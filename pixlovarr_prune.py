@@ -492,7 +492,7 @@ class RLP():
                 "Have a nice day.\n"
             )
 
-            body += attachment.read()
+            body += str(attachment.read())
 
             plain_text = MIMEText(
                 body, _subtype='plain', _charset='UTF-8')
