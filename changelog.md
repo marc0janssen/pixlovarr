@@ -2,6 +2,10 @@
 
 2021-12-27 14:15:19
 
+Version "Latest"
+
+* Fixed: None object for description
+
 Version 1.19.0.2868
 
 * Changed: email subject to reflexed attached log
