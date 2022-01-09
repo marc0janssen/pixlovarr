@@ -494,7 +494,7 @@ class RLP():
 
             logfile = open(self.log_filePath, "r")
 
-            body += '\n'.join(logfile.readlines())
+            body += logfile.readlines().join()
 
             logfile.close()
 
