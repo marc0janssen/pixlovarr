@@ -489,7 +489,7 @@ class RLP():
 
             body = (
                 "Hi,\n\n Attached is the prunelog from Prxlovarr.\n\n"
-                "Have a nice day.\n"
+                "Have a nice day.\n\n"
             )
 
             logfile = open(self.log_filePath, "r")
