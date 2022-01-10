@@ -1,10 +1,11 @@
 # Pixlovarr Changelog
 
-2021-12-27 14:15:19
+2022-01-10 21:02:22
 
 Version "Latest"
 
 * Fixed: None object for description
+* Fixed: Delete series
 * Changed: log also in mail body now
 
 Version 1.19.0.2868
