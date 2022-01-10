@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.19.0.2936"
+        self.version = "1.19.0.2937"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2770,7 +2770,7 @@ class Pixlovarr():
                     self.sonarrNode.delete_series(
                         series_id=int(data[2]),
                         tvdb_id=None,
-                        addImportExclusion=True if
+                        addImportListExclusion=True if
                         set(media.tagsIds) &
                         set(tagsIDs_for_exclusion)
                         else False,
