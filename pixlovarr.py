@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.19.0.2940"
+        self.version = "1.19.1.2950"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -212,7 +212,7 @@ class Pixlovarr():
                     self.pixlovarrdata["mtitle"] = "<not available yet>"
                     self.pixlovarrdata["cmdcount"] = 0
 
-                    self.saveconfig(
+                    self.savedata(
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
             except KeyError as e:
@@ -487,7 +487,7 @@ class Pixlovarr():
             logging.info(f"Can't open file {file}, creating empty dictionary.")
             return {}
 
-    def saveconfig(self, file, dataDictonary):
+    def savedata(self, file, dataDictonary):
         try:
             with open(file, 'w') as f:
                 f.write(json.dumps(dataDictonary))
@@ -913,7 +913,7 @@ class Pixlovarr():
             )
 
             self.pixlovarrdata["cmdcount"] = len(self.cmdHistory)
-            self.saveconfig(self.pixlovarr_data_file, self.pixlovarrdata)
+            self.savedata(self.pixlovarr_data_file, self.pixlovarrdata)
 
         else:
             logging.warning(
@@ -1115,7 +1115,7 @@ class Pixlovarr():
 
                     self.signups[self.person['id']] = self.person
 
-                    self.saveconfig(self.pixlovarr_signups_file, self.signups)
+                    self.savedata(self.pixlovarr_signups_file, self.signups)
 
                     self.sendmessage(
                         update.effective_chat.id,
@@ -2836,7 +2836,7 @@ class Pixlovarr():
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
 
                     self.pixlovarrdata["stitle"] = media.title
-                    self.saveconfig(
+                    self.savedata(
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
@@ -2873,7 +2873,7 @@ class Pixlovarr():
                     media = self.radarrNode.get_movie(imdb_id=data[2])
 
                     self.pixlovarrdata["mtitle"] = media.title
-                    self.saveconfig(
+                    self.savedata(
                         self.pixlovarr_data_file, self.pixlovarrdata)
 
                     # get usertag from server and to movie
@@ -3176,9 +3176,9 @@ class Pixlovarr():
                     self.members[data[2]] = self.blockedusers[data[2]]
                     self.blockedusers.pop(data[2], None)
 
-                self.saveconfig(self.pixlovarr_members_file, self.members)
-                self.saveconfig(self.pixlovarr_signups_file, self.signups)
-                self.saveconfig(
+                self.savedata(self.pixlovarr_members_file, self.members)
+                self.savedata(self.pixlovarr_signups_file, self.signups)
+                self.savedata(
                     self.pixlovarr_blocked_file, self.blockedusers)
 
                 logging.info(
@@ -3223,9 +3223,9 @@ class Pixlovarr():
                     self.blockedusers[data[2]] = self.members[data[2]]
                     self.members.pop(data[2], None)
 
-                self.saveconfig(self.pixlovarr_members_file, self.members)
-                self.saveconfig(self.pixlovarr_signups_file, self.signups)
-                self.saveconfig(
+                self.savedata(self.pixlovarr_members_file, self.members)
+                self.savedata(self.pixlovarr_signups_file, self.signups)
+                self.savedata(
                     self.pixlovarr_blocked_file, self.blockedusers)
 
                 logging.info(

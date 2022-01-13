@@ -2,7 +2,7 @@
 
 2022-01-10 21:02:22
 
-Version "Latest"
+Version 1.19.1.2948
 
 * Fixed: None object for description
 * Fixed: Delete series
