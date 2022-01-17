@@ -1,6 +1,7 @@
 FROM alpine:latest
 
 RUN apk update && apk upgrade && apk add --update \
+	bash \
 	libxml2 \
 	libxml2-dev \
 	libxslt \

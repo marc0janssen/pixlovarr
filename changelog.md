@@ -2,6 +2,10 @@
 
 2022-01-13 18:43:20
 
+Version Latest
+
+* Changed: Shell changed to bash
+
 Version 1.19.1.2948
 
 * Fixed: None object for description

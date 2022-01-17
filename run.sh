@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Name: Pixlovarr
 # Coder: Marco Janssen (twitter @marc0janssen)
