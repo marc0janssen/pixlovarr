@@ -1,6 +1,10 @@
 # Pixlovarr Changelog
 
-2022-01-13 18:43:20
+2022-01-19 16:21:40
+
+Version 1.20.1.3096
+
+* Bugfix: Profiles for Movies fixed
 
 Version 1.20.0.3082
 

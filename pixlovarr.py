@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.0.3083"
+        self.version = "1.20.1.3098"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2577,7 +2577,7 @@ class Pixlovarr():
                     return
             else:
                 if self.radarr_enabled:
-                    profiles = self.sonarrNode.quality_profile()
+                    profiles = self.radarrNode.quality_profile()
 
                     for p in profiles:
                         if p.id == int(data[3]):
