@@ -2,7 +2,7 @@
 
 2022-01-19 16:21:40
 
-Version 1.20.1.3096
+Version 1.20.1.3104
 
 * Bugfix: Profiles for Movies fixed
 
