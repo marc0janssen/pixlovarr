@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3164"
+        self.version = "1.20.2.3167"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1171,14 +1171,14 @@ class Pixlovarr():
 
             if self.isGranted(update):
                 helpText = helpText + (
-                    "-- List Commands --"
+                    "-- List Commands --\n"
                     "/ls #<genre> <key> - List all series\n"
                     "/lm #<genre> <key> - List all movies\n"
                     "/ms #<genre> <key> - list my series\n"
                     "/mm #<genre> <key> - list my movies\n"
                     "/ns #<genre> <key> - list new series\n"
                     "/nm #<genre> <key> - list new movies\n\n"
-                    "-- Download commands --"
+                    "-- Download commands --\n"
                     "/ts T<#> - Show Top series\n"
                     "/ps T<#> - Show Top popular series\n"
                     "/tm T<#> - Show Top movies\n"
@@ -1189,7 +1189,7 @@ class Pixlovarr():
                     "/rm - Show recently reviewed movies\n"
                     "/ds T<#> <key> - Download series\n"
                     "/dm T<#> <key> - Download movie\n\n"
-                    "-- Miscellaneous commands --"
+                    "-- Miscellaneous commands --\n"
                     "/qu - List all queued items\n"
                     "/fq - Show announced items in catalog\n"
                     "/sc - Show series calendar\n"
