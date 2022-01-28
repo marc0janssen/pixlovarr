@@ -2,6 +2,10 @@
 
 2022-01-19 16:21:40
 
+Versio 1.20.1.3160
+
+* Change: /Help reordered
+
 Version 1.20.1.3104
 
 * Bugfix: Profiles for Movies fixed

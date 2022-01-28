@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.1.3105"
+        self.version = "1.20.2.3162"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1162,22 +1162,23 @@ class Pixlovarr():
                 self.isGranted(update) or self.isAdmin(update):
 
             helpText = (
-                "-- Commands --\n"
+                "-- Startup ommands --\n"
                 "/start - Start this bot\n"
                 "/help - Show this text\n"
                 "/signup - Request access\n"
-                "/userid - Show your userid\n"
+                "/userid - Show your userid\n\n"
             )
 
             if self.isGranted(update):
                 helpText = helpText + (
+                    "-- List Commands --"
                     "/ls #<genre> <key> - List all series\n"
                     "/lm #<genre> <key> - List all movies\n"
                     "/ms #<genre> <key> - list my series\n"
                     "/mm #<genre> <key> - list my movies\n"
                     "/ns #<genre> <key> - list new series\n"
-                    "/nm #<genre> <key> - list new movies\n"
-                    "/qu - List all queued items\n"
+                    "/nm #<genre> <key> - list new movies\n\n"
+                    "-- Download commands --"
                     "/ts T<#> - Show Top series\n"
                     "/ps T<#> - Show Top popular series\n"
                     "/tm T<#> - Show Top movies\n"
@@ -1186,14 +1187,16 @@ class Pixlovarr():
                     "/wm T<#> - Show Top worst movies\n"
                     "/rs - Show recently reviewed series\n"
                     "/rm - Show recently reviewed movies\n"
+                    "/ds T<#> <key> - Download series\n"
+                    "/dm T<#> <key> - Download movie\n\n"
+                    "-- Miscellaneous commands --"
+                    "/qu - List all queued items\n"
                     "/fq - Show announced items in catalog\n"
                     "/sc - Show series calendar\n"
                     "/mc - Show movies calendar\n"
                     "/sts - Service status info\n"
                     "/rss - Trigger RSS fetching\n"
-                    "/smm - Trigger missing media search\n"
-                    "/ds T<#> <key> - Download series\n"
-                    "/dm T<#> <key> - Download movie\n\n"
+                    "/smm - Trigger missing media search\n\n"
                     "/coffee - Buy me a coffee\n"
 
                 )

@@ -15,7 +15,7 @@ Radarr Library Purge is a compagnon written in Python for Radarr to automaticly 
 
 ## Versions
 
-pixlovarr: 1.20.1.3104
+pixlovarr: 1.20.2.3160
 
 Stable
 
@@ -24,7 +24,7 @@ docker pull marc0janssen/pixlovarr:stable
 ```
 
 ```shell
-docker pull marc0janssen/pixlovarr:1.20.1.3104
+docker pull marc0janssen/pixlovarr:1.20.2.3160
 ```
 
 Latest (experimental)
@@ -48,45 +48,52 @@ You can later use the tagged media to your liking.
 ## Bot Commands
 
 ```shell
-        -- User commands --
-        /start - Start this bot
-        /help - Show this text
-        /signup - Request access
-        /userid - Show your userid
-        /ls #<genre> <word> - List all series
-        /lm #<genre> <word> - List all movies
-        /ms #<genre> <word> - list my series
-        /mm #<genre> <word> - list my movies
-        /ns #<genre> <word> - list new series
-        /nm #<genre> <word> - list new movies
-        /qu - List all queued items
-        /ts T<#> - Show Top series
-        /ps T<#> - Show Top popular series
-        /tm T<#> - Show Top movies
-        /pm T<#> - Show Top popular movies
-        /ti T<#> - Show Top Indian movies
-        /wm T<#> - Show Top worst movies
-        /rs - Show recently reviewed series
-        /rm - Show recently reviewed movies       
-        /fq - Show announced items in catalog
-        /sc - Show series calendar
-        /mc - Show movies calendar
-        /sts - Service status info
-        /rss - trigger RSS fetching
-        /smm - Trigger missing media search
-        /ds T<#> <keyword> - Download serie
-        /dm T<#> <keyword> - Download movie
+                -- Startup ommands --
+                /start - Start this bot
+                /help - Show this text
+                /signup - Request access
+                /userid - Show your userid
+                
+                -- List Commands --
+                /ls #<genre> <key> - List all series
+                /lm #<genre> <key> - List all movies
+                /ms #<genre> <key> - list my series
+                /mm #<genre> <key> - list my movies
+                /ns #<genre> <key> - list new series
+                /nm #<genre> <key> - list new movies
+                
+                -- Download commands --
+                /ts T<#> - Show Top series
+                /ps T<#> - Show Top popular series
+                /tm T<#> - Show Top movies
+                /pm T<#> - Show Top popular movies
+                /ti T<#> - Show Top Indian movies
+                /wm T<#> - Show Top worst movies
+                /rs - Show recently reviewed series
+                /rm - Show recently reviewed movies
+                /ds T<#> <key> - Download series
+                /dm T<#> <key> - Download movie
+                
+                -- Miscellaneous commands --
+                /qu - List all queued items
+                /fq - Show announced items in catalog
+                /sc - Show series calendar
+                /mc - Show movies calendar
+                /sts - Service status info
+                /rss - Trigger RSS fetching
+                /smm - Trigger missing media search
 
-        /coffee - Buy me a coffee
+                /coffee - Buy me a coffee
 
-        -- Admin commands --
-        /new - Show all new signups
-        /am - Show all allowed members
-        /bm - Show all blocked members
-        /ch - Show command history
-        /lt - list tags
-        /open - open signup
-        /close - close signup 
+                -- Admin commands --
+                /new - Show all new signups
+                /am - Show all allowed members
+                /bm - Show all blocked members
+                /ch - Show command history
+                /lt - list tags
+                /open - open signup
+                /close - close signup
+
 ```
 
 ## Examples
