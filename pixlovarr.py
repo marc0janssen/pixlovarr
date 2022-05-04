@@ -26,7 +26,7 @@ from pycliarr.api import (
     SonarrCli, SonarrSerieItem
 )
 
-from arrapi import SonarrAPI, RadarrAPI
+from arrapi import SonarrAPI, RadarrAPI, exceptions
 
 import logging
 import json
@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3167"
+        self.version = "1.20.2.3183"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2856,20 +2856,31 @@ class Pixlovarr():
                     tags = []
                     tags.append(usertagID)
 
-                    media.add(
-                        int(data[5]),
-                        int(data[3]),
-                        int(data[4]),
-                        data[6],
-                        self.sonarr_season_folder,
-                        True,
-                        False,
-                        "standard",
-                        tags
-                    )
+                    try:
+                        media.add(
+                            int(data[5]),
+                            int(data[3]),
+                            int(data[4]),
+                            data[6],
+                            self.sonarr_season_folder,
+                            True,
+                            False,
+                            "standard",
+                            tags
+                        )
 
-                    self.notifyDownload(
-                        update, context, data[1], media.title, media.year)
+                        self.notifyDownload(
+                            update, context, data[1], media.title, media.year)
+
+                    except exceptions.Exists:
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            f"The {data[1]} {media.title} was already "
+                            f"added to the server. "
+                            f"{update.effective_user.first_name}."
+                        )
 
             else:
                 if self.radarr_enabled:
