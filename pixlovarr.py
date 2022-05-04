@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3184"
+        self.version = "1.20.2.3187"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2922,8 +2922,8 @@ class Pixlovarr():
                             update.effective_chat.id,
                             context,
                             update.effective_user.first_name,
-                            f"The {data[1]} {media.title} was already "
-                            f"found on the server, "
+                            f"The {data[1]} {media.title} ({media.year})"
+                            f" was already found on the server, "
                             f"{update.effective_user.first_name}. "
                             f"So the {data[1]} can't be added twice."
                         )
