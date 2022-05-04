@@ -1,8 +1,12 @@
 # Pixlovarr Changelog
 
-2022-01-19 16:21:40
+2022-05-04 20:20:40
 
-Versio 1.20.2.3164
+Version 1.20.2.3191
+
+* Fixed: A download for a serie/movie can't be done for an existing one
+
+Version 1.20.2.3164
 
 * Change: /Help reordered
 
