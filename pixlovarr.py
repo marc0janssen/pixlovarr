@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3183"
+        self.version = "1.20.2.3184"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -2878,8 +2878,9 @@ class Pixlovarr():
                             context,
                             update.effective_user.first_name,
                             f"The {data[1]} {media.title} was already "
-                            f"added to the server. "
-                            f"{update.effective_user.first_name}."
+                            f"found on the server, "
+                            f"{update.effective_user.first_name}. "
+                            f"So the {data[1]} can't be added twice."
                         )
 
             else:
@@ -2906,14 +2907,26 @@ class Pixlovarr():
 
                     availability = str(self.availability[int(data[4])])
 
-                    media.add(
-                        int(data[5]),
-                        int(data[3]),
-                        True,
-                        True,
-                        availability,
-                        tags
-                    )
+                    try:
+                        media.add(
+                            int(data[5]),
+                            int(data[3]),
+                            True,
+                            True,
+                            availability,
+                            tags
+                        )
+
+                    except exceptions.Exists:
+                        self.sendmessage(
+                            update.effective_chat.id,
+                            context,
+                            update.effective_user.first_name,
+                            f"The {data[1]} {media.title} was already "
+                            f"found on the server, "
+                            f"{update.effective_user.first_name}. "
+                            f"So the {data[1]} can't be added twice."
+                        )
 
                     self.notifyDownload(
                         update, context, data[1], media.title, media.year)
