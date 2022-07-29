@@ -33,7 +33,7 @@ Version 1.19.0.2868
 
 Version 1.18.1.2611
 
-* New: PRUNE_CRON added as environment variable. Sets the CRON for pruning. If not set: default is 0 4 * * *
+* New: PRUNE_CRON added as environment variable. Sets the CRON for pruning. If not set: default is "0 4 \* \* \*"
 * New: Prune log gets written to /log (tip: Set Volume in on startup-script)
 * New: Prune log gets mailed if enabled in INI file
 * New: Pixlovarr log written to /log
