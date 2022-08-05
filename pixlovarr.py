@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3377"
+        self.version = "1.20.2.3378"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -507,7 +507,7 @@ class Pixlovarr():
         else:
             image = self.urlNoImage
 
-        logging.info(f"hier ==> {image}")
+        logging.info(f"hier ==>{image}<===")
 
         caption = f"{media.title} ({media.year})"
         context.bot.send_photo(
