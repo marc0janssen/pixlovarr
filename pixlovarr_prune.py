@@ -198,7 +198,7 @@ class RLP():
 
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
-        if set(movie.tagsIds) & set(tagsIDs_to_keep): 
+        if set(movie.tagsIds) & set(tagsIDs_to_keep):
             if not self.only_show_remove_messages:
 
                 txtKeeping = (
