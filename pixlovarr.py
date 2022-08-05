@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3379"
+        self.version = "1.20.2.3381"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -507,15 +507,19 @@ class Pixlovarr():
         else:
             image = self.urlNoImage
 
-        logging.info(f"hier ==>{image}<===")
-
-        image = self.urlNoImage
-
         caption = f"{media.title} ({media.year})"
-        context.bot.send_photo(
-            chat_id=update.effective_chat.id,
-            photo=image, caption=caption
-        )
+        
+        try:
+            context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=image, caption=caption
+            )
+        except error.BadRequest:
+            image = self.urlNoImage
+            context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=image, caption=caption
+            )
 
         try:
             if media.overview:
