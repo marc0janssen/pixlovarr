@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3385"
+        self.version = "1.20.2.3386"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -506,8 +506,6 @@ class Pixlovarr():
                     else media.images[0].remoteUrl
         else:
             image = self.urlNoImage
-
-        logging.info(type(image))
 
         caption = f"{media.title} ({media.year})"
 
