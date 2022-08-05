@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3381"
+        self.version = "1.20.2.3384"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -508,7 +508,7 @@ class Pixlovarr():
             image = self.urlNoImage
 
         caption = f"{media.title} ({media.year})"
-        
+
         try:
             context.bot.send_photo(
                 chat_id=update.effective_chat.id,
