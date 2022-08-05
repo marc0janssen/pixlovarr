@@ -1,6 +1,10 @@
 # Pixlovarr Changelog
 
-2022-05-04 20:20:40
+2022-08-04 21:53
+
+Version 1.20.2.3384
+
+* Fixed: Images were not displayed when URL was faulty
 
 Version 1.20.2.3373
 
