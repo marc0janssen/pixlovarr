@@ -198,16 +198,16 @@ class RLP():
 
         # check if ONE of the "KEEP" tags is
         # in the set of "MOVIE TAGS"
-        if set(movie.tagsIds) & set(tagsIDs_to_keep) and \
-                not self.only_show_remove_messages:
+        if set(movie.tagsIds) & set(tagsIDs_to_keep): 
+            if not self.only_show_remove_messages:
 
-            txtKeeping = (
-                f"Prune - KEEPING - {movie.title} ({movie.year})."
-                f" Skipping."
-            )
+                txtKeeping = (
+                    f"Prune - KEEPING - {movie.title} ({movie.year})."
+                    f" Skipping."
+                )
 
-            self.writeLog(False, f"{txtKeeping}\n")
-            logging.info(txtKeeping)
+                self.writeLog(False, f"{txtKeeping}\n")
+                logging.info(txtKeeping)
 
         else:
 
