@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3426"
+        self.version = "1.20.2.3439"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1245,6 +1245,118 @@ class Pixlovarr():
                 f"Hi {update.effective_user.first_name}, "
                 f"your userid is {update.effective_user.id}."
             )
+
+    def addMediaToServer(
+            self,
+            update,
+            context,
+            typeOfMedia,
+            mediaID,
+            qualityID,
+            LangOrAvail,
+            rootFolder,
+            Seasons
+            ):
+
+        if typeOfMedia == "serie":
+            if self.sonarr_enabled:
+
+                self.logChoice(update, Seasons)
+
+                media = self.sonarrNode.get_series(tvdb_id=mediaID)
+
+                self.pixlovarrdata["stitle"] = media.title
+                self.savedata(
+                    self.pixlovarr_data_file, self.pixlovarrdata)
+
+                # get usertag from server and to movie
+                usertagID = self.getUsertagID(update, typeOfMedia)
+                if not usertagID:
+                    tagName = self.createTagName(
+                        update.effective_user.first_name,
+                        update.effective_user.id
+                    )
+
+                    newTag = self.sonarrNode.create_tag(tagName)
+                    usertagID = newTag.id
+
+                tags = []
+                tags.append(usertagID)
+
+                try:
+                    media.add(
+                        int(rootFolder),
+                        int(qualityID),
+                        int(LangOrAvail),
+                        Seasons,
+                        self.sonarr_season_folder,
+                        True,
+                        False,
+                        "standard",
+                        tags
+                    )
+
+                    self.notifyDownload(
+                        update, context, typeOfMedia, media.title, media.year)
+
+                except exceptions.Exists:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"The {typeOfMedia} '{media.title}' was already "
+                        f"found on the server, "
+                        f"{update.effective_user.first_name}. "
+                        f"So the {typeOfMedia} can't be added twice."
+                    )
+
+        else:
+            if self.radarr_enabled:
+                media = self.radarrNode.get_movie(imdb_id=mediaID)
+
+                self.pixlovarrdata["mtitle"] = media.title
+                self.savedata(
+                    self.pixlovarr_data_file, self.pixlovarrdata)
+
+                # get usertag from server and to movie
+                usertagID = self.getUsertagID(update, typeOfMedia)
+                if not usertagID:
+                    tagName = self.createTagName(
+                        update.effective_user.first_name,
+                        update.effective_user.id
+                    )
+
+                    newTag = self.radarrNode.create_tag(tagName)
+                    usertagID = newTag.id
+
+                tags = []
+                tags.append(usertagID)
+
+                availability = str(self.availability[int(LangOrAvail)])
+
+                try:
+                    media.add(
+                        int(rootFolder),
+                        int(qualityID),
+                        True,
+                        True,
+                        availability,
+                        tags
+                    )
+
+                    self.notifyDownload(
+                        update, context, typeOfMedia, media.title, media.year)
+
+                except exceptions.Exists:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"The {typeOfMedia} '{media.title} ({media.year})'"
+                        f" was already found on the server, "
+                        f"{update.effective_user.first_name}. "
+                        f"So the {typeOfMedia} can't be added twice."
+                    )
 
 # Member Commands
 
@@ -2829,7 +2941,7 @@ class Pixlovarr():
             # 1:type of media,
             # 2:mediaid
             # 3:qualityid,
-            # 4:Langausge Profile / Availability
+            # 4:Language Profile / Availability
             # 5:rootfolder
             # 6:Download which seasons?
 
@@ -2840,105 +2952,16 @@ class Pixlovarr():
                 "Please be patient..."
             )
 
-            if data[1] == "serie":
-                if self.sonarr_enabled:
-
-                    self.logChoice(update, data[6])
-
-                    media = self.sonarrNode.get_series(tvdb_id=data[2])
-
-                    self.pixlovarrdata["stitle"] = media.title
-                    self.savedata(
-                        self.pixlovarr_data_file, self.pixlovarrdata)
-
-                    # get usertag from server and to movie
-                    usertagID = self.getUsertagID(update, data[1])
-                    if not usertagID:
-                        tagName = self.createTagName(
-                            update.effective_user.first_name,
-                            update.effective_user.id
-                        )
-
-                        newTag = self.sonarrNode.create_tag(tagName)
-                        usertagID = newTag.id
-
-                    tags = []
-                    tags.append(usertagID)
-
-                    try:
-                        media.add(
-                            int(data[5]),
-                            int(data[3]),
-                            int(data[4]),
-                            data[6],
-                            self.sonarr_season_folder,
-                            True,
-                            False,
-                            "standard",
-                            tags
-                        )
-
-                        self.notifyDownload(
-                            update, context, data[1], media.title, media.year)
-
-                    except exceptions.Exists:
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"The {data[1]} '{media.title}' was already "
-                            f"found on the server, "
-                            f"{update.effective_user.first_name}. "
-                            f"So the {data[1]} can't be added twice."
-                        )
-
-            else:
-                if self.radarr_enabled:
-                    media = self.radarrNode.get_movie(imdb_id=data[2])
-
-                    self.pixlovarrdata["mtitle"] = media.title
-                    self.savedata(
-                        self.pixlovarr_data_file, self.pixlovarrdata)
-
-                    # get usertag from server and to movie
-                    usertagID = self.getUsertagID(update, data[1])
-                    if not usertagID:
-                        tagName = self.createTagName(
-                            update.effective_user.first_name,
-                            update.effective_user.id
-                        )
-
-                        newTag = self.radarrNode.create_tag(tagName)
-                        usertagID = newTag.id
-
-                    tags = []
-                    tags.append(usertagID)
-
-                    availability = str(self.availability[int(data[4])])
-
-                    try:
-                        media.add(
-                            int(data[5]),
-                            int(data[3]),
-                            True,
-                            True,
-                            availability,
-                            tags
-                        )
-
-                        self.notifyDownload(
-                            update, context, data[1], media.title, media.year)
-
-                    except exceptions.Exists:
-                        self.sendmessage(
-                            update.effective_chat.id,
-                            context,
-                            update.effective_user.first_name,
-                            f"The {data[1]} '{media.title} ({media.year})'"
-                            f" was already found on the server, "
-                            f"{update.effective_user.first_name}. "
-                            f"So the {data[1]} can't be added twice."
-                        )
+            self.addMediaToServer(
+                update,
+                context,
+                data[1],
+                data[2],
+                data[3],
+                data[4],
+                data[5],
+                data[6]
+                )
 
     def showDownloadSummary(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
