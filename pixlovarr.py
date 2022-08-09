@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3386"
+        self.version = "1.20.2.3426"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1120,6 +1120,7 @@ class Pixlovarr():
                     self.person['lname'] = update.effective_user.last_name
                     self.person['uname'] = update.effective_user.username
                     self.person['id'] = str(update.effective_user.id)
+                    self.person['account'] = "simple"
 
                     self.signups[self.person['id']] = self.person
 
@@ -2460,13 +2461,13 @@ class Pixlovarr():
 
                     for lang in languages:
                         if lang.id == int(data[4]):
-                            self.logChoice(update, lang.name)
+                            self.logChoice(update, f"{lang.name} - {lang.id}")
             else:
                 if self.radarr_enabled:
                     root_paths = self.radarrNode.root_folder()
 
                     availability = str(self.availability[int(data[4])])
-                    self.logChoice(update, availability)
+                    self.logChoice(update, f"{availability} - {data[4]}")
 
             if root_paths:
 
@@ -2535,7 +2536,7 @@ class Pixlovarr():
 
                     for p in profiles:
                         if p.id == int(data[3]):
-                            self.logChoice(update, p.name)
+                            self.logChoice(update, f"{p.name} - {p.id}")
             else:
                 if self.radarr_enabled:
                     pass
@@ -2592,7 +2593,7 @@ class Pixlovarr():
 
                     for p in profiles:
                         if p.id == int(data[3]):
-                            self.logChoice(update, p.name)
+                            self.logChoice(update, f"{p.name} - {p.id}")
 
             if self.availability:
 
@@ -3028,7 +3029,7 @@ class Pixlovarr():
                     root_paths = self.sonarrNode.root_folder()
                     for r in root_paths:
                         if r.id == int(data[5]):
-                            self.logChoice(update, r.path)
+                            self.logChoice(update, f"{r.path} - {r.id}")
 
                     keyboard = [
                         [InlineKeyboardButton(
@@ -3062,7 +3063,7 @@ class Pixlovarr():
                     root_paths = self.radarrNode.root_folder()
                     for r in root_paths:
                         if r.id == int(data[5]):
-                            self.logChoice(update, r.path)
+                            self.logChoice(update, f"{r.path} - {r.id}")
 
                     media = self.radarrNode.get_movie(imdb_id=data[2])
                     keyboard = [[InlineKeyboardButton(
