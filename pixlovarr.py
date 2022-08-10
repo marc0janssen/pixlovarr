@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.0.3509"
+        self.version = "1.5.0.3510"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1306,7 +1306,7 @@ class Pixlovarr():
                             "Download first season",
                             callback_data=f"{callbackdata}:firstSeason")],
                         [InlineKeyboardButton(
-                            "Download lastest season",
+                            "Download latest season",
                             callback_data=f"{callbackdata}:latestSeason")],
                         [InlineKeyboardButton(
                             "Download no seasons",
@@ -1321,7 +1321,7 @@ class Pixlovarr():
                             "Download first season",
                             callback_data=f"{callbackdata}:firstSeason")],
                         [InlineKeyboardButton(
-                            "Download lastest season",
+                            "Download latest season",
                             callback_data=f"{callbackdata}:latestSeason")],
                     ]
 
