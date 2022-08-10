@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3452"
+        self.version = "1.20.2.3456"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -3048,18 +3048,24 @@ class Pixlovarr():
                     profiles = self.sonarrNode.quality_profile()
                     callbackdata = f"selectlang:{data[1]}:{data[2]}"
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
+                    Quality = 1
+                    Language = 1
+                    RootFolder = 1
 
             else:
                 if self.radarr_enabled:
                     profiles = self.radarrNode.quality_profile()
                     callbackdata = f"selectAvailability:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
+                    Quality = 1
+                    Language = 2
+                    RootFolder = 2
 
             self.logChoice(update, f"{media.title} ({media.year})")
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            if False:
+            if True:
 
                 keyboard = []
                 row = []
@@ -3113,9 +3119,9 @@ class Pixlovarr():
                     query,
                     data[1],
                     data[2],
-                    1,
-                    2,
-                    2
+                    Quality,
+                    Language,
+                    RootFolder
                 )
 
     def selectDownload(self, update, context):
