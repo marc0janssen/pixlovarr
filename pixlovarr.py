@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3505"
+        self.version = "1.20.2.3508"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1278,44 +1278,62 @@ class Pixlovarr():
         if typeOfMedia == "serie":
             if self.sonarr_enabled:
 
-                root_paths = self.sonarrNode.root_folder()
-                for r in root_paths:
-                    if r.id == int(RootFolder):
-                        self.logChoice(update, f"{r.path} - {r.id}")
+                if self.members[str(
+                        update.effective_user.id)]['account'] == "normal":
 
-                keyboard = [
-                    [InlineKeyboardButton(
-                        "Download All seasons",
-                        callback_data=f"{callbackdata}:all")],
-                    [InlineKeyboardButton(
-                        "Download Future seasons",
-                        callback_data=f"{callbackdata}:future")],
-                    [InlineKeyboardButton(
-                        "Download missing seasons",
-                        callback_data=f"{callbackdata}:missing")],
-                    [InlineKeyboardButton(
-                        "Download existing seasons",
-                        callback_data=f"{callbackdata}:existing")],
-                    [InlineKeyboardButton(
-                        "Download only pilot episode",
-                        callback_data=f"{callbackdata}:pilot")],
-                    [InlineKeyboardButton(
-                        "Download first season",
-                        callback_data=f"{callbackdata}:firstSeason")],
-                    [InlineKeyboardButton(
-                        "Download lastest season",
-                        callback_data=f"{callbackdata}:latestSeason")],
-                    [InlineKeyboardButton(
-                        "Download no seasons",
-                        callback_data=f"{callbackdata}:none")]
-                ]
+                    root_paths = self.sonarrNode.root_folder()
+                    for r in root_paths:
+                        if r.id == int(RootFolder):
+                            self.logChoice(update, f"{r.path} - {r.id}")
+
+                    keyboard = [
+                        [InlineKeyboardButton(
+                            "Download All seasons",
+                            callback_data=f"{callbackdata}:all")],
+                        [InlineKeyboardButton(
+                            "Download Future seasons",
+                            callback_data=f"{callbackdata}:future")],
+                        [InlineKeyboardButton(
+                            "Download missing seasons",
+                            callback_data=f"{callbackdata}:missing")],
+                        [InlineKeyboardButton(
+                            "Download existing seasons",
+                            callback_data=f"{callbackdata}:existing")],
+                        [InlineKeyboardButton(
+                            "Download only pilot episode",
+                            callback_data=f"{callbackdata}:pilot")],
+                        [InlineKeyboardButton(
+                            "Download first season",
+                            callback_data=f"{callbackdata}:firstSeason")],
+                        [InlineKeyboardButton(
+                            "Download lastest season",
+                            callback_data=f"{callbackdata}:latestSeason")],
+                        [InlineKeyboardButton(
+                            "Download no seasons",
+                            callback_data=f"{callbackdata}:none")]
+                    ]
+                else:
+                    keyboard = [
+                        [InlineKeyboardButton(
+                            "Download only pilot episode",
+                            callback_data=f"{callbackdata}:pilot")],
+                        [InlineKeyboardButton(
+                            "Download first season",
+                            callback_data=f"{callbackdata}:firstSeason")],
+                        [InlineKeyboardButton(
+                            "Download lastest season",
+                            callback_data=f"{callbackdata}:latestSeason")],
+                    ]
+
         else:
             if self.radarr_enabled:
 
-                root_paths = self.radarrNode.root_folder()
-                for r in root_paths:
-                    if r.id == int(RootFolder):
-                        self.logChoice(update, f"{r.path} - {r.id}")
+                if self.members[str(
+                        update.effective_user.id)]['account'] == "normal":
+                    root_paths = self.radarrNode.root_folder()
+                    for r in root_paths:
+                        if r.id == int(RootFolder):
+                            self.logChoice(update, f"{r.path} - {r.id}")
 
                 media = self.radarrNode.get_movie(imdb_id=mediaID)
                 keyboard = [[InlineKeyboardButton(
