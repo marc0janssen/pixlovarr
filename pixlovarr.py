@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3456"
+        self.version = "1.20.2.3462"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1253,13 +1253,13 @@ class Pixlovarr():
             typeOfMedia,
             mediaID,
             Quality,
-            Language,
+            LangOrAvail,
             RootFolder
             ):
 
         callbackdata = (
             f"downloadmedia:{typeOfMedia}:{mediaID}:{Quality}:"
-            f"{Language}:{RootFolder}"
+            f"{LangOrAvail}:{RootFolder}"
         )
 
         if typeOfMedia == "serie":
@@ -3049,7 +3049,7 @@ class Pixlovarr():
                     callbackdata = f"selectlang:{data[1]}:{data[2]}"
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
                     Quality = 1
-                    Language = 1
+                    LangOrAvail = 1
                     RootFolder = 1
 
             else:
@@ -3058,12 +3058,14 @@ class Pixlovarr():
                     callbackdata = f"selectAvailability:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
                     Quality = 1
-                    Language = 2
+                    LangOrAvail = 2
                     RootFolder = 2
 
             self.logChoice(update, f"{media.title} ({media.year})")
 
             self.outputMediaInfo(update, context, data[1], media)
+
+            logging.info(self.members[update.effective_chat.id]["account"])
 
             if True:
 
@@ -3120,7 +3122,7 @@ class Pixlovarr():
                     data[1],
                     data[2],
                     Quality,
-                    Language,
+                    LangOrAvail,
                     RootFolder
                 )
 
