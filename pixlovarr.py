@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.5.0.3510"
+        self.version = "1.5.0.3514"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1506,9 +1506,17 @@ class Pixlovarr():
                     update.effective_user.id)]['account'] == "normal":
                 self.members[str(
                     update.effective_user.id)]['account'] = "simple"
+                txtMsg = (
+                    "This means you have less choices when downloading but you"
+                    " can quickly configure a download for a movie or series"
+                    )
             else:
                 self.members[str(
                     update.effective_user.id)]['account'] = "normal"
+                txtMsg = (
+                    "This means you have more choices when downloading and you"
+                    " have more control how you download a movie or series"
+                    )
 
             self.savedata(self.pixlovarr_members_file, self.members)
 
@@ -1519,7 +1527,7 @@ class Pixlovarr():
                 f"Hi {update.effective_user.first_name}, your account was "
                 f"toggled to a "
                 f"{self.members[str(update.effective_user.id)]['account']}"
-                f" account."
+                f" account. {txtMsg}"
             )
 
     def buymeacoffee(self, update, context):
