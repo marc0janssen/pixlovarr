@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3448"
+        self.version = "1.20.2.3452"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -3059,51 +3059,64 @@ class Pixlovarr():
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            keyboard = []
-            row = []
-            num_columns = 2
+            if False:
 
-            if profiles:
+                keyboard = []
+                row = []
+                num_columns = 2
 
-                profiles.sort(key=self.sortOnNameDict)
+                if profiles:
 
-                for count, p in enumerate(profiles):
-                    if data[1] == "serie":
-                        row.append(InlineKeyboardButton(
-                            f"{p.name}",
-                            callback_data=f"{callbackdata}:{p.id}")
-                        )
-                    else:
-                        row.append(InlineKeyboardButton(
-                            f"{p.name}",
-                            callback_data=f"{callbackdata}:{p.id}")
-                        )
+                    profiles.sort(key=self.sortOnNameDict)
 
-                    if (count+1) % num_columns == 0 or \
-                            count == len(profiles)-1:
-                        keyboard.append(row)
-                        row = []
+                    for count, p in enumerate(profiles):
+                        if data[1] == "serie":
+                            row.append(InlineKeyboardButton(
+                                f"{p.name}",
+                                callback_data=f"{callbackdata}:{p.id}")
+                            )
+                        else:
+                            row.append(InlineKeyboardButton(
+                                f"{p.name}",
+                                callback_data=f"{callbackdata}:{p.id}")
+                            )
 
-            else:
-                self.sendmessage(
-                    update.effective_chat.id,
-                    context,
-                    update.effective_user.first_name,
-                    f"No profiles were found, Please set them up in"
-                    f"Sonarr and Radarr, "
-                    f"{update.effective_user.first_name}."
+                        if (count+1) % num_columns == 0 or \
+                                count == len(profiles)-1:
+                            keyboard.append(row)
+                            row = []
+
+                else:
+                    self.sendmessage(
+                        update.effective_chat.id,
+                        context,
+                        update.effective_user.first_name,
+                        f"No profiles were found, Please set them up in"
+                        f"Sonarr and Radarr, "
+                        f"{update.effective_user.first_name}."
+                    )
+
+                    return
+
+                reply_markup = InlineKeyboardMarkup(keyboard)
+
+                self.replytext(
+                    query,
+                    "Please select media quality:",
+                    reply_markup,
+                    False
                 )
+            else:
 
-                return
-
-            reply_markup = InlineKeyboardMarkup(keyboard)
-
-            self.replytext(
-                query,
-                "Please select media quality:",
-                reply_markup,
-                False
-            )
+                self.showDownloadButtons(
+                    update,
+                    query,
+                    data[1],
+                    data[2],
+                    1,
+                    2,
+                    2
+                )
 
     def selectDownload(self, update, context):
         if not self.isBlocked(update) and self.isGranted(update):
