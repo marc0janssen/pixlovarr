@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3439"
+        self.version = "1.20.2.3448"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1120,7 +1120,7 @@ class Pixlovarr():
                     self.person['lname'] = update.effective_user.last_name
                     self.person['uname'] = update.effective_user.username
                     self.person['id'] = str(update.effective_user.id)
-                    self.person['account'] = "simple"
+                    self.person['account'] = "normal"
 
                     self.signups[self.person['id']] = self.person
 
@@ -1245,6 +1245,78 @@ class Pixlovarr():
                 f"Hi {update.effective_user.first_name}, "
                 f"your userid is {update.effective_user.id}."
             )
+
+    def showDownloadButtons(
+            self,
+            update,
+            query,
+            typeOfMedia,
+            mediaID,
+            Quality,
+            Language,
+            RootFolder
+            ):
+
+        callbackdata = (
+            f"downloadmedia:{typeOfMedia}:{mediaID}:{Quality}:"
+            f"{Language}:{RootFolder}"
+        )
+
+        if typeOfMedia == "serie":
+            if self.sonarr_enabled:
+
+                root_paths = self.sonarrNode.root_folder()
+                for r in root_paths:
+                    if r.id == int(RootFolder):
+                        self.logChoice(update, f"{r.path} - {r.id}")
+
+                keyboard = [
+                    [InlineKeyboardButton(
+                        "Download All seasons",
+                        callback_data=f"{callbackdata}:all")],
+                    [InlineKeyboardButton(
+                        "Download Future seasons",
+                        callback_data=f"{callbackdata}:future")],
+                    [InlineKeyboardButton(
+                        "Download missing seasons",
+                        callback_data=f"{callbackdata}:missing")],
+                    [InlineKeyboardButton(
+                        "Download existing seasons",
+                        callback_data=f"{callbackdata}:existing")],
+                    [InlineKeyboardButton(
+                        "Download only pilot episode",
+                        callback_data=f"{callbackdata}:pilot")],
+                    [InlineKeyboardButton(
+                        "Download first season",
+                        callback_data=f"{callbackdata}:firstSeason")],
+                    [InlineKeyboardButton(
+                        "Download lastest season",
+                        callback_data=f"{callbackdata}:latestSeason")],
+                    [InlineKeyboardButton(
+                        "Download no seasons",
+                        callback_data=f"{callbackdata}:none")]
+                ]
+        else:
+            if self.radarr_enabled:
+
+                root_paths = self.radarrNode.root_folder()
+                for r in root_paths:
+                    if r.id == int(RootFolder):
+                        self.logChoice(update, f"{r.path} - {r.id}")
+
+                media = self.radarrNode.get_movie(imdb_id=mediaID)
+                keyboard = [[InlineKeyboardButton(
+                    f"Download '{media.title} ({media.year})'",
+                    callback_data=f"{callbackdata}:False")]]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        self.replytext(
+            query,
+            "Please confirm:",
+            reply_markup,
+            False
+        )
 
     def addMediaToServer(
             self,
@@ -3041,65 +3113,14 @@ class Pixlovarr():
             # 0:marker, 1:type of media, 2:mediaid, 3: Quality
             # 4: Langauge Profile, 5: RootFolder
 
-            callbackdata = (
-                f"downloadmedia:{data[1]}:{data[2]}:{data[3]}:"
-                f"{data[4]}:{data[5]}"
-            )
-
-            if data[1] == "serie":
-                if self.sonarr_enabled:
-
-                    root_paths = self.sonarrNode.root_folder()
-                    for r in root_paths:
-                        if r.id == int(data[5]):
-                            self.logChoice(update, f"{r.path} - {r.id}")
-
-                    keyboard = [
-                        [InlineKeyboardButton(
-                            "Download All seasons",
-                            callback_data=f"{callbackdata}:all")],
-                        [InlineKeyboardButton(
-                            "Download Future seasons",
-                            callback_data=f"{callbackdata}:future")],
-                        [InlineKeyboardButton(
-                            "Download missing seasons",
-                            callback_data=f"{callbackdata}:missing")],
-                        [InlineKeyboardButton(
-                            "Download existing seasons",
-                            callback_data=f"{callbackdata}:existing")],
-                        [InlineKeyboardButton(
-                            "Download only pilot episode",
-                            callback_data=f"{callbackdata}:pilot")],
-                        [InlineKeyboardButton(
-                            "Download first season",
-                            callback_data=f"{callbackdata}:firstSeason")],
-                        [InlineKeyboardButton(
-                            "Download lastest season",
-                            callback_data=f"{callbackdata}:latestSeason")],
-                        [InlineKeyboardButton(
-                            "Download no seasons",
-                            callback_data=f"{callbackdata}:none")]
-                    ]
-            else:
-                if self.radarr_enabled:
-
-                    root_paths = self.radarrNode.root_folder()
-                    for r in root_paths:
-                        if r.id == int(data[5]):
-                            self.logChoice(update, f"{r.path} - {r.id}")
-
-                    media = self.radarrNode.get_movie(imdb_id=data[2])
-                    keyboard = [[InlineKeyboardButton(
-                        f"Download '{media.title} ({media.year})'",
-                        callback_data=f"{callbackdata}:False")]]
-
-            reply_markup = InlineKeyboardMarkup(keyboard)
-
-            self.replytext(
+            self.showDownloadButtons(
+                update,
                 query,
-                "Please confirm:",
-                reply_markup,
-                False
+                data[1],
+                data[2],
+                data[3],
+                data[4],
+                data[5]
             )
 
     def findMedia(self, update, context, query, typeOfMedia, args):
