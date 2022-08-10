@@ -81,6 +81,7 @@ You can later use the tagged media to your liking.
                 /mc - Show movies calendar
                 /sts - Service status info
                 /rss - Trigger RSS fetching
+                /ta - Toggele your account
                 /smm - Trigger missing media search
 
                 /coffee - Buy me a coffee
@@ -201,6 +202,9 @@ In the directory /config the python script expects a config file called 'pixlova
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag3,tag4
         TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag5,tag6
+        DEFAULT_QUALITY_ID = 1
+        DEFAULT_LANGUAGE_ID = 1
+        DEFAULT_ROOTFOLDER_ID = 1
 
         [RADARR]
         ENABLED = OFF
@@ -211,6 +215,9 @@ In the directory /config the python script expects a config file called 'pixlova
         PERIOD_DAYS_ADDED_NEW_DOWLOAD = 5
         TAGS_KEEP_MOVIES_ANYWAY = tag9,tag10
         TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL = tag11,ta12
+        DEFAULT_QUALITY_ID = 1
+        DEFAULT_AVAILABILITY_ID = 1
+        DEFAULT_ROOTFOLDER_ID = 1
 
         [PRUNE]
         ENABLED = OFF
