@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3462"
+        self.version = "1.20.2.3464"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -3065,7 +3065,8 @@ class Pixlovarr():
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            logging.info(self.members[update.effective_chat.id]["account"])
+            logging.info(self.members[update.effective_chat.id]['fname'])
+            # self.members[data[2]]['fname']
 
             if True:
 
