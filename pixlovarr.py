@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3472"
+        self.version = "1.20.2.3495"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -1463,6 +1463,32 @@ class Pixlovarr():
                 context,
                 update.effective_user.first_name,
                 txtRSSsync
+            )
+
+    def toggleaccount(self, update, context):
+
+        self.logCommand(update)
+
+        if not self.isBlocked(update) and self.isGranted(update):
+
+            if self.members[str(
+                    update.effective_user.id)]['account'] == "normal":
+                self.members[str(
+                    update.effective_user.id)]['account'] = "simple"
+            else:
+                self.members[str(
+                    update.effective_user.id)]['account'] = "normal"
+
+            self.savedata(self.pixlovarr_members_file, self.members)
+
+            self.sendmessage(
+                update.effective_chat.id,
+                context,
+                update.effective_user.first_name,
+                f"Hi {update.effective_user.first_name}, the account was"
+                f"toggled to a"
+                f"{self.members[str(update.effective_user.id)]['account']}"
+                f"account."
             )
 
     def buymeacoffee(self, update, context):
@@ -3065,10 +3091,8 @@ class Pixlovarr():
 
             self.outputMediaInfo(update, context, data[1], media)
 
-            logging.info(
-                self.members[str(update.effective_user.id)]['account'])
-
-            if True:
+            if self.members[str(
+                    update.effective_user.id)]['account'] == "normal":
 
                 keyboard = []
                 row = []
@@ -3450,6 +3474,10 @@ class Pixlovarr():
         self.searchMissingMedia_handler = \
             CommandHandler('smm', self.searchMissingMedia)
         self.dispatcher.add_handler(self.searchMissingMedia_handler)
+
+        self.toggleaccount_handler = CommandHandler('ta', self.toggleaccount)
+        self.dispatcher.add_handler(self.toggleaccount_handler)
+
 
 # Keyboard Handlers
 
