@@ -1,6 +1,11 @@
 # Pixlovarr Changelog
 
-2022-08-04 21:53
+2022-08-10 20:28:46
+
+Version 1.50.0.00000
+
+* Added: Toggle account (/ta): use default choices in the INI file for downloading media (no repetitive choices)
+* Fixed: typos
 
 Version 1.20.2.3384
 
