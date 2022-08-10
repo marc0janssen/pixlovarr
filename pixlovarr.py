@@ -46,7 +46,7 @@ class Pixlovarr():
 
     def __init__(self):
 
-        self.version = "1.20.2.3495"
+        self.version = "1.20.2.3505"
         self.startTime = datetime.now()
         config_dir = "./config/"
         app_dir = "./app/"
@@ -139,6 +139,12 @@ class Pixlovarr():
                 self.tags_to_extend_sonarr = list(
                     self.config['SONARR']
                     ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
+                self.sonarr_default_quality_id = \
+                    int(self.config['SONARR']['DEFAULT_QUALITY_ID'])
+                self.sonarr_default_language_id = \
+                    int(self.config['SONARR']['DEFAULT_LANGUAGE_ID'])
+                self.sonarr_default_rootfolder_id = \
+                    int(self.config['SONARR']['DEFAULT_ROOTFOLDER_ID'])
 
                 # RADARR
                 self.radarr_enabled = True if (
@@ -159,6 +165,12 @@ class Pixlovarr():
                 self.tags_to_extend_radarr = list(
                     self.config['RADARR']
                     ['TAGS_TO_EXTEND_PERIOD_BEFORE_REMOVAL'].split(","))
+                self.radarr_default_quality_id = \
+                    int(self.config['RADARR']['DEFAULT_QUALITY_ID'])
+                self.radarr_default_availability_id = \
+                    int(self.config['RADARR']['DEFAULT_AVAILABILITY_ID'])
+                self.radarr_default_rootfolder_id = \
+                    int(self.config['RADARR']['DEFAULT_ROOTFOLDER_ID'])
 
                 # PRUNE
                 self.extend_by_days = int(
@@ -1205,6 +1217,7 @@ class Pixlovarr():
                     "/mc - Show movies calendar\n"
                     "/sts - Service status info\n"
                     "/rss - Trigger RSS fetching\n"
+                    "/ta - Toggele your account\n"
                     "/smm - Trigger missing media search\n\n"
                     "/coffee - Buy me a coffee\n"
 
@@ -1485,10 +1498,10 @@ class Pixlovarr():
                 update.effective_chat.id,
                 context,
                 update.effective_user.first_name,
-                f"Hi {update.effective_user.first_name}, the account was"
-                f"toggled to a"
+                f"Hi {update.effective_user.first_name}, your account was "
+                f"toggled to a "
                 f"{self.members[str(update.effective_user.id)]['account']}"
-                f"account."
+                f" account."
             )
 
     def buymeacoffee(self, update, context):
@@ -3074,18 +3087,18 @@ class Pixlovarr():
                     profiles = self.sonarrNode.quality_profile()
                     callbackdata = f"selectlang:{data[1]}:{data[2]}"
                     media = self.sonarrNode.get_series(tvdb_id=data[2])
-                    Quality = 1
-                    LangOrAvail = 1
-                    RootFolder = 1
+                    Quality = self.sonarr_default_quality_id
+                    LangOrAvail = self.sonarr_default_language_id
+                    RootFolder = self.sonarr_default_rootfolder_id
 
             else:
                 if self.radarr_enabled:
                     profiles = self.radarrNode.quality_profile()
                     callbackdata = f"selectAvailability:{data[1]}:{data[2]}"
                     media = self.radarrNode.get_movie(imdb_id=data[2])
-                    Quality = 1
-                    LangOrAvail = 2
-                    RootFolder = 2
+                    Quality = self.radarr_default_quality_id
+                    LangOrAvail = self.radarr_default_quality_id
+                    RootFolder = self.radarr_default_rootfolder_id
 
             self.logChoice(update, f"{media.title} ({media.year})")
 
